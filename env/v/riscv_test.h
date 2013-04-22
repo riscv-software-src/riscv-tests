@@ -41,8 +41,6 @@ userstart:                                                              \
 #define RVTEST_PASS li a0, 1; syscall;
 #define RVTEST_FAIL sll a0, x28, 1; 1:beqz a0, 1b; or a0, a0, 1; syscall;
 
-#define RVTEST_PASS_NOFP li a0, 1234; syscall;
-
 //-----------------------------------------------------------------------
 // Data Section Macro
 //-----------------------------------------------------------------------

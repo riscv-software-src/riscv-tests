@@ -176,15 +176,6 @@ void handle_trap(trapframe_t* tf)
   if (tf->cause == CAUSE_SYSCALL)
   {
     int n = tf->gpr[18];
-    if (n == 1234) // TEST_PASS_NOFP
-    {
-      if (mfpcr(PCR_SR) & SR_EF)
-      {
-        tf->epc += 4;
-        goto out;
-      }
-      n = 1;
-    }
 
     for (long i = 1; i < MAX_TEST_PAGES; i++)
       evict(i*PGSIZE);

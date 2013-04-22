@@ -17,12 +17,6 @@
   mtfsr x0;                                                             \
 1:
 
-#define RVTEST_PASS_NOFP                                                \
-  RVTEST_FP_ENABLE                                                      \
-  bnez a0, 2f;                                                          \
-  RVTEST_PASS                                                           \
-2:                                                                      \
-
 #define RVTEST_VEC_ENABLE                                               \
   mfpcr a0, cr0;                                                        \
   ori   a0, a0, 4;                                                      \
