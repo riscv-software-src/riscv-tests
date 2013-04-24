@@ -1,0 +1,14 @@
+#=======================================================================
+# Makefrag for rv64si tests
+#-----------------------------------------------------------------------
+
+rv64si_sc_tests = \
+	coreid \
+
+rv64si_mc_tests = \
+	ipi \
+
+rv64si_p_tests = $(addprefix rv64si-p-, $(rv64si_sc_tests))
+rv64si_pm_tests = $(addprefix rv64si-pm-, $(rv64si_mc_tests))
+
+spike_tests += $(rv64si_p_tests) $(rv64si_pm_tests)

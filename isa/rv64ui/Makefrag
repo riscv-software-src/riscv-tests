@@ -1,0 +1,52 @@
+#=======================================================================
+# Makefrag for rv64ui tests
+#-----------------------------------------------------------------------
+
+rv64ui_sc_tests = \
+	add addi addiw addw \
+	amoadd_d amoand_d amomax_d amomaxu_d amomin_d amominu_d amoor_d amoswap_d \
+	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoswap_w \
+	and andi \
+	auipc \
+	beq bge bgeu blt bltu bne \
+	div divu divuw divw \
+	example simple \
+	fence_i \
+	j jal jalr jalr_j jalr_r \
+	lb lbu lh lhu lw lwu ld \
+	lui \
+	mul mulh mulhsu mulhu mulw \
+	or ori \
+	rem remu remuw remw \
+	sb sh sw sd \
+	sll slli slliw sllw \
+	slt slti sltiu sltu \
+	sra srai sraiw sraw \
+	srl srli srliw srlw \
+	sub subw \
+	xor xori \
+
+rv64ui_mc_tests = \
+	lrsc
+
+rv64ui_sc_vec_tests = \
+	add addi addiw addw \
+	and andi \
+	lui \
+	mul mulh mulhsu mulhu mulw \
+	or ori \
+	sll slli slliw sllw \
+	slt slti sltiu sltu \
+	sra srai sraiw sraw \
+	srl srli srliw srlw \
+	sub subw \
+	xor xori \
+
+rv64ui_p_tests = $(addprefix rv64ui-p-, $(rv64ui_sc_tests))
+rv64ui_pm_tests = $(addprefix rv64ui-pm-, $(rv64ui_mc_tests))
+rv64ui_v_tests = $(addprefix rv64ui-v-, $(rv64ui_sc_tests))
+rv64ui_p_vec_tests = $(addprefix rv64ui-p-vec-, $(rv64ui_sc_vec_tests))
+rv64ui_pt_vec_tests = $(addprefix rv64ui-pt-vec-, $(rv64ui_sc_vec_tests))
+rv64ui_v_vec_tests = $(addprefix rv64ui-v-vec-, $(rv64ui_sc_vec_tests))
+
+spike_tests += $(rv64ui_p_tests) $(rv64ui_pm_tests) $(rv64ui_v_tests) $(rv64ui_p_vec_tests) $(rv64ui_pt_vec_tests) $(rv64ui_v_vec_tests)
