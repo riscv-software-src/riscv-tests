@@ -1,11 +1,6 @@
 #ifndef __TEST_MACROS_VECTOR_H
 #define __TEST_MACROS_VECTOR_H
 
-#define TEST_DATA \
-        .data; \
-        .align 3; \
-dst: \
-        .skip 16384; \
 
 #-----------------------------------------------------------------------
 # Helper macros
@@ -56,6 +51,11 @@ next ## testnum :
 #define TEST_INSERT_NOPS_8  nop; TEST_INSERT_NOPS_7
 #define TEST_INSERT_NOPS_9  nop; TEST_INSERT_NOPS_8
 #define TEST_INSERT_NOPS_10 nop; TEST_INSERT_NOPS_9
+
+
+#-----------------------------------------------------------------------
+# RV64UI MACROS
+#-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
 # Tests for instructions with immediate operand
@@ -205,184 +205,10 @@ next ## testnum :
       inst x0, x1, x2; \
     )
 
+
 #-----------------------------------------------------------------------
-# Test branch instructions
+# RV64UF MACROS
 #-----------------------------------------------------------------------
-
-#define TEST_BR2_OP_TAKEN( testnum, inst, val1, val2) \
-    TEST_CASE_NREG( testnum, 4, 0, x3, 0, \
-      li x1, val1; \
-      li x2, val2; \
-      add x3, x0, x0; \
-      inst x1, x2, 2f; \
-      addi x3, x3, 1; \
-1:    j 3f; \
-      addi x3, x3, 4; \
-2:    inst x1, x2, 1b; \
-      addi x3, x3, 2; \
-3: \
-    )
-
-#define TEST_BR2_OP_NOTTAKEN( testnum, inst, val1, val2 ) \
-  TEST_CASE_NREG( testnum, 4, 0, x3, 0, \
-    li  x1, val1; \
-    li  x2, val2; \
-    add x3, x0, x0; \
-    inst x1, x2, 1f; \
-    j 2f; \
-1:  addi x3, x3, 1; \
-    j 3f; \
-2:  inst x1, x2, 1b; \
-3: \
-                  )
-
-#define TEST_BR2_SRC12_BYPASS( testnum, src1_nops, src2_nops, inst, val1, val2 ) \
-  TEST_CASE_NREG( testnum, 6, 0, x3, 0, \
-    add x3, x0, x0; \
-    li  x4, 0; \
-1:  li  x1, val1; \
-    TEST_INSERT_NOPS_ ## src1_nops \
-    li  x2, val2; \
-    TEST_INSERT_NOPS_ ## src2_nops \
-    inst x1, x2, 2f; \
-    addi  x4, x4, 1; \
-    li  x5, 2; \
-    bne x4, x5, 1b; \
-    j 3f; \
-2:  add x3, x3, 1; \
-3:  \
-  )
-
-#define TEST_BR2_SRC21_BYPASS( testnum, src1_nops, src2_nops, inst, val1, val2 ) \
-  TEST_CASE_NREG( testnum, 6, 0, x3, 0, \
-    add x3, x0, x0; \
-    li  x4, 0; \
-1:  li  x2, val2; \
-    TEST_INSERT_NOPS_ ## src1_nops \
-    li  x1, val1; \
-    TEST_INSERT_NOPS_ ## src2_nops \
-    inst x1, x2, 2f; \
-    addi  x4, x4, 1; \
-    li  x5, 2; \
-    bne x4, x4, 1b; \
-    j 3f; \
-2:  add x3, x3, 1; \
-3: \
-                  )
-
-#define TEST_BR2_DIVERGED_ODD_EVEN( testnum, inst, n, result, code...)   \
-  TEST_CASE_NREG( testnum, 5, 0, x3, result, \
-    utidx x1; \
-    andi x2, x1, 1;\
-    add x3, x0, x0; \
-    li x4, n; \
-1: \
-    beq x0, x2, 2f; \
-    code; \
-    j 3f; \
-2: \
-    code; \
-3: \
-    addi x4, x4, -1; \
-    bne x4, x0, 1b; \
-                  )
-
-#define TEST_BR2_DIVERGED_FULL12( testnum, inst, n, result, code... )    \
-  TEST_CASE_NREG( testnum, 5, 0, x3, result, \
-    utidx x1; \
-    sltiu x2, x1, 1; \
-    add x3, x0, x0; \
-    li x4, n; \
-1: \
-    inst x2, x4, 2f; \
-    addi x1, x1, -1; \
-    sltiu x2, x1, 1; \
-    j 1b; \
-2: \
-    code; \
-                 )
-
-#define TEST_BR2_DIVERGED_FULL21( testnum, inst, n, result, code... )    \
-  TEST_CASE_NREG( testnum, 5, 0, x3, result, \
-    utidx x1; \
-    sltiu x2, x1, 1; \
-    add x3, x0, x0; \
-    li x4, n; \
-1: \
-    inst x4, x2, 2f; \
-    addi x1, x1, -1; \
-    sltiu x2, x1, 1; \
-    j 1b; \
-2: \
-    code; \
-                 )
-
-#define TEST_CASE_NREG_MEM( testnum, nxreg, nfreg, correctval, code... ) \
-test_ ## testnum: \
-  li a3,2048; \
-  vvcfgivl a3,a3,nxreg,nfreg; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
-  la a4,dst; \
-  fence.v.l; \
-  li a1,correctval; \
-  li a2,0; \
-  li x28, testnum; \
-test_loop ## testnum: \
-  ld a0,0(a4); \
-  beq a0,a1,skip ## testnum; \
-  j fail; \
-skip ## testnum : \
-  addi a4,a4,8; \
-  addi a2,a2,1; \
-  bne a2,a3,test_loop ## testnum; \
-  j next ## testnum; \
-vtcode ## testnum : \
-  code; \
-  stop; \
-next ## testnum :
-
-#define TEST_BR2_DIVERGED_MEM_FULL12( testnum, inst, n) \
-  TEST_CASE_NREG_MEM( testnum, 7, 0, 1, \
-    utidx x5; \
-    slli x5, x5, 3; \
-    la x6, dst; \
-    add x5, x5, x6; \
-    sd x0, 0(x5); \
-    utidx x1; \
-    sltiu x2, x1, 1; \
-    li x4, n; \
-1: \
-    inst x2, x4, 2f; \
-    addi x1, x1, -1; \
-    sltiu x2, x1, 1; \
-    j 1b; \
-2: \
-    ld x3, 0(x5); \
-    addi x3, x3, 1; \
-    sd x3, 0(x5); \
-                 )
-
-#define TEST_BR2_DIVERGED_MEM_FULL21( testnum, inst, n) \
-  TEST_CASE_NREG_MEM( testnum, 7, 0, 1, \
-    utidx x5; \
-    slli x5, x5, 3; \
-    la x6, dst; \
-    add x5, x5, x6; \
-    sd x0, 0(x5); \
-    utidx x1; \
-    sltiu x2, x1, 1; \
-    li x4, n; \
-1: \
-    inst x4, x2, 2f; \
-    addi x1, x1, -1; \
-    sltiu x2, x1, 1; \
-    j 1b; \
-2: \
-    ld x3, 0(x5); \
-    addi x3, x3, 1; \
-    sd x3, 0(x5); \
-                 )
 
 #-----------------------------------------------------------------------
 # Tests floating-point instructions
@@ -570,6 +396,190 @@ vtcode ## testnum : \
   .double result; \
 1:
 
+
+#-----------------------------------------------------------------------
+# RV64UV MACROS
+#-----------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
+# Test branch instructions
+#-----------------------------------------------------------------------
+
+#define TEST_BR2_OP_TAKEN( testnum, inst, val1, val2) \
+    TEST_CASE_NREG( testnum, 4, 0, x3, 0, \
+      li x1, val1; \
+      li x2, val2; \
+      add x3, x0, x0; \
+      inst x1, x2, 2f; \
+      addi x3, x3, 1; \
+1:    j 3f; \
+      addi x3, x3, 4; \
+2:    inst x1, x2, 1b; \
+      addi x3, x3, 2; \
+3: \
+    )
+
+#define TEST_BR2_OP_NOTTAKEN( testnum, inst, val1, val2 ) \
+  TEST_CASE_NREG( testnum, 4, 0, x3, 0, \
+    li  x1, val1; \
+    li  x2, val2; \
+    add x3, x0, x0; \
+    inst x1, x2, 1f; \
+    j 2f; \
+1:  addi x3, x3, 1; \
+    j 3f; \
+2:  inst x1, x2, 1b; \
+3: \
+                  )
+
+#define TEST_BR2_SRC12_BYPASS( testnum, src1_nops, src2_nops, inst, val1, val2 ) \
+  TEST_CASE_NREG( testnum, 6, 0, x3, 0, \
+    add x3, x0, x0; \
+    li  x4, 0; \
+1:  li  x1, val1; \
+    TEST_INSERT_NOPS_ ## src1_nops \
+    li  x2, val2; \
+    TEST_INSERT_NOPS_ ## src2_nops \
+    inst x1, x2, 2f; \
+    addi  x4, x4, 1; \
+    li  x5, 2; \
+    bne x4, x5, 1b; \
+    j 3f; \
+2:  add x3, x3, 1; \
+3:  \
+  )
+
+#define TEST_BR2_SRC21_BYPASS( testnum, src1_nops, src2_nops, inst, val1, val2 ) \
+  TEST_CASE_NREG( testnum, 6, 0, x3, 0, \
+    add x3, x0, x0; \
+    li  x4, 0; \
+1:  li  x2, val2; \
+    TEST_INSERT_NOPS_ ## src1_nops \
+    li  x1, val1; \
+    TEST_INSERT_NOPS_ ## src2_nops \
+    inst x1, x2, 2f; \
+    addi  x4, x4, 1; \
+    li  x5, 2; \
+    bne x4, x4, 1b; \
+    j 3f; \
+2:  add x3, x3, 1; \
+3: \
+                  )
+
+#define TEST_BR2_DIVERGED_ODD_EVEN( testnum, inst, n, result, code...)   \
+  TEST_CASE_NREG( testnum, 5, 0, x3, result, \
+    utidx x1; \
+    andi x2, x1, 1;\
+    add x3, x0, x0; \
+    li x4, n; \
+1: \
+    beq x0, x2, 2f; \
+    code; \
+    j 3f; \
+2: \
+    code; \
+3: \
+    addi x4, x4, -1; \
+    bne x4, x0, 1b; \
+                  )
+
+#define TEST_BR2_DIVERGED_FULL12( testnum, inst, n, result, code... )    \
+  TEST_CASE_NREG( testnum, 5, 0, x3, result, \
+    utidx x1; \
+    sltiu x2, x1, 1; \
+    add x3, x0, x0; \
+    li x4, n; \
+1: \
+    inst x2, x4, 2f; \
+    addi x1, x1, -1; \
+    sltiu x2, x1, 1; \
+    j 1b; \
+2: \
+    code; \
+                 )
+
+#define TEST_BR2_DIVERGED_FULL21( testnum, inst, n, result, code... )    \
+  TEST_CASE_NREG( testnum, 5, 0, x3, result, \
+    utidx x1; \
+    sltiu x2, x1, 1; \
+    add x3, x0, x0; \
+    li x4, n; \
+1: \
+    inst x4, x2, 2f; \
+    addi x1, x1, -1; \
+    sltiu x2, x1, 1; \
+    j 1b; \
+2: \
+    code; \
+                 )
+
+#define TEST_CASE_NREG_MEM( testnum, nxreg, nfreg, correctval, code... ) \
+test_ ## testnum: \
+  li a3,2048; \
+  vvcfgivl a3,a3,nxreg,nfreg; \
+  lui a0,%hi(vtcode ## testnum ); \
+  vf %lo(vtcode ## testnum )(a0); \
+  la a4,dst; \
+  fence.v.l; \
+  li a1,correctval; \
+  li a2,0; \
+  li x28, testnum; \
+test_loop ## testnum: \
+  ld a0,0(a4); \
+  beq a0,a1,skip ## testnum; \
+  j fail; \
+skip ## testnum : \
+  addi a4,a4,8; \
+  addi a2,a2,1; \
+  bne a2,a3,test_loop ## testnum; \
+  j next ## testnum; \
+vtcode ## testnum : \
+  code; \
+  stop; \
+next ## testnum :
+
+#define TEST_BR2_DIVERGED_MEM_FULL12( testnum, inst, n) \
+  TEST_CASE_NREG_MEM( testnum, 7, 0, 1, \
+    utidx x5; \
+    slli x5, x5, 3; \
+    la x6, dst; \
+    add x5, x5, x6; \
+    sd x0, 0(x5); \
+    utidx x1; \
+    sltiu x2, x1, 1; \
+    li x4, n; \
+1: \
+    inst x2, x4, 2f; \
+    addi x1, x1, -1; \
+    sltiu x2, x1, 1; \
+    j 1b; \
+2: \
+    ld x3, 0(x5); \
+    addi x3, x3, 1; \
+    sd x3, 0(x5); \
+                 )
+
+#define TEST_BR2_DIVERGED_MEM_FULL21( testnum, inst, n) \
+  TEST_CASE_NREG_MEM( testnum, 7, 0, 1, \
+    utidx x5; \
+    slli x5, x5, 3; \
+    la x6, dst; \
+    add x5, x5, x6; \
+    sd x0, 0(x5); \
+    utidx x1; \
+    sltiu x2, x1, 1; \
+    li x4, n; \
+1: \
+    inst x4, x2, 2f; \
+    addi x1, x1, -1; \
+    sltiu x2, x1, 1; \
+    j 1b; \
+2: \
+    ld x3, 0(x5); \
+    addi x3, x3, 1; \
+    sd x3, 0(x5); \
+                 )
+
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in x28)
 #-----------------------------------------------------------------------
@@ -580,5 +590,16 @@ fail: \
         RVTEST_FAIL \
 pass: \
         RVTEST_PASS \
+
+
+#-----------------------------------------------------------------------
+# Test data section
+#-----------------------------------------------------------------------
+
+#define TEST_DATA \
+        .data; \
+        .align 3; \
+dst: \
+        .skip 16384; \
 
 #endif

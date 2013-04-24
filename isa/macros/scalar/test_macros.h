@@ -1,7 +1,6 @@
 #ifndef __TEST_MACROS_SCALAR_H
 #define __TEST_MACROS_SCALAR_H
 
-#define TEST_DATA
 
 #-----------------------------------------------------------------------
 # Helper macros
@@ -37,6 +36,11 @@ pass_ ## testnum: \
 #define TEST_INSERT_NOPS_8  nop; TEST_INSERT_NOPS_7
 #define TEST_INSERT_NOPS_9  nop; TEST_INSERT_NOPS_8
 #define TEST_INSERT_NOPS_10 nop; TEST_INSERT_NOPS_9
+
+
+#-----------------------------------------------------------------------
+# RV64UI MACROS
+#-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
 # Tests for instructions with immediate operand
@@ -432,6 +436,11 @@ test_ ## testnum: \
     li  x5, 2; \
     bne x4, x5, 1b \
 
+
+#-----------------------------------------------------------------------
+# RV64UF MACROS
+#-----------------------------------------------------------------------
+
 #-----------------------------------------------------------------------
 # Tests floating-point instructions
 #-----------------------------------------------------------------------
@@ -551,6 +560,11 @@ test_ ## testnum: \
   test_ ## testnum ## _data: \
   .double result; \
 1:
+
+
+#-----------------------------------------------------------------------
+# RV64UV MACROS
+#-----------------------------------------------------------------------
 
 #define TEST_ILLEGAL_VT_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, reg3) \
   mfpcr a0,cr0; \
@@ -675,10 +689,10 @@ handler ## testnum: \
   li x28,5; \
   bne a1,a2,fail; \
 
+
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in x28)
 #-----------------------------------------------------------------------
-
 
 #define TEST_PASSFAIL \
         bne x0, x28, pass; \
@@ -686,5 +700,12 @@ fail: \
         RVTEST_FAIL \
 pass: \
         RVTEST_PASS \
+
+
+#-----------------------------------------------------------------------
+# Test data section
+#-----------------------------------------------------------------------
+
+#define TEST_DATA
 
 #endif
