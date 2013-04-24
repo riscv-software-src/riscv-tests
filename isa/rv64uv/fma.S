@@ -60,6 +60,8 @@ vtcode:
 
   TEST_PASSFAIL
 
+RVTEST_CODE_END
+
   .data
 RVTEST_DATA_BEGIN
 
