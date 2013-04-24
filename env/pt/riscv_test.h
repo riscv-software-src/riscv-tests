@@ -139,14 +139,14 @@ evac:                              \
         li a1, SR_ET|SR_IM;          \
         or a0,a0,a1;                 \
         mtpcr a0,ASM_CR(PCR_SR);     \
-        la a0,handler;               \
+        la a0,_handler;              \
         mtpcr a0,ASM_CR(PCR_EVEC);   \
         mtpcr x0,ASM_CR(PCR_COUNT);  \
         addi a0,x0,60;               \
         mtpcr a0,ASM_CR(PCR_COMPARE);\
 
 #define XCPT_HANDLER \
-handler: \
+_handler: \
         mtpcr a0,ASM_CR(PCR_K0);     \
         mtpcr a1,ASM_CR(PCR_K1);     \
         la a0,regspill;              \
@@ -171,48 +171,48 @@ handler: \
         vsetvl a1,a1;                \
         vxcpthold;                   \
         li a5,0;                     \
-handler_loop: \
+_handler_loop: \
         ld a1,0(a0);                 \
         addi a0,a0,8;                \
-        blt a1,x0,done;              \
+        blt a1,x0,_done;             \
         srli a2,a1,32;               \
         andi a2,a2,0x1;              \
-        beq a2,x0,vcnt;              \
-vcmd: \
-        beq a5,x0,vcmd_skip;         \
+        beq a2,x0,_vcnt;             \
+_vcmd: \
+        beq a5,x0,_vcmd_skip;        \
         venqcmd a4,a3;               \
-vcmd_skip: \
+_vcmd_skip: \
         li a5,1;                     \
         move a4,a1;                  \
         srli a3,a4,36;               \
         andi a3,a3,0x1;              \
-vimm1: \
+_vimm1: \
         srli a2,a4,35;               \
         andi a2,a2,0x1;              \
-        beq a2,x0,vimm2;             \
+        beq a2,x0,_vimm2;            \
         ld a1,0(a0);                 \
         addi a0,a0,8;                \
         venqimm1 a1,a3;              \
-vimm2: \
+_vimm2: \
         srli a2,a4,34;               \
         andi a2,a2,0x1;              \
-        beq a2,x0,end;               \
+        beq a2,x0,_end;              \
         ld a1,0(a0);                 \
         addi a0,a0,8;                \
         venqimm2 a1,a3;              \
-        j end;                       \
-vcnt: \
+        j _end;                      \
+_vcnt: \
         ld a2,0(a0);                 \
         srli a2,a2,31;               \
         andi a2,a2,0x2;              \
         or a3,a3,a2;                 \
         venqcnt a1,a3;               \
-end: \
-        j handler_loop;              \
-done: \
-        beq a5,x0,done_skip;         \
+_end: \
+        j _handler_loop;             \
+_done: \
+        beq a5,x0,_done_skip;        \
         venqcmd a4,a3;               \
-done_skip: \
+_done_skip: \
         la a0,regspill;              \
         ld a2,0(a0);                 \
         ld a3,8(a0);                 \
