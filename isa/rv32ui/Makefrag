@@ -1,0 +1,33 @@
+#=======================================================================
+# Makefrag for rv32ui tests
+#-----------------------------------------------------------------------
+
+rv32ui_sc_tests = \
+	add addi \
+	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoswap_w \
+	#and andi \
+	#auipc \
+	#beq bge bgeu blt bltu bne \
+	#div divu \
+	#fence_i \
+	#j jal jalr jalr_j jalr_r \
+	#lb lbu lh lhu lw \
+	#lui \
+	#mul mulh mulhsu mulhu \
+	#or ori \
+	#rem remu \
+	#sb sh sw \
+	#sll slli \
+	#slt slti \
+	#sra srai \
+	#srl srli \
+	#sub \
+	#xor xori \
+
+rv32ui_mc_tests = \
+	#lrsc
+
+rv32ui_p_tests = $(addprefix rv32ui-p-, $(rv32ui_sc_tests))
+rv32ui_pm_tests = $(addprefix rv32ui-pm-, $(rv32ui_mc_tests))
+
+spike_tests += $(rv32ui_p_tests) $(rv32ui_pm_tests)

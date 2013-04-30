@@ -7,6 +7,7 @@ include rv64uf/Makefrag
 include rv64uv/Makefrag
 include rv64si/Makefrag
 include rv64sv/Makefrag
+include rv32ui/Makefrag
 
 default: all
 
@@ -34,35 +35,36 @@ RISCV_SIM = riscv-isa-run
 define compile_template
 
 $$($(1)_p_tests): $(1)-p-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -I../env/p -I./macros/scalar -T../env/p/link.ld $$< -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I../env/p -I./macros/scalar -T../env/p/link.ld $$< -o $$@
 tests += $$($(1)_p_tests)
 
 $$($(1)_pt_tests): $(1)-pt-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -I../env/pt -I./macros/scalar -T../env/p/link.ld $$< -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I../env/pt -I./macros/scalar -T../env/p/link.ld $$< -o $$@
 tests += $$($(1)_pt_tests)
 
 $$($(1)_pm_tests): $(1)-pm-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -I../env/pm -I./macros/scalar -T../env/pm/link.ld $$< -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I../env/pm -I./macros/scalar -T../env/pm/link.ld $$< -o $$@
 tests += $$($(1)_pm_tests)
 
 $$($(1)_v_tests): $(1)-v-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I../env/v -I./macros/scalar -T../env/v/link.ld ../env/v/entry.S ../env/v/vm.c $$< -lc -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I../env/v -I./macros/scalar -T../env/v/link.ld ../env/v/entry.S ../env/v/vm.c $$< -lc -o $$@
 tests += $$($(1)_v_tests)
 
 $$($(1)_p_vec_tests): $(1)-p-vec-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -I../env/p -I./macros/vector -T../env/p/link.ld $$< -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I../env/p -I./macros/vector -T../env/p/link.ld $$< -o $$@
 tests += $$($(1)_p_vec_tests)
 
 $$($(1)_pt_vec_tests): $(1)-pt-vec-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -I../env/pt -I./macros/vector -T../env/pt/link.ld $$< -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I../env/pt -I./macros/vector -T../env/pt/link.ld $$< -o $$@
 tests += $$($(1)_pt_vec_tests)
 
 $$($(1)_v_vec_tests): $(1)-v-vec-%: $(1)/%.S
-	$$(RISCV_GCC) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I../env/v -I./macros/vector -T../env/v/link.ld ../env/v/entry.S ../env/v/vm.c $$< -lc -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I../env/v -I./macros/vector -T../env/v/link.ld ../env/v/entry.S ../env/v/vm.c $$< -lc -o $$@
 tests += $$($(1)_v_vec_tests)
 
 endef
 
+$(eval $(call compile_template,rv32ui,-m32))
 $(eval $(call compile_template,rv64ui))
 $(eval $(call compile_template,rv64uf))
 $(eval $(call compile_template,rv64uv))
