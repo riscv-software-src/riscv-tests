@@ -22,6 +22,7 @@ static void cputstring(const char* s)
 static void terminate(int code)
 {
   while (mtpcr(PCR_TOHOST, code));
+  while (1);
 }
 
 #define stringify1(x) #x
@@ -30,7 +31,6 @@ static void terminate(int code)
   if (x) break; \
   cputstring("Assertion failed: " stringify(x)); \
   terminate(3); \
-  while(1); \
 } while(0)
 
 #define RELOC(x) ((typeof(x))((char*)(x) + (PGSIZE*MAX_TEST_PAGES)))
@@ -181,13 +181,17 @@ void handle_trap(trapframe_t* tf)
       evict(i*PGSIZE);
 
     terminate(n);
-    while(1);
   }
   else if (tf->cause == CAUSE_FAULT_FETCH)
     handle_fault(tf->epc);
   else if (tf->cause == CAUSE_ILLEGAL_INSTRUCTION)
   {
-    if ((tf->insn & 0xF83FFFFF) == 0x37B)
+    int mtfsr;
+    asm ("la %0, 1f; lw %0, 0(%0); b 2f; 1: mtfsr x0; 2:" : "=r"(mtfsr));
+
+    if (tf->insn == mtfsr)
+      terminate(1); // FP test on non-FP hardware.  "succeed."
+    else if ((tf->insn & 0xF83FFFFF) == 0x37B)
       emulate_vxcptsave(tf);
     else if ((tf->insn & 0xF83FFFFF) == 0x77B)
       emulate_vxcptrestore(tf);
@@ -233,9 +237,6 @@ void vm_boot(long test_addr, long seed)
 
   mtpcr(PCR_PTBR, l1pt);
   mtpcr(PCR_SR, mfpcr(PCR_SR) | SR_VM | SR_EF);
-
-  if (mfpcr(PCR_SR) & SR_EF)
-    asm volatile ("mtfsr x0");
 
   // relocate
   long adjustment = RELOC(0L), tmp;

@@ -10,9 +10,6 @@
 #define RVTEST_RV64S                                                    \
 
 #define RVTEST_FP_ENABLE                                                \
-  mfpcr t0, cr0;                                                        \
-  or    t0, t0, 2;                                                      \
-  mtpcr t0, cr0;                                                        \
   mtfsr x0;                                                             \
 
 #define RVTEST_VEC_ENABLE                                               \
@@ -27,6 +24,7 @@
         .align  13;                                                     \
         .global userstart;                                              \
 userstart:                                                              \
+        RVTEST_FP_ENABLE;                                               \
 
 //-----------------------------------------------------------------------
 // End Macro

@@ -16,9 +16,9 @@
   setpcr cr0, 2;                                                        \
   mfpcr a0, cr0;                                                        \
   and   a0, a0, 2;                                                      \
-  beqz  a0, 1f;                                                         \
-  mtfsr x0;                                                             \
-1:
+  bnez  a0, 2f;                                                         \
+  RVTEST_PASS;                                                          \
+2:mtfsr x0;                                                             \
 
 #define RVTEST_VEC_ENABLE                                               \
   mfpcr a0, cr0;                                                        \
