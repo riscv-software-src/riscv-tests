@@ -9,6 +9,10 @@
 
 #define RVTEST_RV64U                                                    \
 
+#define RVTEST_RV64UF                                                   \
+  RVTEST_RV64U;                                                         \
+  RVTEST_FP_ENABLE
+
 #define RVTEST_FP_ENABLE                                                \
   setpcr cr0, 2;                                                        \
   mfpcr a0, cr0;                                                        \

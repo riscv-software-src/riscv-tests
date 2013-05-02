@@ -7,6 +7,10 @@
 
 #define RVTEST_RV64U                                                    \
 
+#define RVTEST_RV64UF                                                   \
+  RVTEST_RV64U;                                                         \
+  RVTEST_FP_ENABLE
+
 #define RVTEST_RV32U                                                    \
   clearpcr cr0, 0x80
 

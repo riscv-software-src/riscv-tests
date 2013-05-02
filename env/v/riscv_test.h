@@ -6,11 +6,17 @@
 //-----------------------------------------------------------------------
 
 #define RVTEST_RV64U                                                    \
+  .text;                                                                \
+init:                                                                   \
+  ret
+
+#define RVTEST_RV64UF                                                   \
+  .text;                                                                \
+init:                                                                   \
+  mtfsr x0;                                                             \
+  ret
 
 #define RVTEST_RV64S                                                    \
-
-#define RVTEST_FP_ENABLE                                                \
-  mtfsr x0;                                                             \
 
 #define RVTEST_VEC_ENABLE                                               \
   mfpcr t0, cr0;                                                        \
@@ -24,7 +30,7 @@
         .align  13;                                                     \
         .global userstart;                                              \
 userstart:                                                              \
-        RVTEST_FP_ENABLE;                                               \
+        jal init
 
 //-----------------------------------------------------------------------
 // End Macro

@@ -8,7 +8,7 @@
 #include "riscv_test.h"
 #include "test_macros.h"
 
-RVTEST_RV64U
+RVTEST_RV64UF
 RVTEST_CODE_BEGIN
 
   TEST_CASE(2, a0, 0x4000000040400000, la a1, tdat; flw f1, 4(a1); fsw f1, 12(a1); ld a0, 8(a1))
