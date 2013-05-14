@@ -56,7 +56,7 @@ RISCV_LINK_MT = riscv-gcc -T $(bmarkdir)/common/test-mt.ld
 RISCV_LINK_OPTS = -lc
 RISCV_LINK_SYSCALL = $(bmarkdir)/common/syscalls.c -lc
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
-RISCV_SIM = riscv-isa-run
+RISCV_SIM = spike
 
 VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
 VPATH += $(bmarkdir)/common

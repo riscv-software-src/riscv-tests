@@ -18,7 +18,7 @@ default: all
 RISCV_GCC = riscv-gcc
 RISCV_GCC_OPTS = -nostdlib -nostartfiles
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.data --section=.bss
-RISCV_SIM = riscv-isa-run
+RISCV_SIM = spike
 
 #------------------------------------------------------------
 # Build assembly tests
