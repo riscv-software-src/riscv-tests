@@ -36,7 +36,6 @@ al_vvadd\
 am_matmul\
 am_vvadd\
 an_matmul\
-an_vvadd\
 ap_matmul\
 ap_vvadd\
 aq_matmul\
