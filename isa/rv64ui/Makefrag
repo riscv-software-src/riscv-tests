@@ -12,7 +12,7 @@ rv64ui_sc_tests = \
 	div divu divuw divw \
 	example simple \
 	fence_i \
-	j jal jalr jalr_j jalr_r \
+	j jal jalr \
 	lb lbu lh lhu lw lwu ld \
 	lui \
 	mul mulh mulhsu mulhu mulw \
