@@ -61,7 +61,7 @@ RISCV_SIM = spike
 VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
 VPATH += $(bmarkdir)/common
 
-incs  += -I. -I./common $(addprefix -I$(bmarkdir)/, $(bmarks))
+incs  += -I$(bmarkdir)/common $(addprefix -I$(bmarkdir)/, $(bmarks))
 objs  :=
 
 include $(patsubst %, $(bmarkdir)/%/bmark.mk, $(bmarks))
