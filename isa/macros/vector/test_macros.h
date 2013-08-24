@@ -294,27 +294,27 @@ vtcode ## testnum : \
 
 #define TEST_FCVT_S_D( testnum, result, val1 ) \
   TEST_FP_OP_D_INTERNAL_NREG( testnum, 2, 4, double result, val1, 0.0, 0.0, \
-                    fcvt.s.d f3, f0; fcvt.d.s f3, f3; mftx.d x1, f3)
+                    fcvt.s.d f3, f0; fcvt.d.s f3, f3; fmv.x.d x1, f3)
 
 #define TEST_FCVT_D_S( testnum, result, val1 ) \
   TEST_FP_OP_S_INTERNAL_NREG( testnum, 2, 4, float result, val1, 0.0, 0.0, \
-                    fcvt.d.s f3, f0; fcvt.s.d f3, f3; mftx.s x1, f3)
+                    fcvt.d.s f3, f0; fcvt.s.d f3, f3; fmv.x.s x1, f3)
 
 #define TEST_FP_OP2_S( testnum, inst, result, val1, val2 ) \
   TEST_FP_OP_S_INTERNAL_NREG( testnum, 2, 4, float result, val1, val2, 0.0, \
-                    inst f3, f0, f1; mftx.s x1, f3)
+                    inst f3, f0, f1; fmv.x.s x1, f3)
 
 #define TEST_FP_OP2_D( testnum, inst, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL_NREG( testnum, 2, 4, double result, val1, val2, 0.0, \
-                    inst f3, f0, f1; mftx.d x1, f3)
+                    inst f3, f0, f1; fmv.x.d x1, f3)
 
 #define TEST_FP_OP3_S( testnum, inst, result, val1, val2, val3 ) \
   TEST_FP_OP_S_INTERNAL_NREG( testnum, 2, 4, float result, val1, val2, val3, \
-                    inst f3, f0, f1, f2; mftx.s x1, f3)
+                    inst f3, f0, f1, f2; fmv.x.s x1, f3)
 
 #define TEST_FP_OP3_D( testnum, inst, result, val1, val2, val3 ) \
   TEST_FP_OP_D_INTERNAL_NREG( testnum, 2, 4, double result, val1, val2, val3, \
-                    inst f3, f0, f1, f2; mftx.d x1, f3)
+                    inst f3, f0, f1, f2; fmv.x.d x1, f3)
 
 #define TEST_FP_INT_OP_S( testnum, inst, result, val1, rm ) \
   TEST_FP_OP_S_INTERNAL_NREG( testnum, 2, 4, word result, val1, 0.0, 0.0, \
@@ -357,7 +357,7 @@ skip ## testnum : \
 vtcode ## testnum : \
   li x1, val1; \
   inst f0, x1; \
-  mftx.s x1, f0; \
+  fmv.x.s x1, f0; \
   stop; \
   .align 2; \
   test_ ## testnum ## _data: \
@@ -389,7 +389,7 @@ skip ## testnum : \
 vtcode ## testnum : \
   li x1, val1; \
   inst f0, x1; \
-  mftx.d x1, f0; \
+  fmv.x.d x1, f0; \
   stop; \
   .align 3; \
   test_ ## testnum ## _data: \

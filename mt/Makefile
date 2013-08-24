@@ -7,6 +7,7 @@
 default: all
 
 bmarkdir = .
+common = ../benchmarks/common
 
 instname = riscv-bmarks-mt
 instbasedir = $(UCB_VLSI_HOME)/install
@@ -89,17 +90,17 @@ bt_vvadd\
 
 RISCV_GCC = riscv-gcc
 RISCV_GCC_OPTS = -std=gnu99 -T common/test.ld -O3 -nostdlib -nostartfiles -funroll-all-loops
-RISCV_LINK = riscv-gcc -T $(bmarkdir)/common/test.ld
-RISCV_LINK_MT = riscv-gcc -T $(bmarkdir)/common/test-mt.ld
+RISCV_LINK = riscv-gcc -T $(common)/test.ld
+RISCV_LINK_MT = riscv-gcc -T $(common)/test-mt.ld
 RISCV_LINK_OPTS = -lc
-RISCV_LINK_SYSCALL = $(bmarkdir)/common/syscalls.c -lc
+RISCV_LINK_SYSCALL = $(common)/syscalls.c -lc
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike -p2
 
 VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
-VPATH += $(bmarkdir)/common
+VPATH += $(common)
 
-incs  += -I. -I./common $(addprefix -I$(bmarkdir)/, $(bmarks))
+incs  += -I. -I$(common) $(addprefix -I$(bmarkdir)/, $(bmarks))
 objs  :=
 
 #include $(patsubst %, $(bmarkdir)/%/bmark.mk, $(bmarks))

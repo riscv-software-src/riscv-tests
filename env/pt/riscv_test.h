@@ -1,74 +1,22 @@
 #ifndef _ENV_PHYSICAL_SINGLE_CORE_TIMER_H
 #define _ENV_PHYSICAL_SINGLE_CORE_TIMER_H
 
-#include "pcr.h"
+#include "../p/riscv_test.h"
 
-//-----------------------------------------------------------------------
-// Begin Macro
-//-----------------------------------------------------------------------
-
-#define RVTEST_RV64U                                                    \
-
-#define RVTEST_RV64UF                                                   \
-  RVTEST_RV64U;                                                         \
-  RVTEST_FP_ENABLE
-
-#define RVTEST_FP_ENABLE                                                \
-  setpcr cr0, 2;                                                        \
-  mfpcr a0, cr0;                                                        \
-  and   a0, a0, 2;                                                      \
-  bnez  a0, 2f;                                                         \
-  RVTEST_PASS;                                                          \
-2:mtfsr x0;                                                             \
-
-#define RVTEST_VEC_ENABLE                                               \
-  mfpcr a0, cr0;                                                        \
-  ori   a0, a0, 4;                                                      \
-  mtpcr a0, cr0;                                                        \
-  li    a0, 0xff;                                                       \
-  mtpcr a0, cr18;                                                       \
-
-#define RVTEST_CODE_BEGIN                                               \
-        .text;                                                          \
-        .align  4;                                                      \
-        .global _start;                                                 \
-_start:                                                                 \
-        RVTEST_FP_ENABLE                                                \
-        RVTEST_VEC_ENABLE                                               \
-        mfpcr a0, cr10; 1: bnez a0, 1b;                                 \
-        ENABLE_TIMER_INTERRUPT                                          \
-
-//-----------------------------------------------------------------------
-// End Macro
-//-----------------------------------------------------------------------
-
-#define RVTEST_CODE_END                                                 \
-        XCPT_HANDLER                                                    \
-
-//-----------------------------------------------------------------------
-// Pass/Fail Macro
-//-----------------------------------------------------------------------
-
-#define RVTEST_PASS                                                     \
-        fence;                                                          \
-        li  x1, 1;                                                      \
-        mtpcr x1, cr30;                                                 \
-1:      b 1b;                                                           \
-
-#define RVTEST_FAIL                                                     \
-        fence;                                                          \
-        beqz x28, 1f;                                                   \
-        sll x28, x28, 1;                                                \
-        or x28, x28, 1;                                                 \
-        mtpcr x28, cr30;                                                \
-1:      b 1b;                                                           \
+#undef EXTRA_INIT
+#define EXTRA_INIT                                                      \
+  ENABLE_TIMER_INTERRUPT;                                               \
+  b 6f;                                                                 \
+  XCPT_HANDLER;                                                         \
+6:
 
 //-----------------------------------------------------------------------
 // Data Section Macro
 //-----------------------------------------------------------------------
 
-#define RVTEST_DATA_BEGIN                                               \
-        .align 3; \
+#undef EXTRA_DATA
+#define EXTRA_DATA                 \
+        .align 3;                  \
 regspill:                          \
         .dword 0xdeadbeefcafebabe; \
         .dword 0xdeadbeefcafebabe; \
@@ -127,11 +75,6 @@ evac:                              \
         .dword 0xdeadbeefcafebabe; \
         .dword 0xdeadbeefcafebabe; \
         .dword 0xdeadbeefcafebabe; \
-
-#define RVTEST_DATA_END
-
-//#define RVTEST_DATA_BEGIN .align 4; .global begin_signature; begin_signature:
-//#define RVTEST_DATA_END .align 4; .global end_signature; end_signature:
 
 //-----------------------------------------------------------------------
 // Misc

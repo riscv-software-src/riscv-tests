@@ -40,8 +40,8 @@ vtcode:
   slti x2,x1,10
   li x1,-1
   li x3,0
-  mxtf.d f0,x3
-  mxtf.d f1,x1
+  fmv.d.x f0,x3
+  fmv.d.x f1,x1
   fmovn f0,x2,f1
   stop
 

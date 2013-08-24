@@ -1,3 +1,5 @@
+#include "pcr.h"
+
   .data
   .globl _heapend
   .globl environ
@@ -43,57 +45,52 @@ _start:
   li  x31,0
 
   # enable fp
-  mfpcr  x1,cr0
-  ori  x1,x1,0x2
-  mtpcr  x1,cr0
+  setpcr status, SR_EF
 
   # enable vec
-  mfpcr  x1,cr0
-  ori  x1,x1,0x4
-  mtpcr  x1,cr0
+  setpcr t0, status, SR_EV
 
   ## if that didn't stick, we don't have an FPU, so don't initialize it
-  mfpcr x1,cr0
-  andi x1,x1,0x2
-  beqz x1,1f
+  and t0, t0, SR_EF
+  beqz t0, 1f
 
-  mtfsr   x0
-  mxtf.s  f0, x0
-  mxtf.s  f1, x0
-  mxtf.s  f2, x0
-  mxtf.s  f3, x0
-  mxtf.s  f4, x0
-  mxtf.s  f5, x0
-  mxtf.s  f6, x0
-  mxtf.s  f7, x0
-  mxtf.s  f8, x0
-  mxtf.s  f9, x0
-  mxtf.s  f10,x0
-  mxtf.s  f11,x0
-  mxtf.s  f12,x0
-  mxtf.s  f13,x0
-  mxtf.s  f14,x0
-  mxtf.s  f15,x0
-  mxtf.s  f16,x0
-  mxtf.s  f17,x0
-  mxtf.s  f18,x0
-  mxtf.s  f19,x0
-  mxtf.s  f20,x0
-  mxtf.s  f21,x0
-  mxtf.s  f22,x0
-  mxtf.s  f23,x0
-  mxtf.s  f24,x0
-  mxtf.s  f25,x0
-  mxtf.s  f26,x0
-  mxtf.s  f27,x0
-  mxtf.s  f28,x0
-  mxtf.s  f29,x0
-  mxtf.s  f30,x0
-  mxtf.s  f31,x0
+  fssr    x0
+  fmv.s.x f0, x0
+  fmv.s.x f1, x0
+  fmv.s.x f2, x0
+  fmv.s.x f3, x0
+  fmv.s.x f4, x0
+  fmv.s.x f5, x0
+  fmv.s.x f6, x0
+  fmv.s.x f7, x0
+  fmv.s.x f8, x0
+  fmv.s.x f9, x0
+  fmv.s.x f10,x0
+  fmv.s.x f11,x0
+  fmv.s.x f12,x0
+  fmv.s.x f13,x0
+  fmv.s.x f14,x0
+  fmv.s.x f15,x0
+  fmv.s.x f16,x0
+  fmv.s.x f17,x0
+  fmv.s.x f18,x0
+  fmv.s.x f19,x0
+  fmv.s.x f20,x0
+  fmv.s.x f21,x0
+  fmv.s.x f22,x0
+  fmv.s.x f23,x0
+  fmv.s.x f24,x0
+  fmv.s.x f25,x0
+  fmv.s.x f26,x0
+  fmv.s.x f27,x0
+  fmv.s.x f28,x0
+  fmv.s.x f29,x0
+  fmv.s.x f30,x0
+  fmv.s.x f31,x0
 1:
 
   # only allow core 0 to proceed
-1:mfpcr a0, cr10
+1:mfpcr a0, hartid
   bnez a0, 1b
 
   la  sp,stacktop

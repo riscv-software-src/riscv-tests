@@ -6,31 +6,22 @@
 //-----------------------------------------------------------------------
 
 #define RVTEST_RV64U                                                    \
-  .text;                                                                \
-init:                                                                   \
-  ret
+  .macro init;                                                          \
+  .endm
 
 #define RVTEST_RV64UF                                                   \
-  .text;                                                                \
-init:                                                                   \
-  mtfsr x0;                                                             \
-  ret
-
-#define RVTEST_RV64S                                                    \
+  .macro init;                                                          \
+  fssr x0;                                                              \
+  .endm 
 
 #define RVTEST_VEC_ENABLE                                               \
-  mfpcr t0, cr0;                                                        \
-  ori   t0, t0, 4;                                                      \
-  mtpcr t0, cr0;                                                        \
-  li    t0, 0xff;                                                       \
-  mtpcr t0, cr11;                                                       \
 
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
         .align  13;                                                     \
         .global userstart;                                              \
 userstart:                                                              \
-        jal init
+        init
 
 //-----------------------------------------------------------------------
 // End Macro
@@ -59,7 +50,7 @@ userstart:                                                              \
 // Supervisor mode definitions and macros
 //-----------------------------------------------------------------------
 
-#include "pcr.h"
+#include "../pcr.h"
 
 #define vvcfg(nxregs, nfregs) ({ \
           asm volatile ("vvcfg %0,%1" : : "r"(nxregs), "r"(nfregs)); })

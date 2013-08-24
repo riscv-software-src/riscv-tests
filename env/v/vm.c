@@ -89,8 +89,8 @@ void handle_fault(unsigned long addr)
   if (*RELOC(&freelist_head) == *RELOC(&freelist_tail))
     *RELOC(&freelist_tail) = 0;
 
-  *RELOC(&l3pt[addr/PGSIZE]) = node->addr | 0x3F2;
-  mtpcr(PCR_PTBR, l1pt);
+  *RELOC(&l3pt[addr/PGSIZE]) = node->addr | PTE_UW | PTE_UR | PTE_UX | PTE_SW | PTE_SR | PTE_SX | PTE_V;
+  mtpcr(PCR_FATC, 0);
 
   assert(RELOC(&user_mapping[addr/PGSIZE])->addr == 0);
   *RELOC(&user_mapping[addr/PGSIZE]) = *node;
@@ -186,10 +186,10 @@ void handle_trap(trapframe_t* tf)
     handle_fault(tf->epc);
   else if (tf->cause == CAUSE_ILLEGAL_INSTRUCTION)
   {
-    int mtfsr;
-    asm ("la %0, 1f; lw %0, 0(%0); b 2f; 1: mtfsr x0; 2:" : "=r"(mtfsr));
+    int fssr;
+    asm ("la %0, 1f; lw %0, 0(%0); b 2f; 1: fssr x0; 2:" : "=r"(fssr));
 
-    if (tf->insn == mtfsr)
+    if (tf->insn == fssr)
       terminate(1); // FP test on non-FP hardware.  "succeed."
     else if ((tf->insn & 0xF83FFFFF) == 0x37B)
       emulate_vxcptsave(tf);
@@ -214,7 +214,7 @@ out:
 
 void vm_boot(long test_addr, long seed)
 {
-  while (mfpcr(PCR_COREID) > 0); // only core 0 proceeds
+  while (mfpcr(PCR_HARTID) > 0); // only core 0 proceeds
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
@@ -230,10 +230,10 @@ void vm_boot(long test_addr, long seed)
   freelist_nodes[MAX_TEST_PAGES-1].next = 0;
 
   assert(MAX_TEST_PAGES*2 < PTES_PER_PT);
-  l1pt[0] = (pte_t)l2pt | 1;
-  l2pt[0] = (pte_t)l3pt | 1;
+  l1pt[0] = (pte_t)l2pt | PTE_V | PTE_T;
+  l2pt[0] = (pte_t)l3pt | PTE_V | PTE_T;
   for (long i = 0; i < MAX_TEST_PAGES; i++)
-    l3pt[i] = l3pt[i+MAX_TEST_PAGES] = (i*PGSIZE) | 0x382;
+    l3pt[i] = l3pt[i+MAX_TEST_PAGES] = (i*PGSIZE) | PTE_SW | PTE_SR | PTE_SX | PTE_V;
 
   mtpcr(PCR_PTBR, l1pt);
   mtpcr(PCR_SR, mfpcr(PCR_SR) | SR_VM | SR_EF);
@@ -244,7 +244,7 @@ void vm_boot(long test_addr, long seed)
   asm volatile ("add sp, sp, %1; rdpc %0; addi %0, %0, 16; add %0, %0, %1; jr %0" : "=&r"(tmp) : "r"(adjustment));
 
   memset(RELOC(&l3pt[0]), 0, MAX_TEST_PAGES*sizeof(pte_t));
-  mtpcr(PCR_PTBR, l1pt);
+  mtpcr(PCR_FATC, 0);
 
   trapframe_t tf;
   memset(&tf, 0, sizeof(tf));

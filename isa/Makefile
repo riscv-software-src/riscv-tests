@@ -6,7 +6,7 @@ isa_src_dir := .
 
 include $(isa_src_dir)/rv64ui/Makefrag
 include $(isa_src_dir)/rv64uf/Makefrag
-include $(isa_src_dir)/rv64uv/Makefrag
+#include $(isa_src_dir)/rv64uv/Makefrag
 include $(isa_src_dir)/rv64si/Makefrag
 include $(isa_src_dir)/rv64sv/Makefrag
 include $(isa_src_dir)/rv32ui/Makefrag
@@ -18,7 +18,7 @@ default: all
 #--------------------------------------------------------------------
 
 RISCV_GCC = riscv-gcc
-RISCV_GCC_OPTS = -nostdlib -nostartfiles
+RISCV_GCC_OPTS = -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --section=.text --section=.data --section=.bss
 RISCV_SIM = spike
 
@@ -54,17 +54,17 @@ $$($(1)_v_tests): $(1)-v-%: $(1)/%.S
 	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I$(isa_src_dir)/../env/v -I$(isa_src_dir)/macros/scalar -T$(isa_src_dir)/../env/v/link.ld $(isa_src_dir)/../env/v/entry.S $(isa_src_dir)/../env/v/vm.c $$< -lc -o $$@
 tests += $$($(1)_v_tests)
 
-$$($(1)_p_vec_tests): $(1)-p-vec-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(isa_src_dir)/../env/p -I$(isa_src_dir)/macros/vector -T$(isa_src_dir)/../env/p/link.ld $$< -o $$@
-tests += $$($(1)_p_vec_tests)
-
-$$($(1)_pt_vec_tests): $(1)-pt-vec-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(isa_src_dir)/../env/pt -I$(isa_src_dir)/macros/vector -T$(isa_src_dir)/../env/pt/link.ld $$< -o $$@
-tests += $$($(1)_pt_vec_tests)
-
-$$($(1)_v_vec_tests): $(1)-v-vec-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I$(isa_src_dir)/../env/v -I$(isa_src_dir)/macros/vector -T$(isa_src_dir)/../env/v/link.ld $(isa_src_dir)/../env/v/entry.S $(isa_src_dir)/../env/v/vm.c $$< -lc -o $$@
-tests += $$($(1)_v_vec_tests)
+#$$($(1)_p_vec_tests): $(1)-p-vec-%: $(1)/%.S
+#	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(isa_src_dir)/../env/p -I$(isa_src_dir)/macros/vector -T$(isa_src_dir)/../env/p/link.ld $$< -o $$@
+#tests += $$($(1)_p_vec_tests)
+#
+#$$($(1)_pt_vec_tests): $(1)-pt-vec-%: $(1)/%.S
+#	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(isa_src_dir)/../env/pt -I$(isa_src_dir)/macros/vector -T$(isa_src_dir)/../env/pt/link.ld $$< -o $$@
+#tests += $$($(1)_pt_vec_tests)
+#
+#$$($(1)_v_vec_tests): $(1)-v-vec-%: $(1)/%.S
+#	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I$(isa_src_dir)/../env/v -I$(isa_src_dir)/macros/vector -T$(isa_src_dir)/../env/v/link.ld $(isa_src_dir)/../env/v/entry.S $(isa_src_dir)/../env/v/vm.c $$< -lc -o $$@
+#tests += $$($(1)_v_vec_tests)
 
 endef
 

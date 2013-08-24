@@ -17,8 +17,8 @@ RVTEST_CODE_BEGIN
   la a4,src
   fld f0,0(a4)
   fld f1,8(a4)
-  mftx.d s0,f0
-  mftx.d s1,f1
+  fmv.x.d s0,f0
+  fmv.x.d s1,f1
   vmsv vx1,s0
   vmsv vx2,s1
   lui a0,%hi(vtcode)
@@ -31,7 +31,7 @@ wait:
   bne a7,a6,wait
 
   fadd.d f0,f0,f1
-  mftx.d s2,f0
+  fmv.x.d s2,f0
 
   la a5,dest
   vfsd vf0,a5
@@ -53,8 +53,8 @@ loop:
   j pass
 
 vtcode:
-  mxtf.d f0,x1
-  mxtf.d f1,x2
+  fmv.d.x f0,x1
+  fmv.d.x f1,x2
   fadd.d f0,f0,f1
   stop
 

@@ -70,7 +70,7 @@ void finishTest( int toHostValue )
     printf( "*** FAILED *** (tohost = %d)\n", toHostValue );
   exit(0);
 #else
-  asm( "mtpcr %0, cr30" : : "r" (toHostValue) );
+  asm( "mtpcr %0, tohost" : : "r" (toHostValue) );
   while ( 1 ) { }
 #endif
 }

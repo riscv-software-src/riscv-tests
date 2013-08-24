@@ -485,35 +485,35 @@ test_ ## testnum: \
 
 #define TEST_FCVT_S_D( testnum, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, double result, val1, 0.0, 0.0, \
-                    fcvt.s.d f3, f0; fcvt.d.s f3, f3; mftx.d a0, f3)
+                    fcvt.s.d f3, f0; fcvt.d.s f3, f3; fmv.x.d a0, f3)
 
 #define TEST_FCVT_D_S( testnum, result, val1 ) \
   TEST_FP_OP_S_INTERNAL( testnum, float result, val1, 0.0, 0.0, \
-                    fcvt.d.s f3, f0; fcvt.s.d f3, f3; mftx.s a0, f3)
+                    fcvt.d.s f3, f0; fcvt.s.d f3, f3; fmv.x.s a0, f3)
 
 #define TEST_FP_OP1_S( testnum, inst, result, val1 ) \
   TEST_FP_OP_S_INTERNAL( testnum, float result, val1, 0.0, 0.0, \
-                    inst f3, f0; mftx.s a0, f3)
+                    inst f3, f0; fmv.x.s a0, f3)
 
 #define TEST_FP_OP1_D( testnum, inst, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, double result, val1, 0.0, 0.0, \
-                    inst f3, f0; mftx.d a0, f3)
+                    inst f3, f0; fmv.x.d a0, f3)
 
 #define TEST_FP_OP2_S( testnum, inst, result, val1, val2 ) \
   TEST_FP_OP_S_INTERNAL( testnum, float result, val1, val2, 0.0, \
-                    inst f3, f0, f1; mftx.s a0, f3)
+                    inst f3, f0, f1; fmv.x.s a0, f3)
 
 #define TEST_FP_OP2_D( testnum, inst, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL( testnum, double result, val1, val2, 0.0, \
-                    inst f3, f0, f1; mftx.d a0, f3)
+                    inst f3, f0, f1; fmv.x.d a0, f3)
 
 #define TEST_FP_OP3_S( testnum, inst, result, val1, val2, val3 ) \
   TEST_FP_OP_S_INTERNAL( testnum, float result, val1, val2, val3, \
-                    inst f3, f0, f1, f2; mftx.s a0, f3)
+                    inst f3, f0, f1, f2; fmv.x.s a0, f3)
 
 #define TEST_FP_OP3_D( testnum, inst, result, val1, val2, val3 ) \
   TEST_FP_OP_D_INTERNAL( testnum, double result, val1, val2, val3, \
-                    inst f3, f0, f1, f2; mftx.d a0, f3)
+                    inst f3, f0, f1, f2; fmv.x.d a0, f3)
 
 #define TEST_FP_INT_OP_S( testnum, inst, result, val1, rm ) \
   TEST_FP_OP_S_INTERNAL( testnum, word result, val1, 0.0, 0.0, \
@@ -538,7 +538,7 @@ test_ ## testnum: \
   lw  a3, 0(a0); \
   li  a0, val1; \
   inst f0, a0; \
-  mftx.s a0, f0; \
+  fmv.x.s a0, f0; \
   bne a0, a3, fail; \
   b 1f; \
   .align 2; \
@@ -553,7 +553,7 @@ test_ ## testnum: \
   ld  a3, 0(a0); \
   li  a0, val1; \
   inst f0, a0; \
-  mftx.d a0, f0; \
+  fmv.x.d a0, f0; \
   bne a0, a3, fail; \
   b 1f; \
   .align 3; \

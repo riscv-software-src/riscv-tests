@@ -51,19 +51,19 @@ save_tf:  # write the trap frame onto the stack
   STORE  x30,30*REGBYTES(x2)
   STORE  x31,31*REGBYTES(x2)
 
-  mfpcr  x3,ASM_CR(PCR_K0)
+  mfpcr  x3,sup0
   STORE  x3,1*REGBYTES(x2)          # x1 is in PCR_K0
-  mfpcr  x3,ASM_CR(PCR_K1)
+  mfpcr  x3,sup1
   STORE  x3,2*REGBYTES(x2)          # x2 is in PCR_K1
 
   # get sr, epc, badvaddr, cause
-  mfpcr  x3,ASM_CR(PCR_SR)          # sr
+  mfpcr  x3,status          # sr
   STORE  x3,32*REGBYTES(x2)
-  mfpcr  x4,ASM_CR(PCR_EPC)          # epc
+  mfpcr  x4,epc          # epc
   STORE  x4,33*REGBYTES(x2)
-  mfpcr  x3,ASM_CR(PCR_BADVADDR)      # badvaddr
+  mfpcr  x3,badvaddr      # badvaddr
   STORE  x3,34*REGBYTES(x2)
-  mfpcr  x3,ASM_CR(PCR_CAUSE)        # cause
+  mfpcr  x3,cause        # cause
   STORE  x3,35*REGBYTES(x2)
 
   # get faulting insn, if it wasn't a fetch-related trap
@@ -77,10 +77,10 @@ save_tf:  # write the trap frame onto the stack
   sh    x4,2+36*REGBYTES(x2)
 1:
 
-  mfpcr  x3,ASM_CR(PCR_VECBANK)        # vecbank
-  STORE  x3,37*REGBYTES(x2)
-  mfpcr  x3,ASM_CR(PCR_VECCFG)        # veccfg
-  STORE  x3,38*REGBYTES(x2)
+  #mfpcr  x3,ASM_CR(PCR_VECBANK)        # vecbank
+  #STORE  x3,37*REGBYTES(x2)
+  #mfpcr  x3,ASM_CR(PCR_VECCFG)        # veccfg
+  #STORE  x3,38*REGBYTES(x2)
 
   ret
 
@@ -88,12 +88,12 @@ save_tf:  # write the trap frame onto the stack
 pop_tf:  # write the trap frame onto the stack
   # restore gprs
   LOAD  a1,32*REGBYTES(a0)  # restore sr (should disable interrupts)
-  mtpcr  a1,ASM_CR(PCR_SR)
+  mtpcr  a1,status
 
   LOAD  x1,1*REGBYTES(a0)
-  mtpcr  x1,ASM_CR(PCR_K0)
+  mtpcr  x1,sup0
   LOAD  x1,2*REGBYTES(a0)
-  mtpcr x1,ASM_CR(PCR_K1)
+  mtpcr x1,sup1
   move  x1,a0
   LOAD  x3,3*REGBYTES(x1)
   LOAD  x4,4*REGBYTES(x1)
@@ -127,18 +127,18 @@ pop_tf:  # write the trap frame onto the stack
 
   # gtfo!
   LOAD  x2,33*REGBYTES(x1)
-  mtpcr x2,ASM_CR(PCR_EPC)
-  mfpcr x1,ASM_CR(PCR_K0)
-  mfpcr x2,ASM_CR(PCR_K1)
+  mtpcr x2,epc
+  mfpcr x1,sup0
+  mfpcr x2,sup1
   eret
 
   .global  trap_entry
 trap_entry:
-  mtpcr ra,ASM_CR(PCR_K0)
-  mtpcr x2,ASM_CR(PCR_K1)
+  mtpcr ra,sup0
+  mtpcr x2,sup1
 
   # coming from kernel?
-  mfpcr ra,ASM_CR(PCR_SR)
+  mfpcr ra,status
   and   ra,ra,SR_PS
   bnez  ra, 1f
 
@@ -146,9 +146,9 @@ trap_entry:
   la    x2,stack_top+MAX_TEST_PAGES*PGSIZE-SIZEOF_TRAPFRAME_T
   jal   save_tf
   move  sp,x2
-  setpcr ASM_CR(PCR_SR), SR_ET
+  setpcr status, SR_EI
   move  a0,x2
-  mfpcr ra,ASM_CR(PCR_SR)
+  mfpcr ra,status
   and   ra,ra,SR_EV
   beqz  ra, 2f
   addi  x2,x2,39*REGBYTES
@@ -159,7 +159,7 @@ trap_entry:
 1:add   x2, sp, -SIZEOF_TRAPFRAME_T
   jal   save_tf
   move  sp,x2
-  setpcr ASM_CR(PCR_SR), SR_ET
+  setpcr status, SR_EI
   move  a0,x2
   jal   handle_trap
 

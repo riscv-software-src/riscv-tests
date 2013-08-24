@@ -7,6 +7,8 @@
 # Headers and Defines
 #--------------------------------------------------------------------------
 
+#include "pcr.h"
+
 # Here are some defines that make writing assembly code easier.
 
 # I'm using the knowledge that rLda will be placed in register a0, rA will be
@@ -26,15 +28,15 @@
 
 # address of VT function
 #define rVTAddr v1
-#define rTemp0  a8
+#define rTemp0  t0
 
 # desired app vector length (number of elements to vectorize)
-#define rNum    a9
+#define rNum    t1
 
-#define rATemp  a10
-#define rBTemp  a11
-#define rCTemp  a12
-#define rI      a13
+#define rATemp  t2
+#define rBTemp  t3
+#define rCTemp  t4
+#define rI      t5
 #define rJ      s1
 #define rK      s2
 #define rLda4   a4
@@ -118,9 +120,7 @@ vt_matmul_asm:
 
         
         # turn on vector unit
-        mfpcr a13,cr0
-        ori a13,a13,4
-        mtpcr x0,a13,cr0
+        setpcr status, SR_EV
 
         blez rLda, cpdone    # exit early if lda < 0
 
@@ -289,9 +289,7 @@ vtcode:
 
 transpose:
         # turn on vector unit
-        mfpcr a13,cr0
-        ori a13,a13,4
-        mtpcr x0,a13,cr0
+        setpcr status, SR_EV
 
         
         blez rLda, cpdone    # exit early if lda < 0

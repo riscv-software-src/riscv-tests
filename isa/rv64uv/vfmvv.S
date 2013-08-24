@@ -34,7 +34,7 @@ loop:
 vtcode:
   utidx x1
   addi x1,x1,1
-  mxtf.d f0,x1
+  fmv.d.x f0,x1
   stop
 
   TEST_PASSFAIL

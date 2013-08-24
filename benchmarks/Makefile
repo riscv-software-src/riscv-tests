@@ -50,7 +50,7 @@ HOST_OPTS = -std=gnu99 -DPREALLOCATE=0 -DHOST_DEBUG=1
 HOST_COMP = gcc $(HOST_OPTS)
 
 RISCV_GCC = riscv-gcc
-RISCV_GCC_OPTS = -std=gnu99 -DSET_STATS -O2 -nostdlib -nostartfiles -ffast-math
+RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -nostdlib -nostartfiles -ffast-math
 RISCV_LINK = riscv-gcc -T $(bmarkdir)/common/test.ld
 RISCV_LINK_MT = riscv-gcc -T $(bmarkdir)/common/test-mt.ld
 RISCV_LINK_OPTS = -lc

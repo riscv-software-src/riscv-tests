@@ -1,12 +1,13 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
+#include <machine/syscall.h>
 #include "pcr.h"
 
 void exit(int code)
 {
   volatile uint64_t magic_mem[8] = {0};
-  magic_mem[0] = 1;
+  magic_mem[0] = SYS_exit;
   magic_mem[1] = code;
   __sync_synchronize();
   mtpcr(PCR_TOHOST, (long)magic_mem);
@@ -16,7 +17,7 @@ void exit(int code)
 void printstr(const char* s)
 {
   volatile uint64_t magic_mem[8] = {0};
-  magic_mem[0] = 4;
+  magic_mem[0] = SYS_write;
   magic_mem[1] = 1;
   magic_mem[2] = (unsigned long)s;
   magic_mem[3] = strlen(s);
@@ -27,17 +28,16 @@ void printstr(const char* s)
 
 int putchar(int ch)
 {
-  #define buffered_putch_bufsize 64
-  static char buf[buffered_putch_bufsize];
+  static char buf[64];
   static int buflen = 0;
 
   if(ch != -1)
     buf[buflen++] = ch;
 
-  if(ch == -1 || buflen == buffered_putch_bufsize)
+  if(ch == -1 || buflen == sizeof(buf))
   {
     volatile uint64_t magic_mem[8] = {0};
-    magic_mem[0] = 4;
+    magic_mem[0] = SYS_write;
     magic_mem[1] = 1;
     magic_mem[2] = (long)buf;
     magic_mem[3] = buflen;

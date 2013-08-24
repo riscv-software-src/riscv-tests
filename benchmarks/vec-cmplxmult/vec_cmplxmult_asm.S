@@ -21,9 +21,9 @@
 #define rVlen   a6
 #define rStride a7
 
-#define rAI a8
-#define rBI a9
-#define rCI a10
+#define rAI t0
+#define rBI t1
+#define rCI t2
 
 # WARNING: do not write to the s0,...,s9 registers without first saving them to
 # the stack.  

@@ -18,23 +18,23 @@ li x2, 0x3FF0000000000000
 li x1, 0x3F800000
 
 #define TEST(nops, errcode)     \
-  mxtf.d  f4, x0    ;\
-  mxtf.s  f3, x0    ;\
-  mxtf.d  f2, x2    ;\
-  mxtf.s  f1, x1    ;\
+  fmv.d.x  f4, x0    ;\
+  fmv.s.x  f3, x0    ;\
+  fmv.d.x  f2, x2    ;\
+  fmv.s.x  f1, x1    ;\
   b 1f ;\
   .align 5        ;\
 1:fmul.d  f4, f2, f2  ;\
   nops          ;\
   fsgnj.s f3, f1, f1 ;\
-  mftx.d  x4, f4    ;\
-  mftx.s  x3, f3    ;\
+  fmv.x.d  x4, f4    ;\
+  fmv.x.s  x3, f3    ;\
   beq     x1, x3, 2f  ;\
   RVTEST_FAIL ;\
 2:beq     x2, x4, 2f  ;\
   RVTEST_FAIL; \
-2:mxtf.d  f2, zero    ;\
-  mxtf.s  f1, zero    ;\
+2:fmv.d.x  f2, zero    ;\
+  fmv.s.x  f1, zero    ;\
 
 TEST(;,2)
 TEST(nop,4)
