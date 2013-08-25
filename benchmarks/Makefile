@@ -24,11 +24,11 @@ bmarks = \
 	dgemm \
 	dhrystone \
 	spmv \
-	vec-vvadd \
-	vec-cmplxmult \
-	vec-matmul \
 	mt-vvadd \
 	mt-matmul \
+	#vec-vvadd \
+	#vec-cmplxmult \
+	#vec-matmul \
 
 bmarks_host = \
 	median \
