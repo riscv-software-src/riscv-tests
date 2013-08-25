@@ -156,14 +156,14 @@ void emulate_vxcptrestore(trapframe_t* tf)
 {
   long* where = (long*)tf->gpr[(tf->insn >> 22) & 0x1F];
   vxcptkill();
-  vcfg(tf->veccfg);
+  //vcfg(tf->veccfg);
   do_vxcptrestore(where);
 }
 
 void restore_vector(trapframe_t* tf)
 {
   mtpcr(PCR_VECBANK, tf->vecbank);
-  vcfg(tf->veccfg);
+  //vcfg(tf->veccfg);
 
   if (mfpcr(PCR_IMPL) == IMPL_ROCKET)
     do_vxcptrestore(tf->evac);
