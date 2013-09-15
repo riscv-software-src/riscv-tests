@@ -148,11 +148,13 @@ trap_entry:
   move  sp,x2
   setpcr status, SR_EI
   move  a0,x2
+#if 0
   mfpcr ra,status
   and   ra,ra,SR_EV
   beqz  ra, 2f
   addi  x2,x2,39*REGBYTES
   vxcptsave x2
+#endif
 2:jal   handle_trap
 
   # when coming from kernel, continue below its stack

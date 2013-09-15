@@ -207,8 +207,10 @@ void handle_trap(trapframe_t* tf)
     assert(0);
 
 out:
+#if 0
   if (!(tf->sr & SR_PS) && (tf->sr & SR_EV))
     restore_vector(tf);
+#endif
   pop_tf(tf);
 }
 
