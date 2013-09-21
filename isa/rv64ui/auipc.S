@@ -11,16 +11,22 @@
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
-  TEST_CASE(2, a0, -4096+8, \
+  TEST_CASE(2, a0, 1<<12, \
+    .align 3; \
     auipc a0, 0x00001; \
-    jal 1f; \
-    1: sub a0, ra, a0; \
+    jal a1, 1f; \
+    1: srl a1, a1, 12; \
+    sll a1, a1, 12; \
+    sub a0, a0, a1; \
   )
 
-  TEST_CASE(3, a0, 4096+8, \
+  TEST_CASE(3, a0, -1<<12, \
+    .align 3; \
     auipc a0, 0xfffff; \
-    jal 1f; \
-    1: sub a0, ra, a0; \
+    jal a1, 1f; \
+    1: srl a1, a1, 12; \
+    sll a1, a1, 12; \
+    sub a0, a0, a1; \
   )
 
   TEST_PASSFAIL
