@@ -75,8 +75,8 @@ $(eval $(call compile_template,rv64uv))
 $(eval $(call compile_template,rv64si))
 $(eval $(call compile_template,rv64sv))
 
-tests_dump = $(addsuffix .dump, $(tests))
-tests_hex = $(addsuffix .hex, $(tests))
+tests_dump = $(addsuffix .dump, $(spike_tests))
+tests_hex = $(addsuffix .hex, $(spike_tests))
 tests_out = $(addsuffix .out, $(spike_tests))
 
 run: $(tests_out)

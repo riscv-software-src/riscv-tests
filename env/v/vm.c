@@ -99,7 +99,7 @@ void handle_fault(unsigned long addr)
   __builtin___clear_cache(0,0);
 }
 
-void emulate_vxcptsave(trapframe_t* tf)
+static void emulate_vxcptsave(trapframe_t* tf)
 {
   long where = tf->gpr[(tf->insn >> 22) & 0x1F];
 
@@ -107,7 +107,7 @@ void emulate_vxcptsave(trapframe_t* tf)
   fencevl();
 }
 
-void do_vxcptrestore(long* where)
+static void do_vxcptrestore(long* where)
 {
   vxcpthold();
 
@@ -152,7 +152,7 @@ void do_vxcptrestore(long* where)
   }
 }
 
-void emulate_vxcptrestore(trapframe_t* tf)
+static void emulate_vxcptrestore(trapframe_t* tf)
 {
   long* where = (long*)tf->gpr[(tf->insn >> 22) & 0x1F];
   vxcptkill();
@@ -160,7 +160,7 @@ void emulate_vxcptrestore(trapframe_t* tf)
   do_vxcptrestore(where);
 }
 
-void restore_vector(trapframe_t* tf)
+static void restore_vector(trapframe_t* tf)
 {
   mtpcr(PCR_VECBANK, tf->vecbank);
   //vcfg(tf->veccfg);
@@ -191,10 +191,12 @@ void handle_trap(trapframe_t* tf)
 
     if (tf->insn == fssr)
       terminate(1); // FP test on non-FP hardware.  "succeed."
+#if 0
     else if ((tf->insn & 0xF83FFFFF) == 0x37B)
       emulate_vxcptsave(tf);
     else if ((tf->insn & 0xF83FFFFF) == 0x77B)
       emulate_vxcptrestore(tf);
+#endif
     else
       assert(0);
     tf->epc += 4;
@@ -243,7 +245,12 @@ void vm_boot(long test_addr, long seed)
   // relocate
   long adjustment = RELOC(0L), tmp;
   mtpcr(PCR_EVEC, (char*)&trap_entry + adjustment);
-  asm volatile ("add sp, sp, %1; rdpc %0; addi %0, %0, 16; add %0, %0, %1; jr %0" : "=&r"(tmp) : "r"(adjustment));
+  asm volatile ("add sp, sp, %1\n"
+                "jal %0, 1f\n"
+                "1: add %0, %0, %1\n"
+                "jr %0, 8"
+                : "=&r"(tmp)
+                : "r"(adjustment));
 
   memset(RELOC(&l3pt[0]), 0, MAX_TEST_PAGES*sizeof(pte_t));
   mtpcr(PCR_FATC, 0);
