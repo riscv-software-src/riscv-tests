@@ -11,8 +11,9 @@
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
+  vsetcfg 3,0
   li a3,2048
-  vvcfgivl a3,a3,3,0
+  vsetvl a3,a3
 
   li a4,20
   li s0,2
@@ -44,7 +45,7 @@ RVTEST_CODE_BEGIN
 
   la a5,dest
   vsd vx1,a5
-  fence.v.l
+  fence
 
   li s2,40
   li x28,2

@@ -11,8 +11,9 @@
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
+  vsetcfg 32,32
   li a3,4
-  vvcfgivl a3,a3,32,32
+  vsetvl a3,a3
 
   la a3,src
   vld vx2,a3
@@ -20,7 +21,7 @@ RVTEST_CODE_BEGIN
   vf %lo(vtcode)(a0)
   la a4,dest
   vfsd vf0,a4
-  fence.v.l
+  fence
   la a5,result
   ld a1,0(a4)
   ld a2,0(a5)

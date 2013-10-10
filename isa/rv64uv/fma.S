@@ -11,8 +11,9 @@
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
+  vsetcfg 3,2
   li a3,2048
-  vvcfgivl a3,a3,3,2
+  vsetvl a3,a3
 
   la a4,src
   fld f0,0(a4)
@@ -35,7 +36,7 @@ wait:
 
   la a5,dest
   vfsd vf0,a5
-  fence.v.l
+  fence
 
   la s3,result
   ld s4,0(s3)

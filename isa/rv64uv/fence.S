@@ -12,16 +12,21 @@ RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
   # make sure these don't choke at the beginning
-  fence.v.l
-  fence.v.g
+  fence
+  fence rw,io
+  fence io,rw
+  fence r,io
+  fence w,io
+  fence rw,i
+  fence rw,o
 
   li a0,1
   bne a0,x0,skip1
-  fence.v.l
+  fence
 skip1:
 
   bne a0,x0,skip3
-  fence.v.g
+  fence
 skip3:
 
   j pass
