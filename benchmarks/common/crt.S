@@ -44,6 +44,11 @@ _start:
   li  x30,0
   li  x31,0
 
+#ifdef __riscv64
+  setpcr status, SR_S64
+  setpcr status, SR_U64
+#endif
+
   # enable fp
   setpcr status, SR_EF
 
@@ -89,12 +94,43 @@ _start:
   fmv.s.x f31,x0
 1:
 
+  lui a0, %hi(trap_entry)    
+  add a0, a0, %lo(trap_entry)
+  mtpcr a0, evec
+
+  lui a0, %hi(main)    
+  add a0, a0, %lo(main)
+  mtpcr a0, epc
+
   # only allow core 0 to proceed
 1:mfpcr a0, hartid
   bnez a0, 1b
 
   la  sp,stacktop
-  jal main
+  
+  # jmp to main as a user program
+  eret 
+1:b 1b
+
+.align 4
+.globl trap_entry
+trap_entry:                # only check for SYS_exit, otherwise crash out
+  li a3, 1337              # magic "bad things" happened error code
+  mfpcr a1, cause
+  li a2, 6                 # syscall exception number
+  bne a1, a2, exit_error
+handle_syscall:
+  li a1, 93                # SYS_exit number
+  bne v0, a1, exit_error
+  li a1, 1                 # successful exit code
+  move a3, a0
+  bne a3, a1, exit_error
+  mtpcr a1, tohost         # exit successfully (tohost == 1)
+1:b 1b
+exit_error:
+  sll a3, a3, 1
+  or  a3, a3, 1
+  mtpcr a3, tohost
 1:b 1b
 
   .bss

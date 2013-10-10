@@ -2,6 +2,9 @@
 // Double-precision general matrix multiplication benchmark
 //--------------------------------------------------------------------------
 
+int ncores = 1;
+#include "util.h"
+
 //--------------------------------------------------------------------------
 // Macros
 
@@ -60,20 +63,6 @@ void printArray( char name[], long n, const double arr[] )
   printf( "\n" );
 }
 #endif
-
-void finishTest( int toHostValue )
-{
-#if HOST_DEBUG
-  if ( toHostValue == 1 )
-    printf( "*** PASSED ***\n" );
-  else
-    printf( "*** FAILED *** (tohost = %d)\n", toHostValue );
-  exit(0);
-#else
-  asm( "mtpcr %0, tohost" : : "r" (toHostValue) );
-  while ( 1 ) { }
-#endif
-}
 
 void setStats( int enable )
 {

@@ -10,7 +10,10 @@
 // not on the smips processor simulator itself. You should not change
 // anything except the HOST_DEBUG and PREALLOCATE macros for your timing
 // runs.
-
+ 
+int ncores = 1;
+#include "util.h"
+ 
 //--------------------------------------------------------------------------
 // Macros
 
@@ -68,19 +71,19 @@ void printArray( char name[], int n, int arr[] )
 }
 #endif
 
-void finishTest( int toHostValue )
-{
-#if HOST_DEBUG
-  if ( toHostValue == 1 )
-    printf( "*** PASSED ***\n" );
-  else
-    printf( "*** FAILED *** (tohost = %d)\n", toHostValue );
-  exit(0);
-#else
-  asm( "mtpcr %0, tohost" : : "r" (toHostValue) );
-  while ( 1 ) { }
-#endif
-}
+//void finishTest( int toHostValue )
+//{
+//#if HOST_DEBUG
+//  if ( toHostValue == 1 )
+//    printf( "*** PASSED ***\n" );
+//  else
+//    printf( "*** FAILED *** (tohost = %d)\n", toHostValue );
+//  exit(0);
+//#else
+//  asm( "mtpcr %0, tohost" : : "r" (toHostValue) );
+//  while ( 1 ) { }
+//#endif
+//}
 
 void setStats( int enable )
 {
