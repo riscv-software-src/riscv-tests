@@ -20,8 +20,9 @@ RVTEST_CODE_BEGIN
   la a3,handler
   mtpcr a3,cr3 # set exception handler
 
+  vsetcfg 32,0
   li a3,4
-  vvcfgivl a3,a3,32,0
+  vsetvl a3,a3
 
   lui a0,%hi(vtcode1+2)
   vf %lo(vtcode1+2)(a0)
@@ -47,8 +48,9 @@ handler:
   bne a3,a4,fail
 
   # make sure vector unit has cleared out
+  vsetcfg 32,0
   li a3,4
-  vvcfgivl a3,a3,32,0
+  vsetvl a3,a3
 
   la a3,src1
   la a4,src2
@@ -58,7 +60,7 @@ handler:
   vf %lo(vtcode1)(a0)
   la a5,dest
   vsd vx2,a5
-  fence.v.l
+  fence
 
   ld a1,0(a5)
   li a2,5

@@ -81,21 +81,20 @@ evac:                              \
 //-----------------------------------------------------------------------
 
 #define ENABLE_TIMER_INTERRUPT \
-        mtpcr x0,ASM_CR(PCR_CLR_IPI);\
-        mfpcr a0,ASM_CR(PCR_SR);     \
-        li a1, SR_ET|SR_IM;          \
-        or a0,a0,a1;                 \
-        mtpcr a0,ASM_CR(PCR_SR);     \
+        mtpcr x0,clear_ipi;          \
+        mfpcr a0,status;             \
+        li a1,SR_IM;                 \
+        mtpcr a0,status;             \
         la a0,_handler;              \
-        mtpcr a0,ASM_CR(PCR_EVEC);   \
-        mtpcr x0,ASM_CR(PCR_COUNT);  \
+        mtpcr a0,evec;               \
+        mtpcr x0,count;              \
         addi a0,x0,60;               \
-        mtpcr a0,ASM_CR(PCR_COMPARE);\
+        mtpcr a0,compare;            \
 
 #define XCPT_HANDLER \
 _handler: \
-        mtpcr a0,ASM_CR(PCR_K0);     \
-        mtpcr a1,ASM_CR(PCR_K1);     \
+        mtpcr a0,sup0;               \
+        mtpcr a1,sup1;               \
         la a0,regspill;              \
         sd a2,0(a0);                 \
         sd a3,8(a0);                 \
@@ -103,19 +102,12 @@ _handler: \
         sd a5,24(a0);                \
         sd s0,32(a0);                \
         sd s1,40(a0);                \
-        mfpcr s1,ASM_CR(PCR_VECBANK);\
-        mfpcr s0,ASM_CR(PCR_VECCFG); \
+        vgetcfg s0;                  \
+        vgetvl s1;                   \
         la a0,evac;                  \
         vxcptevac a0;                \
-        mtpcr s1,ASM_CR(PCR_VECBANK);\
-        srli a1,s0,12;               \
-        andi a1,a1,0x3f;             \
-        srli a2,s0,18;               \
-        andi a2,a2,0x3f;             \
-        vvcfg a1,a2;                 \
-        li a2,0xfff;                 \
-        and a1,s0,a2;                \
-        vsetvl a1,a1;                \
+        vsetcfg s0;                  \
+        vsetvl s1,s1;                \
         vxcpthold;                   \
         li a5,0;                     \
 _handler_loop: \
@@ -167,11 +159,11 @@ _done_skip: \
         ld a5,24(a0);                \
         ld s0,32(a0);                \
         ld s1,40(a0);                \
-        mfpcr a0,ASM_CR(PCR_COUNT);  \
+        mfpcr a0,count;              \
         addi a0,a0,60;               \
-        mtpcr a0,ASM_CR(PCR_COMPARE);\
-        mfpcr a0,ASM_CR(PCR_K0);     \
-        mfpcr a1,ASM_CR(PCR_K1);     \
+        mtpcr a0,compare;            \
+        mfpcr a0,sup0;               \
+        mfpcr a1,sup1;               \
         eret;                        \
 
 #endif

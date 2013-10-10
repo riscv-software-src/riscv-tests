@@ -12,10 +12,9 @@ RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
   # make sure these don't choke at the beginning
-  fence.v.l
-  fence.v.l
-  fence.v.g
-  fence.v.g
+  fence
+  fence rw,io
+  fence io,rw
 
   # this shouldn't go through since app vl is zero
   la a3,src1
@@ -26,7 +25,7 @@ RVTEST_CODE_BEGIN
   vf %lo(vtcode1)(a0)
   la a5,dest
   vsd vx2,a5
-  fence.v.l
+  fence
 
   ld a1,0(a5)
   li a2,0xdeadbeefcafebabe
@@ -61,7 +60,7 @@ RVTEST_CODE_BEGIN
   li x28, 8
   bne a3, a0, fail
 
-  # now do some vector stuff without vvcfgivl
+  # now do some vector stuff without vsetcfg
   vsetvl x0, x0
 
   li a3, 4
@@ -74,7 +73,7 @@ RVTEST_CODE_BEGIN
   vf %lo(vtcode1)(a0)
   la a5,dest
   vsd vx2,a5
-  fence.v.l
+  fence
 
   ld a1,0(a5)
   li a2,5
@@ -109,7 +108,7 @@ RVTEST_CODE_BEGIN
   vf %lo(vtcode1)(a0)
   la a5,dest
   vsd vx2,a5
-  fence.v.l
+  fence
 
   ld a1,0(a5)
   li a2,0xdeadbeefcafebabe

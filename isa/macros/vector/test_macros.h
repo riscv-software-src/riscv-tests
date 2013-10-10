@@ -13,13 +13,14 @@
 
 #define TEST_CASE_NREG( testnum, nxreg, nfreg, testreg, correctval, code... ) \
 test_ ## testnum: \
+  vsetcfg nxreg,nfreg; \
   li a3,2048; \
-  vvcfgivl a3,a3,nxreg,nfreg; \
+  vsetvl a3,a3; \
   lui a0,%hi(vtcode ## testnum ); \
   vf %lo(vtcode ## testnum )(a0); \
   la a4,dst; \
   vsd v ## testreg, a4; \
-  fence.v.l; \
+  fence; \
   li a1,correctval; \
   li a2,0; \
   li x28, testnum; \
@@ -216,8 +217,9 @@ next ## testnum :
 
 #define TEST_FP_OP_S_INTERNAL_NREG( testnum, nxreg, nfreg, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
+  vsetcfg nxreg,nfreg; \
   li a3,2048; \
-  vvcfgivl a3,a3,nxreg,nfreg; \
+  vsetvl a3,a3; \
   la  a5, test_ ## testnum ## _data ;\
   vflstw vf0, a5, x0; \
   addi a5,a5,4; \
@@ -229,7 +231,7 @@ test_ ## testnum: \
   vf %lo(vtcode ## testnum )(a0); \
   la a4,dst; \
   vsw vx1, a4; \
-  fence.v.l; \
+  fence; \
   lw  a1, 0(a5); \
   li a2, 0; \
   li x28, testnum; \
@@ -255,8 +257,9 @@ vtcode ## testnum : \
 
 #define TEST_FP_OP_D_INTERNAL_NREG( testnum, nxreg, nfreg, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
+  vsetcfg nxreg,nfreg; \
   li a3,2048; \
-  vvcfgivl a3,a3,nxreg,nfreg; \
+  vsetvl a3,a3; \
   la  a5, test_ ## testnum ## _data ;\
   vflstd vf0, a5, x0; \
   addi a5,a5,8; \
@@ -268,7 +271,7 @@ test_ ## testnum: \
   vf %lo(vtcode ## testnum )(a0); \
   la a4,dst; \
   vsd vx1, a4; \
-  fence.v.l; \
+  fence; \
   ld  a1, 0(a5); \
   li a2, 0; \
   li x28, testnum; \
@@ -334,13 +337,14 @@ vtcode ## testnum : \
 
 #define TEST_INT_FP_OP_S( testnum, inst, result, val1 ) \
 test_ ## testnum: \
+  vsetcfg 2,1; \
   li a3,2048; \
-  vvcfgivl a3,a3,2,1; \
+  vsetvl a3,a3; \
   lui a0,%hi(vtcode ## testnum ); \
   vf %lo(vtcode ## testnum )(a0); \
   la a4,dst; \
   vsw vx1, a4; \
-  fence.v.l; \
+  fence; \
   la  a5, test_ ## testnum ## _data ;\
   lw  a1, 0(a5); \
   li a2, 0; \
@@ -366,13 +370,14 @@ vtcode ## testnum : \
 
 #define TEST_INT_FP_OP_D( testnum, inst, result, val1 ) \
 test_ ## testnum: \
+  vsetcfg 2,1; \
   li a3,2048; \
-  vvcfgivl a3,a3,2,1; \
+  vsetvl a3,a3; \
   lui a0,%hi(vtcode ## testnum ); \
   vf %lo(vtcode ## testnum )(a0); \
   la a4,dst; \
   vsd vx1, a4; \
-  fence.v.l; \
+  fence; \
   la  a5, test_ ## testnum ## _data ;\
   ld  a1, 0(a5); \
   li a2, 0; \
@@ -515,12 +520,13 @@ vtcode ## testnum : \
 
 #define TEST_CASE_NREG_MEM( testnum, nxreg, nfreg, correctval, code... ) \
 test_ ## testnum: \
+  vsetcfg nxreg,nfreg; \
   li a3,2048; \
-  vvcfgivl a3,a3,nxreg,nfreg; \
+  vsetvl a3,a3; \
   lui a0,%hi(vtcode ## testnum ); \
   vf %lo(vtcode ## testnum )(a0); \
   la a4,dst; \
-  fence.v.l; \
+  fence; \
   li a1,correctval; \
   li a2,0; \
   li x28, testnum; \

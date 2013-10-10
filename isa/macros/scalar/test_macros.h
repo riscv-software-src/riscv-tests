@@ -96,30 +96,26 @@ pass_ ## testnum: \
 # Tests for vector config instructions
 #-----------------------------------------------------------------------
 
-#define TEST_VVCFGIVL( testnum, nxpr, nfpr, bank, vl, result ) \
+#define TEST_VSETCFGIVL( testnum, nxpr, nfpr, bank, vl, result ) \
     TEST_CASE_JUMP( testnum, x1, result, \
-      li x2, bank; \
-      mtpcr x2, cr18; \
+      li x1, (bank << 12); \
+      vsetcfg x1,nxpr,nfpr; \
       li x1, vl; \
-      vvcfgivl x1,x1,nxpr,nfpr; \
+      vsetvl x1,x1; \
     )
 
 #define TEST_VVCFG( testnum, nxpr, nfpr, bank, vl, result ) \
     TEST_CASE_JUMP( testnum, x1, result, \
-      li x2, bank; \
-      mtpcr x2, cr18; \
-      li x1, nxpr; \
-      li x2, nfpr; \
-      vvcfg x1,x2; \
+      li x1, (bank << 12) | (nfpr << 6) | nxpr; \
+      vsetcfg x1; \
       li x1, vl; \
       vsetvl x1,x1; \
     )
 
 #define TEST_VSETVL( testnum, nxpr, nfpr, bank, vl, result ) \
     TEST_CASE_JUMP( testnum, x1, result, \
-      li x2, bank; \
-      mtpcr x2, cr18; \
-      vvcfgivl x0,x0,nxpr,nfpr; \
+      li x1, (bank << 12); \
+      vsetcfg x1,nxpr,nfpr; \
       li x1, vl; \
       vsetvl x1, x1; \
     )
@@ -567,15 +563,11 @@ test_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_ILLEGAL_VT_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, reg3) \
-  mfpcr a0,cr0; \
-  li a1,1; \
-  slli a3,a1,8; \
-  or a0,a0,a1; \
-  mtpcr a0,cr0; \
   la a0, handler ## testnum; \
-  mtpcr a0, cr3; \
+  mtpcr a0, evec; \
+  vsetcfg nxreg, nfreg; \
   li a0, 4; \
-  vvcfgivl a0, a0, nxreg, nfreg; \
+  vsetvl a0, a0; \
   la a0, src1; \
   la a1, src2; \
   vld vx2, a0; \
@@ -584,7 +576,7 @@ test_ ## testnum: \
   vf %lo(vtcode1 ## testnum)(a0); \
   la a3, dest; \
   vsd vx2, a3; \
-  fence.v.l; \
+  fence; \
 vtcode1 ## testnum: \
   add x2, x2, x3; \
 illegal ## testnum: \
@@ -602,8 +594,9 @@ handler ## testnum: \
   mfpcr a0,cr2; \
   la a1,illegal ## testnum; \
   bne a0,a1,fail; \
+  vsetcfg 32,0; \
   li a0,4; \
-  vvcfgivl a0,a0,32,0; \
+  vsetvl a0,a0; \
   la a0,src1; \
   la a1,src2; \
   vld vx2,a0; \
@@ -612,7 +605,7 @@ handler ## testnum: \
   vf %lo(vtcode2 ## testnum)(a0); \
   la a3,dest; \
   vsd vx2,a3; \
-  fence.v.l; \
+  fence; \
   ld a1,0(a3); \
   li a2,5; \
   li x28,2; \
@@ -628,15 +621,11 @@ handler ## testnum: \
   bne a1,a2,fail; \
 
 #define TEST_ILLEGAL_TVEC_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, aux) \
-  mfpcr a0,cr0; \
-  li a1,1; \
-  slli a2,a1,8; \
-  or a0,a0,a1; \
-  mtpcr a0,cr0; \
   la a0, handler ## testnum; \
-  mtpcr a0, cr3; \
+  mtpcr a0, evec; \
+  vsetcfg nxreg, nfreg; \
   li a0, 4; \
-  vvcfgivl a0, a0, nxreg, nfreg; \
+  vsetvl a0, a0; \
   la a0, src1; \
   la a1, src2; \
   vld vx2, a0; \
@@ -648,7 +637,7 @@ illegal ## testnum: \
   inst reg1, reg2; \
   la a3, dest; \
   vsd vx2, a3; \
-  fence.v.l; \
+  fence; \
 vtcode1 ## testnum: \
   add x2, x2, x3; \
   stop; \
@@ -664,8 +653,9 @@ handler ## testnum: \
   mfpcr a0, cr2; \
   li a1, aux; \
   bne a0, a1, fail; \
+  vsetcfg 32,0; \
   li a0,4; \
-  vvcfgivl a0,a0,32,0; \
+  vsetvl a0,a0; \
   la a0,src1; \
   la a1,src2; \
   vld vx2,a0; \
@@ -674,7 +664,7 @@ handler ## testnum: \
   vf %lo(vtcode2 ## testnum)(a0); \
   la a3,dest; \
   vsd vx2,a3; \
-  fence.v.l; \
+  fence; \
   ld a1,0(a3); \
   li a2,5; \
   li x28,2; \
