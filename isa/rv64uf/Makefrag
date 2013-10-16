@@ -15,4 +15,4 @@ rv64uf_p_vec_tests = $(addprefix rv64uf-p-vec-, $(rv64uf_sc_vec_tests))
 rv64uf_pt_vec_tests = $(addprefix rv64uf-pt-vec-, $(rv64uf_sc_vec_tests))
 rv64uf_v_vec_tests = $(addprefix rv64uf-v-vec-, $(rv64uf_sc_vec_tests))
 
-spike_tests += $(rv64uf_p_tests) $(rv64uf_v_tests) #$(rv64uf_p_vec_tests) $(rv64uf_pt_vec_tests) $(rv64uf_v_vec_tests)
+spike_tests += $(rv64uf_p_tests) $(rv64uf_v_tests) $(rv64uf_p_vec_tests) #$(rv64uf_pt_vec_tests) $(rv64uf_v_vec_tests)
