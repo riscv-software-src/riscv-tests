@@ -15,6 +15,9 @@ RVTEST_CODE_BEGIN
   li a4,2048
   vsetvl a4,a4
 
+  la a5,amodest
+  vmsv vx2,a5
+  lui a0,%hi(vtcode)
   vf %lo(vtcode)(a0)
   la a6,dest
   vsw vx1,a6
