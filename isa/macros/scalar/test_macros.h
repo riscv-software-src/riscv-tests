@@ -559,10 +559,72 @@ test_ ## testnum: \
 
 
 #-----------------------------------------------------------------------
-# RV64UV MACROS
+# RV64SV MACROS
 #-----------------------------------------------------------------------
 
+#define TEST_ILLEGAL_TVEC_REGID( testnum, nxreg, nfreg, inst, reg1, reg2) \
+  setpcr status, SR_EI; \
+  la a0, handler ## testnum; \
+  mtpcr a0, evec; \
+  vsetcfg nxreg, nfreg; \
+  li a0, 4; \
+  vsetvl a0, a0; \
+  la a0, src1; \
+  la a1, src2; \
+  vld vx2, a0; \
+  vld vx3, a1; \
+  lui a0,%hi(vtcode1 ## testnum); \
+  vf %lo(vtcode1 ## testnum)(a0); \
+  la reg2, dest; \
+illegal ## testnum: \
+  inst reg1, reg2; \
+  la a3, dest; \
+  vsd vx2, a3; \
+  fence; \
+vtcode1 ## testnum: \
+  add x2, x2, x3; \
+  stop; \
+vtcode2 ## testnum: \
+  add x2, x2, x3; \
+  stop; \
+handler ## testnum: \
+  vxcptkill; \
+  li x28,2; \
+  vxcptcause a0; \
+  li a1,HWACHA_CAUSE_TVEC_ILLEGAL_REGID; \
+  bne a0,a1,fail; \
+  vxcptaux a0; \
+  la a1, illegal ## testnum; \
+  lw a2, 0(a1); \
+  bne a0, a2, fail; \
+  vsetcfg 32,0; \
+  li a0,4; \
+  vsetvl a0,a0; \
+  la a0,src1; \
+  la a1,src2; \
+  vld vx2,a0; \
+  vld vx3,a1; \
+  lui a0,%hi(vtcode2 ## testnum); \
+  vf %lo(vtcode2 ## testnum)(a0); \
+  la a3,dest; \
+  vsd vx2,a3; \
+  fence; \
+  ld a1,0(a3); \
+  li a2,5; \
+  li x28,2; \
+  bne a1,a2,fail; \
+  ld a1,8(a3); \
+  li x28,3; \
+  bne a1,a2,fail; \
+  ld a1,16(a3); \
+  li x28,4; \
+  bne a1,a2,fail; \
+  ld a1,24(a3); \
+  li x28,5; \
+  bne a1,a2,fail; \
+
 #define TEST_ILLEGAL_VT_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, reg3) \
+  setpcr status, SR_EI; \
   la a0, handler ## testnum; \
   mtpcr a0, evec; \
   vsetcfg nxreg, nfreg; \
@@ -588,10 +650,10 @@ vtcode2 ## testnum: \
 handler ## testnum: \
   vxcptkill; \
   li x28,2; \
-  mfpcr a0,cr6; \
-  li a1,26; \
+  vxcptcause a0; \
+  li a1,HWACHA_CAUSE_VF_ILLEGAL_REGID; \
   bne a0,a1,fail; \
-  mfpcr a0,cr2; \
+  vxcptaux a0; \
   la a1,illegal ## testnum; \
   bne a0,a1,fail; \
   vsetcfg 32,0; \
@@ -619,66 +681,6 @@ handler ## testnum: \
   ld a1,24(a3); \
   li x28,5; \
   bne a1,a2,fail; \
-
-#define TEST_ILLEGAL_TVEC_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, aux) \
-  la a0, handler ## testnum; \
-  mtpcr a0, evec; \
-  vsetcfg nxreg, nfreg; \
-  li a0, 4; \
-  vsetvl a0, a0; \
-  la a0, src1; \
-  la a1, src2; \
-  vld vx2, a0; \
-  vld vx3, a1; \
-  lui a0,%hi(vtcode1 ## testnum); \
-  vf %lo(vtcode1 ## testnum)(a0); \
-  la reg2, dest; \
-illegal ## testnum: \
-  inst reg1, reg2; \
-  la a3, dest; \
-  vsd vx2, a3; \
-  fence; \
-vtcode1 ## testnum: \
-  add x2, x2, x3; \
-  stop; \
-vtcode2 ## testnum: \
-  add x2, x2, x3; \
-  stop; \
-handler ## testnum: \
-  vxcptkill; \
-  li x28,2; \
-  mfpcr a0,cr6; \
-  li a1,27; \
-  bne a0,a1,fail; \
-  mfpcr a0, cr2; \
-  li a1, aux; \
-  bne a0, a1, fail; \
-  vsetcfg 32,0; \
-  li a0,4; \
-  vsetvl a0,a0; \
-  la a0,src1; \
-  la a1,src2; \
-  vld vx2,a0; \
-  vld vx3,a1; \
-  lui a0,%hi(vtcode2 ## testnum); \
-  vf %lo(vtcode2 ## testnum)(a0); \
-  la a3,dest; \
-  vsd vx2,a3; \
-  fence; \
-  ld a1,0(a3); \
-  li a2,5; \
-  li x28,2; \
-  bne a1,a2,fail; \
-  ld a1,8(a3); \
-  li x28,3; \
-  bne a1,a2,fail; \
-  ld a1,16(a3); \
-  li x28,4; \
-  bne a1,a2,fail; \
-  ld a1,24(a3); \
-  li x28,5; \
-  bne a1,a2,fail; \
-
 
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in x28)

@@ -11,31 +11,22 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  mfpcr a3,cr0
-  li a4,1
-  slli a5,a4,8
-  or a3,a3,a4 # enable traps
-  mtpcr a3,cr0
+  setpcr status, SR_EI # enable interrupt
 
   la a3,handler
-  mtpcr a3,cr3 # set exception handler
+  mtpcr a3,evec # set exception handler
 
-  vsetcfg 32,0
-  li a3,4
-  vsetvl a3,a3
+  mfpcr a3,status
+  li a4,(1 << IRQ_COP)
+  slli a4,a4,SR_IM_SHIFT
+  or a3,a3,a4 # enable IM[COP]
+  mtpcr a3,status
 
-  la a3, dest+1
-  vmsv vx1, a3
-  addi a3, x0, 0x1
-  sll a3, a3, 12
-  venqcmd a3, x0
-  lui a0,%hi(vtcode1)
-  vf %lo(vtcode1)(a0)
-  fence
+  setpcr status, SR_U64
+  clearpcr status, SR_S # clear S bit
 
-vtcode1:
-  lw x2, 0(x1)
-  stop
+privileged_inst:
+  vxcptcause a3 # privileged inst
 
 vtcode2:
   add x2,x2,x3
@@ -47,15 +38,15 @@ handler:
   li x28,2
 
   # check cause
-  mfpcr a3,cr6
-  li a4,27
+  vxcptcause a3
+  li a4,HWACHA_CAUSE_PRIVILEGED_INSTRUCTION
   bne a3,a4,fail
 
   # check vec irq aux
-  mfpcr a3,cr2
-  addi a4, x0, 0x1
-  sll a4, a4, 12
-  bne a3,a4,fail
+  vxcptaux a3
+  la a4, privileged_inst
+  lw a5, 0(a4)
+  bne a3,a5,fail
 
   # make sure vector unit has cleared out
   vsetcfg 32,0

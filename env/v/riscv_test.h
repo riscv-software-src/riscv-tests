@@ -51,6 +51,7 @@ userstart:                                                              \
 //-----------------------------------------------------------------------
 
 #include "../pcr.h"
+#include "../hwacha_xcpt.h"
 
 #define vvcfg(nxregs, nfregs) ({ \
           asm volatile ("vvcfg %0,%1" : : "r"(nxregs), "r"(nfregs)); })

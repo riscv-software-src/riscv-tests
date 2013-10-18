@@ -201,9 +201,7 @@ void handle_trap(trapframe_t* tf)
       assert(0);
     tf->epc += 4;
   }
-  else if (tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE ||
-           tf->cause == CAUSE_VECTOR_FAULT_LOAD || tf->cause == CAUSE_VECTOR_FAULT_STORE ||
-           tf->cause == CAUSE_VECTOR_FAULT_FETCH)
+  else if (tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE)
     handle_fault(tf->badvaddr);
   else
     assert(0);

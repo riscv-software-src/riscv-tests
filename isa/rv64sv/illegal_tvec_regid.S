@@ -11,17 +11,17 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  mfpcr a0,cr0
-  li a1,1
-  slli a2,a1,8
-  or a0,a0,a1 # enable traps
-  mtpcr a0,cr0
+  mfpcr a3,status
+  li a4,(1 << IRQ_COP)
+  slli a4,a4,SR_IM_SHIFT
+  or a3,a3,a4 # enable IM[COP]
+  mtpcr a3,status
 
-  TEST_ILLEGAL_TVEC_REGID(2, 5, 5, vsd, vx7, a2, 0x931c7)
-  TEST_ILLEGAL_TVEC_REGID(3, 5, 5, vld, vx7, a2, 0x831c7)
+  TEST_ILLEGAL_TVEC_REGID(2, 5, 5, vsd, vx7, a2)
+  TEST_ILLEGAL_TVEC_REGID(3, 5, 5, vld, vx7, a2)
 
-  TEST_ILLEGAL_TVEC_REGID(4, 5, 5, vfsd, vf7, a2, 0x9b9e7)
-  TEST_ILLEGAL_TVEC_REGID(5, 5, 5, vfld, vf7, a2, 0x8b9e7)
+  TEST_ILLEGAL_TVEC_REGID(4, 5, 5, vfsd, vf7, a2)
+  TEST_ILLEGAL_TVEC_REGID(5, 5, 5, vfld, vf7, a2)
 
   TEST_PASSFAIL
 

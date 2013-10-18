@@ -1,8 +1,8 @@
 #*****************************************************************************
-# ma_utld.S
+# illegal_tvec_cmd.S
 #-----------------------------------------------------------------------------
 #
-# Test misaligned ut ld trap.
+# Test illegal tvec command trap.
 #
 
 #include "riscv_test.h"
@@ -22,19 +22,8 @@ RVTEST_CODE_BEGIN
   or a3,a3,a4 # enable IM[COP]
   mtpcr a3,status
 
-  vsetcfg 32,0
-  li a3,4
-  vsetvl a3,a3
-
-  la a3, dest+1
-  vmsv vx1, a3
-  lui a0,%hi(vtcode1)
-  vf %lo(vtcode1)(a0)
-  fence
-
-vtcode1:
-  lw x2, 0(x1)
-  stop
+  li a0,33
+  vsetcfg a0
 
 vtcode2:
   add x2,x2,x3
@@ -47,12 +36,12 @@ handler:
 
   # check cause
   vxcptcause a3
-  li a4,HWACHA_CAUSE_MISALIGNED_LOAD
+  li a4,HWACHA_CAUSE_ILLEGAL_CFG
   bne a3,a4,fail
 
   # check vec irq aux
   vxcptaux a3
-  la a4,dest+1
+  li a4, 0
   bne a3,a4,fail
 
   # make sure vector unit has cleared out

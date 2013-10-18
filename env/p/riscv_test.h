@@ -2,6 +2,7 @@
 #define _ENV_PHYSICAL_SINGLE_CORE_H
 
 #include "../pcr.h"
+#include "../hwacha_xcpt.h"
 
 //-----------------------------------------------------------------------
 // Begin Macro

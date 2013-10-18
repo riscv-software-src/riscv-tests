@@ -11,14 +11,16 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  mfpcr a3,cr0
-  li a4,1
-  slli a5,a4,8
-  or a3,a3,a4 # enable traps
-  mtpcr a3,cr0
+  setpcr status, SR_EI # enable interrupt
 
   la a3,handler
-  mtpcr a3,cr3 # set exception handler
+  mtpcr a3,evec # set exception handler
+
+  mfpcr a3,status
+  li a4,(1 << IRQ_COP)
+  slli a4,a4,SR_IM_SHIFT
+  or a3,a3,a4 # enable IM[COP]
+  mtpcr a3,status
 
   vsetcfg 32,0
   li a3,4
@@ -46,12 +48,12 @@ handler:
   li x28,2
 
   # check cause
-  mfpcr a3,cr6
-  li a4,29
+  vxcptcause a3
+  li a4,HWACHA_CAUSE_MISALIGNED_STORE
   bne a3,a4,fail
 
   # check vec irq aux
-  mfpcr a3,cr2
+  vxcptaux a3
   la a4, dest+1
   bne a3,a4,fail
 
