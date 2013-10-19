@@ -53,22 +53,14 @@ userstart:                                                              \
 #include "../pcr.h"
 #include "../hwacha_xcpt.h"
 
-#define vvcfg(nxregs, nfregs) ({ \
-          asm volatile ("vvcfg %0,%1" : : "r"(nxregs), "r"(nfregs)); })
-
-#define vsetvl(vl) ({ long __tmp; \
-          asm volatile ("vsetvl %0,%1" : "=r"(__tmp) : "r"(vl)); })
-
-#define vcfg(word) ({ vvcfg((word)>>12, (word)>>18); vsetvl((word)); })
-
 #define dword_bit_cmd(dw) ((dw >> 32) & 0x1)
 #define dword_bit_cnt(dw) (!dword_bit_cmd(dw))
 #define dword_bit_imm1(dw) ((dw >> 35) & 0x1)
 #define dword_bit_imm2(dw) ((dw >> 34) & 0x1)
 #define dword_bit_pf(dw) ((dw >> 36) & 0x1)
 
-#define fencevl() ({ \
-          asm volatile ("fence.v.l" ::: "memory"); })
+#define fence() ({ \
+          asm volatile ("fence" ::: "memory"); })
 
 #define vxcptkill() ({ \
           asm volatile ("vxcptkill"); })
@@ -94,10 +86,50 @@ userstart:                                                              \
 #define PGSHIFT 13
 #define PGSIZE (1 << PGSHIFT)
 
-#define SIZEOF_TRAPFRAME_T 1336
+#define SIZEOF_TRAPFRAME_T 1328
 
 #ifndef __ASSEMBLER__
 
+static inline void vsetcfg(long cfg)
+{
+  asm volatile ("vsetcfg %0" : : "r"(cfg));
+}
+
+static inline void vsetvl(long vl)
+{
+  long __tmp;
+  asm volatile ("vsetvl %0,%1" : "=r"(__tmp) : "r"(vl));
+}
+
+static inline long vgetcfg()
+{
+  int cfg;
+  asm volatile ("vgetcfg %0" : "=r"(cfg) :);
+  return cfg;
+}
+
+static inline long vgetvl()
+{
+  int vl;
+  asm volatile ("vgetvl %0" : "=r"(vl) :);
+}
+
+static inline long vxcptaux()
+{
+  int aux;
+  asm volatile ("vxcptaux %0" : "=r"(aux) :);
+  return aux;
+}
+
+static inline void vxcptrestore(long* mem)
+{
+  asm volatile("vxcptrestore %0" : : "r"(mem) : "memory");
+}
+
+static inline void vxcptevac(long* mem)
+{
+  asm volatile ("vxcptevac %0" : : "r"(mem));
+}
 
 typedef unsigned long pte_t;
 #define LEVELS (sizeof(pte_t) == sizeof(uint64_t) ? 3 : 2)
@@ -114,8 +146,7 @@ typedef struct
   long badvaddr;
   long cause;
   long insn;
-  long vecbank;
-  long veccfg;
+  long hwacha_cause;
   long evac[128];
 } trapframe_t;
 #endif

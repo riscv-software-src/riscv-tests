@@ -71,16 +71,16 @@ save_tf:  # write the trap frame onto the stack
   li    x6, CAUSE_FAULT_FETCH
   beq   x3, x5, 1f
   beq   x3, x6, 1f
-  lh    x3,0(x4)
-  lh    x4,2(x4)
-  sh    x3,  36*REGBYTES(x2)
-  sh    x4,2+36*REGBYTES(x2)
+  lh    x5,0(x4)
+  lh    x6,2(x4)
+  sh    x5,  36*REGBYTES(x2)
+  sh    x6,2+36*REGBYTES(x2)
 1:
 
-  #mfpcr  x3,ASM_CR(PCR_VECBANK)        # vecbank
-  #STORE  x3,37*REGBYTES(x2)
-  #mfpcr  x3,ASM_CR(PCR_VECCFG)        # veccfg
-  #STORE  x3,38*REGBYTES(x2)
+  bge   x3, x0, 1f
+  vxcptcause x3
+  STORE  x3,37*REGBYTES(x2)
+1:
 
   ret
 
@@ -148,13 +148,11 @@ trap_entry:
   move  sp,x2
   setpcr status, SR_EI
   move  a0,x2
-#if 0
   mfpcr ra,status
-  and   ra,ra,SR_EV
+  and   ra,ra,SR_EA
   beqz  ra, 2f
-  addi  x2,x2,39*REGBYTES
+  addi  x2,x2,38*REGBYTES
   vxcptsave x2
-#endif
 2:jal   handle_trap
 
   # when coming from kernel, continue below its stack

@@ -30,4 +30,4 @@ rv64uv_p_vec_tests = $(addprefix rv64uv-p-vec-, $(rv64uv_sc_vec_tests))
 rv64uv_pt_vec_tests = $(addprefix rv64uv-pt-vec-, $(rv64uv_sc_vec_tests))
 rv64uv_v_vec_tests = $(addprefix rv64uv-v-vec-, $(rv64uv_sc_vec_tests))
 
-spike_tests += $(rv64uv_p_tests)
+spike_tests += $(rv64uv_p_tests) $(rv64uv_v_tests)

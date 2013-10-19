@@ -101,17 +101,22 @@ void handle_fault(unsigned long addr)
 
 static void emulate_vxcptsave(trapframe_t* tf)
 {
-  long where = tf->gpr[(tf->insn >> 22) & 0x1F];
+  long* where = (long*)tf->gpr[(tf->insn >> 15) & 0x1F];
 
-  asm volatile ("vxcptevac %0" : : "r"(where));
-  fencevl();
+  where[0] = vgetcfg();
+  where[1] = vgetvl();
+  vxcptevac(&where[2]);
+  fence();
 }
 
 static void do_vxcptrestore(long* where)
 {
+  vsetcfg(where[0]);
+  vsetvl(where[1]);
+
   vxcpthold();
 
-  int idx = 0;
+  int idx = 2;
   long dword, cmd, pf;
   int first = 1;
 
@@ -154,21 +159,17 @@ static void do_vxcptrestore(long* where)
 
 static void emulate_vxcptrestore(trapframe_t* tf)
 {
-  long* where = (long*)tf->gpr[(tf->insn >> 22) & 0x1F];
+  long* where = (long*)tf->gpr[(tf->insn >> 15) & 0x1F];
   vxcptkill();
-  //vcfg(tf->veccfg);
   do_vxcptrestore(where);
 }
 
 static void restore_vector(trapframe_t* tf)
 {
-  mtpcr(PCR_VECBANK, tf->vecbank);
-  //vcfg(tf->veccfg);
-
   if (mfpcr(PCR_IMPL) == IMPL_ROCKET)
     do_vxcptrestore(tf->evac);
   else
-    asm volatile("vxcptrestore %0" : : "r"(tf->evac) : "memory");
+    vxcptrestore(tf->evac);
 }
 
 void handle_trap(trapframe_t* tf)
@@ -203,14 +204,26 @@ void handle_trap(trapframe_t* tf)
   }
   else if (tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE)
     handle_fault(tf->badvaddr);
+  else if ((tf->cause << 1) == (IRQ_COP << 1))
+  {
+    if (tf->hwacha_cause == HWACHA_CAUSE_VF_FAULT_FETCH ||
+        tf->hwacha_cause == HWACHA_CAUSE_FAULT_LOAD ||
+        tf->hwacha_cause == HWACHA_CAUSE_FAULT_STORE)
+    {
+      long badvaddr = vxcptaux();
+      handle_fault(badvaddr);
+    }
+    else
+      assert(0);
+  }
   else
     assert(0);
 
 out:
-#if 0
-  if (!(tf->sr & SR_PS) && (tf->sr & SR_EV))
+  if (!(tf->sr & SR_PS) && (tf->sr & SR_EA)) {
     restore_vector(tf);
-#endif
+    tf->sr |= SR_PEI;
+  }
   pop_tf(tf);
 }
 
@@ -255,7 +268,7 @@ void vm_boot(long test_addr, long seed)
 
   trapframe_t tf;
   memset(&tf, 0, sizeof(tf));
-  tf.sr = SR_EF | SR_EV | SR_S | SR_U64 | SR_S64 | SR_VM;
+  tf.sr = SR_PEI | ((1 << IRQ_COP) << SR_IM_SHIFT) | SR_EF | SR_EA | SR_S | SR_U64 | SR_S64 | SR_VM;
   tf.epc = test_addr;
 
   pop_tf(&tf);
