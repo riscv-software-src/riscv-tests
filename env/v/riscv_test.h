@@ -86,7 +86,7 @@ userstart:                                                              \
 #define PGSHIFT 13
 #define PGSIZE (1 << PGSHIFT)
 
-#define SIZEOF_TRAPFRAME_T 1328
+#define SIZEOF_TRAPFRAME_T 20784
 
 #ifndef __ASSEMBLER__
 
@@ -147,7 +147,7 @@ typedef struct
   long cause;
   long insn;
   long hwacha_cause;
-  long evac[128];
+  long evac[2560];
 } trapframe_t;
 #endif
 

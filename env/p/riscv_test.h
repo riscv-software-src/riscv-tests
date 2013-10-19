@@ -57,9 +57,9 @@
 2:fssr x0;                                                              \
 
 #define RVTEST_VEC_ENABLE                                               \
-  setpcr status, SR_EV;                                                 \
+  setpcr status, SR_EA;                                                 \
   mfpcr a0, status;                                                     \
-  and   a0, a0, SR_EV;                                                  \
+  and   a0, a0, SR_EA;                                                  \
   bnez  a0, 2f;                                                         \
   RVTEST_PASS;                                                          \
 2:                                                                      \

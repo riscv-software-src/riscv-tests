@@ -156,7 +156,8 @@ trap_entry:
 2:jal   handle_trap
 
   # when coming from kernel, continue below its stack
-1:add   x2, sp, -SIZEOF_TRAPFRAME_T
+1:li x2,17712
+  sub   x2, sp, x2
   jal   save_tf
   move  sp,x2
   setpcr status, SR_EI

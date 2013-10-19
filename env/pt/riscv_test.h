@@ -43,38 +43,7 @@ regspill:                          \
         .dword 0xdeadbeefcafebabe; \
         .dword 0xdeadbeefcafebabe; \
 evac:                              \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
-        .dword 0xdeadbeefcafebabe; \
+        .skip 32768;               \
 
 //-----------------------------------------------------------------------
 // Misc
@@ -84,13 +53,32 @@ evac:                              \
         mtpcr x0,clear_ipi;          \
         mfpcr a0,status;             \
         li a1,SR_IM;                 \
+        or a0,a0,a1;                 \
         mtpcr a0,status;             \
+        setpcr status,SR_EI;         \
         la a0,_handler;              \
         mtpcr a0,evec;               \
         mtpcr x0,count;              \
         addi a0,x0,60;               \
         mtpcr a0,compare;            \
 
+#define XCPT_HANDLER \
+_handler: \
+        mtpcr a0,sup0;               \
+        mtpcr a1,sup1;               \
+        vxcptcause x0;               \
+        la a0,evac;                  \
+        vxcptsave a0;                \
+        vxcptrestore a0;             \
+        setpcr status,SR_PEI;        \
+        mfpcr a0,count;              \
+        addi a0,a0,60;               \
+        mtpcr a0,compare;            \
+        mfpcr a0,sup0;               \
+        mfpcr a1,sup1;               \
+        eret;                        \
+
+#if 0
 #define XCPT_HANDLER \
 _handler: \
         mtpcr a0,sup0;               \
@@ -165,5 +153,7 @@ _done_skip: \
         mfpcr a0,sup0;               \
         mfpcr a1,sup1;               \
         eret;                        \
+
+#endif
 
 #endif
