@@ -1,6 +1,8 @@
 #ifndef __TEST_MACROS_VECTOR_H
 #define __TEST_MACROS_VECTOR_H
 
+#undef EXTRA_INIT
+#define EXTRA_INIT RVTEST_VEC_ENABLE
 
 #-----------------------------------------------------------------------
 # Helper macros

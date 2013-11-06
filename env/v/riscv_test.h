@@ -12,9 +12,10 @@
 #define RVTEST_RV64UF                                                   \
   .macro init;                                                          \
   fssr x0;                                                              \
-  .endm 
+  .endm
 
-#define RVTEST_VEC_ENABLE                                               \
+#define RVTEST_RV64UV                                                   \
+	RVTEST_RV64UF
 
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
