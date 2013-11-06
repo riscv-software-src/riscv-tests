@@ -11,6 +11,7 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
+  setpcr status, SR_EA # enable accelerator
   setpcr status, SR_EI # enable interrupt
 
   la a3,handler

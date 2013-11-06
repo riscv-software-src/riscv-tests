@@ -11,6 +11,8 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
+  setpcr status, SR_EA # enable accelerator
+
   mfpcr a3,status
   li a4,(1 << IRQ_COP)
   slli a4,a4,SR_IM_SHIFT
