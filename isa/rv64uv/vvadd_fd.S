@@ -24,9 +24,9 @@ RVTEST_CODE_BEGIN
   la a5,dest
   vfsd vf2,a5
   fence
-  la a5,result
+  la a6,result
   ld a1,0(a5)
-  ld a2,0(a5)
+  ld a2,0(a6)
   li x28,2
   bne a1,a2,fail
   ld a1,8(a5)
