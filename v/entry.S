@@ -51,19 +51,19 @@ save_tf:  # write the trap frame onto the stack
   STORE  x30,30*REGBYTES(x2)
   STORE  x31,31*REGBYTES(x2)
 
-  mfpcr  x3,sup0
+  csrr   x3,sup0
   STORE  x3,1*REGBYTES(x2)          # x1 is in PCR_K0
-  mfpcr  x3,sup1
+  csrr   x3,sup1
   STORE  x3,2*REGBYTES(x2)          # x2 is in PCR_K1
 
   # get sr, epc, badvaddr, cause
-  mfpcr  x3,status          # sr
+  csrr   x3,status          # sr
   STORE  x3,32*REGBYTES(x2)
-  mfpcr  x4,epc          # epc
+  csrr   x4,epc          # epc
   STORE  x4,33*REGBYTES(x2)
-  mfpcr  x3,badvaddr      # badvaddr
+  csrr   x3,badvaddr      # badvaddr
   STORE  x3,34*REGBYTES(x2)
-  mfpcr  x3,cause        # cause
+  csrr   x3,cause        # cause
   STORE  x3,35*REGBYTES(x2)
 
   # get faulting insn, if it wasn't a fetch-related trap
@@ -88,12 +88,12 @@ save_tf:  # write the trap frame onto the stack
 pop_tf:  # write the trap frame onto the stack
   # restore gprs
   LOAD  a1,32*REGBYTES(a0)  # restore sr (should disable interrupts)
-  mtpcr  a1,status
+  csrw  status,a1
 
   LOAD  x1,1*REGBYTES(a0)
-  mtpcr  x1,sup0
-  LOAD  x1,2*REGBYTES(a0)
-  mtpcr x1,sup1
+  LOAD  x2,2*REGBYTES(a0)
+  csrw  sup0,x1
+  csrw  sup1,x2
   move  x1,a0
   LOAD  x3,3*REGBYTES(x1)
   LOAD  x4,4*REGBYTES(x1)
@@ -127,18 +127,18 @@ pop_tf:  # write the trap frame onto the stack
 
   # gtfo!
   LOAD  x2,33*REGBYTES(x1)
-  mtpcr x2,epc
-  mfpcr x1,sup0
-  mfpcr x2,sup1
-  eret
+  csrw  epc,x2
+  csrr  x1,sup0
+  csrr  x2,sup1
+  sret
 
   .global  trap_entry
 trap_entry:
-  mtpcr ra,sup0
-  mtpcr x2,sup1
+  csrw sup0,ra
+  csrw sup1,x2
 
   # coming from kernel?
-  mfpcr ra,status
+  csrr  ra,status
   and   ra,ra,SR_PS
   bnez  ra, 1f
 
@@ -146,9 +146,9 @@ trap_entry:
   la    x2,stack_top+MAX_TEST_PAGES*PGSIZE-SIZEOF_TRAPFRAME_T
   jal   save_tf
   move  sp,x2
-  setpcr status, SR_EI
+  csrs  status,SR_EI
   move  a0,x2
-  mfpcr ra,status
+  csrr  ra,status
   and   ra,ra,SR_EA
   beqz  ra, 2f
   addi  x2,x2,38*REGBYTES
@@ -160,7 +160,7 @@ trap_entry:
   sub   x2, sp, x2
   jal   save_tf
   move  sp,x2
-  setpcr status, SR_EI
+  csrs  status,SR_EI
   move  a0,x2
   jal   handle_trap
 

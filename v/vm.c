@@ -9,7 +9,7 @@ void pop_tf(trapframe_t*);
 
 static void cputchar(int x)
 {
-  while (mtpcr(PCR_TOHOST, 0x0101000000000000 | (unsigned char)x));
+  while (swap_csr(tohost, 0x0101000000000000 | (unsigned char)x));
 }
 
 static void cputstring(const char* s)
@@ -21,7 +21,7 @@ static void cputstring(const char* s)
 
 static void terminate(int code)
 {
-  while (mtpcr(PCR_TOHOST, code));
+  while (swap_csr(tohost, code));
   while (1);
 }
 
@@ -90,7 +90,7 @@ void handle_fault(unsigned long addr)
     *RELOC(&freelist_tail) = 0;
 
   *RELOC(&l3pt[addr/PGSIZE]) = node->addr | PTE_UW | PTE_UR | PTE_UX | PTE_SW | PTE_SR | PTE_SX | PTE_V;
-  mtpcr(PCR_FATC, 0);
+  write_csr(fatc, 0);
 
   assert(RELOC(&user_mapping[addr/PGSIZE])->addr == 0);
   *RELOC(&user_mapping[addr/PGSIZE]) = *node;
@@ -166,7 +166,7 @@ static void emulate_vxcptrestore(trapframe_t* tf)
 
 static void restore_vector(trapframe_t* tf)
 {
-  if (mfpcr(PCR_IMPL) == IMPL_ROCKET)
+  if (read_csr(impl) == IMPL_ROCKET)
     do_vxcptrestore(tf->evac);
   else
     vxcptrestore(tf->evac);
@@ -229,7 +229,7 @@ out:
 
 void vm_boot(long test_addr, long seed)
 {
-  while (mfpcr(PCR_HARTID) > 0); // only core 0 proceeds
+  while (read_csr(hartid) > 0); // only core 0 proceeds
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
@@ -250,12 +250,12 @@ void vm_boot(long test_addr, long seed)
   for (long i = 0; i < MAX_TEST_PAGES; i++)
     l3pt[i] = l3pt[i+MAX_TEST_PAGES] = (i*PGSIZE) | PTE_SW | PTE_SR | PTE_SX | PTE_V;
 
-  mtpcr(PCR_PTBR, l1pt);
-  mtpcr(PCR_SR, mfpcr(PCR_SR) | SR_VM | SR_EF);
+  write_csr(ptbr, l1pt);
+  write_csr(status, read_csr(status) | SR_VM | SR_EF);
 
   // relocate
   long adjustment = RELOC(0L), tmp;
-  mtpcr(PCR_EVEC, (char*)&trap_entry + adjustment);
+  write_csr(evec, (char*)&trap_entry + adjustment);
   asm volatile ("add sp, sp, %1\n"
                 "jal %0, 1f\n"
                 "1: add %0, %0, %1\n"
@@ -264,7 +264,7 @@ void vm_boot(long test_addr, long seed)
                 : "r"(adjustment));
 
   memset(RELOC(&l3pt[0]), 0, MAX_TEST_PAGES*sizeof(pte_t));
-  mtpcr(PCR_FATC, 0);
+  write_csr(fatc, 0);
 
   trapframe_t tf;
   memset(&tf, 0, sizeof(tf));

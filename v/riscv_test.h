@@ -34,8 +34,8 @@ userstart:                                                              \
 // Pass/Fail Macro
 //-----------------------------------------------------------------------
 
-#define RVTEST_PASS li a0, 1; syscall;
-#define RVTEST_FAIL sll a0, x28, 1; 1:beqz a0, 1b; or a0, a0, 1; syscall;
+#define RVTEST_PASS li a0, 1; scall;
+#define RVTEST_FAIL sll a0, x28, 1; 1:beqz a0, 1b; or a0, a0, 1; scall;
 
 //-----------------------------------------------------------------------
 // Data Section Macro
@@ -51,7 +51,7 @@ userstart:                                                              \
 // Supervisor mode definitions and macros
 //-----------------------------------------------------------------------
 
-#include "../pcr.h"
+#include "../encoding.h"
 #include "../hwacha_xcpt.h"
 
 #define dword_bit_cmd(dw) ((dw >> 32) & 0x1)

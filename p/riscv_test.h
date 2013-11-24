@@ -1,7 +1,7 @@
 #ifndef _ENV_PHYSICAL_SINGLE_CORE_H
 #define _ENV_PHYSICAL_SINGLE_CORE_H
 
-#include "../pcr.h"
+#include "../encoding.h"
 #include "../hwacha_xcpt.h"
 
 //-----------------------------------------------------------------------
@@ -46,26 +46,30 @@
   .endm
 
 #define RVTEST_32_ENABLE                                                \
-  clearpcr status, SR_S64                                               \
+  li a0, SR_S64;                                                        \
+  csrc status, a0;                                                      \
 
 #define RVTEST_FP_ENABLE                                                \
-  setpcr status, SR_EF;                                                 \
-  mfpcr a0, status;                                                     \
-  and   a0, a0, SR_EF;                                                  \
-  bnez  a0, 2f;                                                         \
+  li a0, SR_EF;                                                         \
+  csrs status, a0;                                                      \
+  csrr a1, status;                                                      \
+  and a0, a0, a1;                                                       \
+  bnez a0, 2f;                                                          \
   RVTEST_PASS;                                                          \
 2:fssr x0;                                                              \
 
 #define RVTEST_VEC_ENABLE                                               \
-  setpcr status, SR_EA;                                                 \
-  mfpcr a0, status;                                                     \
-  and   a0, a0, SR_EA;                                                  \
-  bnez  a0, 2f;                                                         \
+  li a0, SR_EA;                                                         \
+  csrs status, a0;                                                      \
+  csrr a1, status;                                                      \
+  and a0, a0, a1;                                                       \
+  bnez a0, 2f;                                                          \
   RVTEST_PASS;                                                          \
 2:                                                                      \
 
 #define RISCV_MULTICORE_DISABLE                                         \
-        mfpcr a0, hartid; 1: bnez a0, 1b;                               \
+  csrr a0, hartid;                                                      \
+  1: bnez a0, 1b;                                                       \
 
 #define EXTRA_INIT
 
@@ -90,16 +94,15 @@ _start:                                                                 \
 
 #define RVTEST_PASS                                                     \
         fence;                                                          \
-        li  x1, 1;                                                      \
-        mtpcr x1, tohost;                                               \
+        csrw tohost, 1;                                                 \
 1:      b 1b;                                                           \
 
 #define RVTEST_FAIL                                                     \
         fence;                                                          \
-        beqz x28, 1f;                                                   \
-        sll x28, x28, 1;                                                \
-        or x28, x28, 1;                                                 \
-        mtpcr x28, tohost;                                              \
+        beqz a0, 1f;                                                    \
+        sll a0, a0, 1;                                                  \
+        or a0, a0, 1;                                                   \
+        csrw tohost, a0;                                                \
 1:      b 1b;                                                           \
 
 //-----------------------------------------------------------------------

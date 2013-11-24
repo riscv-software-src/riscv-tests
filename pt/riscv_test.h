@@ -50,33 +50,33 @@ evac:                              \
 //-----------------------------------------------------------------------
 
 #define ENABLE_TIMER_INTERRUPT \
-        mtpcr x0,clear_ipi;          \
-        mfpcr a0,status;             \
+        csrw clear_ipi,x0;           \
+        csrr a0,status;              \
         li a1,SR_IM;                 \
         or a0,a0,a1;                 \
-        mtpcr a0,status;             \
-        setpcr status,SR_EI;         \
+        csrw status,a0;              \
+        csrs status,SR_EI;           \
         la a0,_handler;              \
-        mtpcr a0,evec;               \
-        mtpcr x0,count;              \
+        csrw evec,a0;                \
+        csrw count,x0;               \
         addi a0,x0,60;               \
-        mtpcr a0,compare;            \
+        csrw compare,a0;             \
 
 #define XCPT_HANDLER \
 _handler: \
-        mtpcr a0,sup0;               \
-        mtpcr a1,sup1;               \
+        csrw sup0,a0;                \
+        csrw sup1,a1;                \
         vxcptcause x0;               \
         la a0,evac;                  \
         vxcptsave a0;                \
         vxcptrestore a0;             \
-        setpcr status,SR_PEI;        \
-        mfpcr a0,count;              \
+        csrs status,SR_PEI;          \
+        csrr a0,count;               \
         addi a0,a0,60;               \
-        mtpcr a0,compare;            \
-        mfpcr a0,sup0;               \
-        mfpcr a1,sup1;               \
-        eret;                        \
+        csrr a0,compare;             \
+        csrr a0,sup0;                \
+        csrr a1,sup1;                \
+        sret;                        \
 
 #if 0
 #define XCPT_HANDLER \
