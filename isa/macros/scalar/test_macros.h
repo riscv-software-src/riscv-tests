@@ -46,23 +46,25 @@ pass_ ## testnum: \
 # Tests for instructions with immediate operand
 #-----------------------------------------------------------------------
 
+#define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
+
 #define TEST_IMM_OP( testnum, inst, result, val1, imm ) \
     TEST_CASE( testnum, x3, result, \
       li  x1, val1; \
-      inst x3, x1, imm; \
+      inst x3, x1, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_SRC1_EQ_DEST( testnum, inst, result, val1, imm ) \
     TEST_CASE( testnum, x1, result, \
       li  x1, val1; \
-      inst x1, x1, imm; \
+      inst x1, x1, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_DEST_BYPASS( testnum, nop_cycles, inst, result, val1, imm ) \
     TEST_CASE( testnum, x6, result, \
       li  x4, 0; \
 1:    li  x1, val1; \
-      inst x3, x1, imm; \
+      inst x3, x1, SEXT_IMM(imm); \
       TEST_INSERT_NOPS_ ## nop_cycles \
       addi  x6, x3, 0; \
       addi  x4, x4, 1; \
@@ -75,7 +77,7 @@ pass_ ## testnum: \
       li  x4, 0; \
 1:    li  x1, val1; \
       TEST_INSERT_NOPS_ ## nop_cycles \
-      inst x3, x1, imm; \
+      inst x3, x1, SEXT_IMM(imm); \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
@@ -83,13 +85,13 @@ pass_ ## testnum: \
 
 #define TEST_IMM_ZEROSRC1( testnum, inst, result, imm ) \
     TEST_CASE( testnum, x1, result, \
-      inst x1, x0, imm; \
+      inst x1, x0, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_ZERODEST( testnum, inst, val1, imm ) \
     TEST_CASE( testnum, x0, 0, \
       li  x1, val1; \
-      inst x0, x1, imm; \
+      inst x0, x1, SEXT_IMM(imm); \
     )
 
 #-----------------------------------------------------------------------
@@ -563,9 +565,9 @@ test_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_ILLEGAL_TVEC_REGID( testnum, nxreg, nfreg, inst, reg1, reg2) \
-  setpcr status, SR_EI; \
+  csrs status, SR_EI; \
   la a0, handler ## testnum; \
-  mtpcr a0, evec; \
+  csrw evec, a0; \
   vsetcfg nxreg, nfreg; \
   li a0, 4; \
   vsetvl a0, a0; \
@@ -624,9 +626,9 @@ handler ## testnum: \
   bne a1,a2,fail; \
 
 #define TEST_ILLEGAL_VT_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, reg3) \
-  setpcr status, SR_EI; \
+  csrs status, SR_EI; \
   la a0, handler ## testnum; \
-  mtpcr a0, evec; \
+  csrw evec, a0; \
   vsetcfg nxreg, nfreg; \
   li a0, 4; \
   vsetvl a0, a0; \

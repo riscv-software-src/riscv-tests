@@ -10,18 +10,17 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
-
-  setpcr status, SR_EA # enable accelerator
-  setpcr status, SR_EI # enable interrupt
+  li a0, SR_EA | SR_EI
+  csrs status, a0
 
   la a3,handler
-  mtpcr a3,evec # set exception handler
+  csrw evec,a3 # set exception handler
 
-  mfpcr a3,status
+  csrr a3,status
   li a4,(1 << IRQ_COP)
   slli a4,a4,SR_IM_SHIFT
   or a3,a3,a4 # enable IM[COP]
-  mtpcr a3,status
+  csrw status,a3
 
   vsetcfg 32,0
   li a3,4

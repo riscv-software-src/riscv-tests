@@ -13,12 +13,12 @@ RVTEST_CODE_BEGIN
 
   # clear pending IPIs then enable interrupts
   la a0, handler
-  mtpcr a0, evec
-  mtpcr x0, clear_ipi
-  mfpcr a0, status
+  csrw evec, a0
+  csrw clear_ipi, x0
+  csrr a0, status
   li a1, SR_EI | (1 << (IRQ_IPI + SR_IM_SHIFT))
   or a0, a0, a1
-  mtpcr a0, status
+  csrw status, a0
 
   # wait for all cores to boot
   la a0, coreid
@@ -29,15 +29,15 @@ RVTEST_CODE_BEGIN
   blt a1, a3, 1b
 
   # IPI dominoes
-  mfpcr a0, hartid
+  csrr a0, hartid
   1: bnez a0, 1b
   add a0, a0, 1
   rem a0, a0, a3
-  mtpcr a0, send_ipi
+  csrw send_ipi, a0
   1: b 1b
 
   handler:
-  mfpcr a0, hartid
+  csrr a0, hartid
   bnez a0, 2f
   RVTEST_PASS
 
@@ -45,7 +45,7 @@ RVTEST_CODE_BEGIN
 
   2: add a0, a0, 1
   rem a0, a0, a3
-  mtpcr a0, send_ipi
+  csrw send_ipi, a0
   1: b 1b
 
 RVTEST_CODE_END

@@ -15,7 +15,7 @@ RVTEST_CODE_BEGIN
   # Basic tests
   #-------------------------------------------------------------
 
-  TEST_CASE( 2, x1, 0x0, mfpcr x1, hartid );
+  TEST_CASE( 2, x1, 0x0, csrr x1, hartid );
 
   TEST_PASSFAIL
 

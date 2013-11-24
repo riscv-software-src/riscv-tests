@@ -64,22 +64,24 @@ next ## testnum :
 # Tests for instructions with immediate operand
 #-----------------------------------------------------------------------
 
+#define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
+
 #define TEST_IMM_OP( testnum, inst, result, val1, imm ) \
     TEST_CASE_NREG( testnum, 4, 0, x3, result, \
       li  x1, val1; \
-      inst x3, x1, imm; \
+      inst x3, x1, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_SRC1_EQ_DEST( testnum, inst, result, val1, imm ) \
     TEST_CASE_NREG( testnum, 2, 0, x1, result, \
       li  x1, val1; \
-      inst x1, x1, imm; \
+      inst x1, x1, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_DEST_BYPASS( testnum, nop_cycles, inst, result, val1, imm ) \
     TEST_CASE_NREG( testnum, 5, 0, x4, result, \
       li  x1, val1; \
-      inst x3, x1, imm; \
+      inst x3, x1, SEXT_IMM(imm); \
       TEST_INSERT_NOPS_ ## nop_cycles \
       addi  x4, x3, 0; \
     )
@@ -88,18 +90,18 @@ next ## testnum :
     TEST_CASE_NREG( testnum, 4, 0, x3, result, \
       li  x1, val1; \
       TEST_INSERT_NOPS_ ## nop_cycles \
-      inst x3, x1, imm; \
+      inst x3, x1, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_ZEROSRC1( testnum, inst, result, imm ) \
     TEST_CASE_NREG( testnum, 2, 0, x1, result, \
-      inst x1, x0, imm; \
+      inst x1, x0, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_ZERODEST( testnum, inst, val1, imm ) \
     TEST_CASE_NREG( testnum, 2, 0, x0, 0, \
       li  x1, val1; \
-      inst x0, x1, imm; \
+      inst x0, x1, SEXT_IMM(imm); \
     )
 
 #-----------------------------------------------------------------------
