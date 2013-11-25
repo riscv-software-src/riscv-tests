@@ -25,7 +25,7 @@ bmarks = \
 	dhrystone \
 	spmv \
 	mt-vvadd \
-	mt-matmul \
+	#mt-matmul \
 	#vec-vvadd \
 	#vec-cmplxmult \
 	#vec-matmul \
@@ -51,17 +51,16 @@ HOST_COMP = gcc $(HOST_OPTS)
 
 RISCV_GCC = riscv-gcc
 RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -nostdlib -nostartfiles -ffast-math
-RISCV_LINK = riscv-gcc -T $(bmarkdir)/common/test.ld
+RISCV_LINK = riscv-gcc -T $(bmarkdir)/common/test.ld $(incs)
 RISCV_LINK_MT = riscv-gcc -T $(bmarkdir)/common/test-mt.ld
 RISCV_LINK_OPTS = -lc
-RISCV_LINK_SYSCALL = $(bmarkdir)/common/syscalls.c -lc
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike
 
 VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
 VPATH += $(bmarkdir)/common
 
-incs  += -I$(bmarkdir)/common $(addprefix -I$(bmarkdir)/, $(bmarks))
+incs  += -I../env -I$(bmarkdir)/common $(addprefix -I$(bmarkdir)/, $(bmarks))
 objs  :=
 
 include $(patsubst %, $(bmarkdir)/%/bmark.mk, $(bmarks))

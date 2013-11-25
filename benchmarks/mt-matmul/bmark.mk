@@ -23,7 +23,7 @@ $(mt_matmul_host_bin) : $(mt_matmul_c_src)
 
 mt_matmul_riscv_bin = mt-matmul.riscv
 $(mt_matmul_riscv_bin) : $(mt_matmul_c_objs) $(mt_matmul_riscv_objs)
-	$(RISCV_LINK_MT) $(RISCV_LINK_SYSCALL) $(mt_matmul_c_objs) $(mt_matmul_riscv_objs) -o $(mt_matmul_riscv_bin)
+	$(RISCV_LINK_MT) $(mt_matmul_c_objs) $(mt_matmul_riscv_objs) $(RISCV_LINK_OPTS) -o $(mt_matmul_riscv_bin)
 
 junk += $(mt_matmul_c_objs) $(mt_matmul_riscv_objs) \
         $(mt_matmul_host_bin) $(mt_matmul_riscv_bin)

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <machine/syscall.h>
-#include "pcr.h"
+#include "encoding.h"
 
 void exit(int code)
 {
@@ -10,7 +10,7 @@ void exit(int code)
   magic_mem[0] = SYS_exit;
   magic_mem[1] = code;
   __sync_synchronize();
-  mtpcr(PCR_TOHOST, (long)magic_mem);
+  write_csr(tohost, (long)magic_mem);
   while(1);
 }
 
@@ -22,8 +22,8 @@ void printstr(const char* s)
   magic_mem[2] = (unsigned long)s;
   magic_mem[3] = strlen(s);
   __sync_synchronize();
-  mtpcr(PCR_TOHOST, (long)magic_mem);
-  while(mtpcr(PCR_FROMHOST, 0) == 0);
+  write_csr(tohost, (long)magic_mem);
+  while (swap_csr(fromhost, 0) == 0);
 }
 
 int putchar(int ch)
@@ -42,8 +42,8 @@ int putchar(int ch)
     magic_mem[2] = (long)buf;
     magic_mem[3] = buflen;
     __sync_synchronize();
-    mtpcr(PCR_TOHOST, (long)magic_mem);
-    while(mtpcr(PCR_FROMHOST, 0) == 0);
+    write_csr(tohost, (long)magic_mem);
+    while (swap_csr(fromhost, 0) == 0);
 
     buflen = 0;
   }

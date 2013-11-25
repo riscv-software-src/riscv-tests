@@ -1,4 +1,4 @@
-#include "pcr.h"
+#include "encoding.h"
 
   .data
   .globl _heapend
@@ -44,13 +44,12 @@ _start:
   li  x30,0
   li  x31,0
 
-  # enable fp
-  setpcr status, SR_EF
-
-  # enable vec
-  setpcr t0, status, SR_EV
+  # enable fp and accelerator
+  li a0, SR_EF | SR_EA
+  csrs status, a0
 
   ## if that didn't stick, we don't have an FPU, so don't initialize it
+  csrr t0, status
   and t0, t0, SR_EF
   beqz t0, 1f
 
@@ -91,7 +90,7 @@ _start:
 
 
   # get core id and number of cores
-  mfpcr a0,hartid
+  csrr a0, hartid
   lw a1, 4(zero)
 
   slli a2, a0, 13

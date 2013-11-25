@@ -51,7 +51,7 @@ void finishTest(int test_result)
           "li a2,0    ;"
           "li a3,0    ;"
           "li v0,%1   ;"
-          "syscall" : : "r"(test_result) , "i"(SYS_exit));
+          "scall" : : "r"(test_result) , "i"(SYS_exit));
    }
 #endif
 }

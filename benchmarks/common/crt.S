@@ -1,4 +1,4 @@
-#include "pcr.h"
+#include "encoding.h"
 
   .data
   .globl _heapend
@@ -45,17 +45,16 @@ _start:
   li  x31,0
 
 #ifdef __riscv64
-  setpcr status, SR_S64
-  setpcr status, SR_U64
+  li a0, SR_U64 | SR_S64
+  csrs status, a0
 #endif
 
-  # enable fp
-  setpcr status, SR_EF
-
-  # enable vec
-  setpcr t0, status, SR_EV
+  # enable fp and accelerator
+  li a0, SR_EF | SR_EA
+  csrs status, a0
 
   ## if that didn't stick, we don't have an FPU, so don't initialize it
+  csrr t0, status
   and t0, t0, SR_EF
   beqz t0, 1f
 
@@ -96,27 +95,27 @@ _start:
 
   lui a0, %hi(trap_entry)    
   add a0, a0, %lo(trap_entry)
-  mtpcr a0, evec
+  csrw evec, a0
 
   lui a0, %hi(main)    
   add a0, a0, %lo(main)
-  mtpcr a0, epc
+  csrw epc, a0
 
   # only allow core 0 to proceed
-1:mfpcr a0, hartid
+1:csrr a0, hartid
   bnez a0, 1b
 
   la  sp,stacktop
   
   # jmp to main as a user program
-  eret 
+  sret 
 1:b 1b
 
 .align 4
 .globl trap_entry
 trap_entry:                # only check for SYS_exit, otherwise crash out
   li a3, 1337              # magic "bad things" happened error code
-  mfpcr a1, cause
+  csrr a1, cause
   li a2, 6                 # syscall exception number
   bne a1, a2, exit_error
 handle_syscall:
@@ -125,12 +124,12 @@ handle_syscall:
   li a1, 1                 # successful exit code
   move a3, a0
   bne a3, a1, exit_error
-  mtpcr a1, tohost         # exit successfully (tohost == 1)
+  csrw tohost, a1          # exit successfully (tohost == 1)
 1:b 1b
 exit_error:
   sll a3, a3, 1
   or  a3, a3, 1
-  mtpcr a3, tohost
+  csrw tohost, a3
 1:b 1b
 
   .bss
