@@ -29,13 +29,13 @@ RVTEST_CODE_BEGIN
   lw a2,0(a6)
   li x28,2
   bne a1,a2,fail
-  lw a1,8(a5)
+  lw a1,4(a5)
   li x28,3
   bne a1,a2,fail
-  lw a1,16(a5)
+  lw a1,8(a5)
   li x28,4
   bne a1,a2,fail
-  lw a1,24(a5)
+  lw a1,12(a5)
   li x28,5
   bne a1,a2,fail
   j pass
