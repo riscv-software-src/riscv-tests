@@ -143,7 +143,7 @@ trap_entry:
   bnez  ra, 1f
 
   # no, so start at the top of the stack
-  la    x2,stack_top+MAX_TEST_PAGES*PGSIZE-SIZEOF_TRAPFRAME_T
+  la    x2,stack_top-SIZEOF_TRAPFRAME_T
   jal   save_tf
   move  sp,x2
   csrs  status,SR_EI

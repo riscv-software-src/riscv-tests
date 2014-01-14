@@ -62,18 +62,18 @@ void evict(unsigned long addr)
   assert(addr >= PGSIZE && addr < RELOC(0L));
   addr = addr/PGSIZE*PGSIZE;
 
-  freelist_t* node = RELOC(&user_mapping[addr/PGSIZE]);
+  freelist_t* node = &user_mapping[addr/PGSIZE];
   if (node->addr)
   {
     memcpy((void*)RELOC(addr), (void*)addr, PGSIZE);
-    RELOC(&user_mapping[addr/PGSIZE])->addr = 0;
+    user_mapping[addr/PGSIZE].addr = 0;
 
-    if (*RELOC(&freelist_tail) == 0)
-      *RELOC(&freelist_head) = *RELOC(&freelist_tail) = node;
+    if (freelist_tail == 0)
+      freelist_head = freelist_tail = node;
     else
     {
-      (*RELOC(&freelist_tail))->next = node;
-      *RELOC(&freelist_tail) = node;
+      freelist_tail->next = node;
+      freelist_tail = node;
     }
   }
 }
@@ -83,17 +83,17 @@ void handle_fault(unsigned long addr)
   assert(addr >= PGSIZE && addr < RELOC(0L));
   addr = addr/PGSIZE*PGSIZE;
 
-  freelist_t* node = *RELOC(&freelist_head);
+  freelist_t* node = freelist_head;
   assert(node);
-  *RELOC(&freelist_head) = node->next;
-  if (*RELOC(&freelist_head) == *RELOC(&freelist_tail))
-    *RELOC(&freelist_tail) = 0;
+  freelist_head = node->next;
+  if (freelist_head == freelist_tail)
+    freelist_tail = 0;
 
-  *RELOC(&l3pt[addr/PGSIZE]) = node->addr | PTE_UW | PTE_UR | PTE_UX | PTE_SW | PTE_SR | PTE_SX | PTE_V;
+  l3pt[addr/PGSIZE] = node->addr | PTE_UW | PTE_UR | PTE_UX | PTE_SW | PTE_SR | PTE_SX | PTE_V;
   write_csr(fatc, 0);
 
-  assert(RELOC(&user_mapping[addr/PGSIZE])->addr == 0);
-  *RELOC(&user_mapping[addr/PGSIZE]) = *node;
+  assert(user_mapping[addr/PGSIZE].addr == 0);
+  user_mapping[addr/PGSIZE] = *node;
   memcpy((void*)addr, (void*)RELOC(addr), PGSIZE);
 
   __builtin___clear_cache(0,0);
@@ -233,17 +233,6 @@ void vm_boot(long test_addr, long seed)
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  seed = 1 + (seed % MAX_TEST_PAGES);
-  freelist_head = RELOC(&freelist_nodes[0]);
-  freelist_tail = RELOC(&freelist_nodes[MAX_TEST_PAGES-1]);
-  for (long i = 0; i < MAX_TEST_PAGES; i++)
-  {
-    freelist_nodes[i].addr = (MAX_TEST_PAGES+i)*PGSIZE;
-    freelist_nodes[i].next = RELOC(&freelist_nodes[i+1]);
-    seed = LFSR_NEXT(seed);
-  }
-  freelist_nodes[MAX_TEST_PAGES-1].next = 0;
-
   assert(MAX_TEST_PAGES*2 < PTES_PER_PT);
   l1pt[0] = (pte_t)l2pt | PTE_V | PTE_T;
   l2pt[0] = (pte_t)l3pt | PTE_V | PTE_T;
@@ -263,8 +252,19 @@ void vm_boot(long test_addr, long seed)
                 : "=&r"(tmp)
                 : "r"(adjustment));
 
-  memset(RELOC(&l3pt[0]), 0, MAX_TEST_PAGES*sizeof(pte_t));
+  memset(l3pt, 0, MAX_TEST_PAGES*sizeof(pte_t));
   write_csr(fatc, 0);
+
+  seed = 1 + (seed % MAX_TEST_PAGES);
+  freelist_head = &freelist_nodes[0];
+  freelist_tail = &freelist_nodes[MAX_TEST_PAGES-1];
+  for (long i = 0; i < MAX_TEST_PAGES; i++)
+  {
+    freelist_nodes[i].addr = (MAX_TEST_PAGES+i)*PGSIZE;
+    freelist_nodes[i].next = &freelist_nodes[i+1];
+    seed = LFSR_NEXT(seed);
+  }
+  freelist_nodes[MAX_TEST_PAGES-1].next = 0;
 
   trapframe_t tf;
   memset(&tf, 0, sizeof(tf));
