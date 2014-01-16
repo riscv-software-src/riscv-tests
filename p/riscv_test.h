@@ -99,10 +99,10 @@ _start:                                                                 \
 
 #define RVTEST_FAIL                                                     \
         fence;                                                          \
-        beqz a0, 1f;                                                    \
-        sll a0, a0, 1;                                                  \
-        or a0, a0, 1;                                                   \
-        csrw tohost, a0;                                                \
+        beqz x28, 1f;                                                   \
+        sll x28, x28, 1;                                                \
+        or x28, x28, 1;                                                 \
+        csrw tohost, x28;                                               \
 1:      b 1b;                                                           \
 
 //-----------------------------------------------------------------------
