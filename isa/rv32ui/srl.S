@@ -35,10 +35,10 @@ RVTEST_CODE_BEGIN
 
   # Verify that shifts only use bottom five bits
 
-  TEST_RR_OP( 17, srl, 0x21212121, 0x21212121, 0xffffffc0 );
-  TEST_RR_OP( 18, srl, 0x10909090, 0x21212121, 0xffffffc1 );
-  TEST_RR_OP( 19, srl, 0x00424242, 0x21212121, 0xffffffc7 );
-  TEST_RR_OP( 20, srl, 0x00008484, 0x21212121, 0xffffffce );
+  TEST_RR_OP( 17, srl, 0x21212121, 0x21212121, 0xffffffe0 );
+  TEST_RR_OP( 18, srl, 0x10909090, 0x21212121, 0xffffffe1 );
+  TEST_RR_OP( 19, srl, 0x00424242, 0x21212121, 0xffffffe7 );
+  TEST_RR_OP( 20, srl, 0x00008484, 0x21212121, 0xffffffee );
   TEST_RR_OP( 21, srl, 0x00000000, 0x21212121, 0xffffffff );
 
   #-------------------------------------------------------------

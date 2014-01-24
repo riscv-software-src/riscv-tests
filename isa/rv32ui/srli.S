@@ -15,17 +15,17 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
-  TEST_IMM_OP( 2,  srli, 0x80000000, 0x80000000, 0  );
-  TEST_IMM_OP( 3,  srli, 0xc0000000, 0x80000000, 1  );
-  TEST_IMM_OP( 4,  srli, 0xff000000, 0x80000000, 7  );
-  TEST_IMM_OP( 5,  srli, 0xfffe0000, 0x80000000, 14 );
-  TEST_IMM_OP( 6,  srli, 0xffffffff, 0x80000001, 31 );
+  TEST_IMM_OP( 2,  srli, 0xffff8000, 0xffff8000, 0  );
+  TEST_IMM_OP( 3,  srli, 0x7fffc000, 0xffff8000, 1  );
+  TEST_IMM_OP( 4,  srli, 0x01ffff00, 0xffff8000, 7  );
+  TEST_IMM_OP( 5,  srli, 0x0003fffe, 0xffff8000, 14 );
+  TEST_IMM_OP( 6,  srli, 0x0001ffff, 0xffff8001, 15 );
 
   TEST_IMM_OP( 7,  srli, 0xffffffff, 0xffffffff, 0  );
-  TEST_IMM_OP( 8,  srli, 0xffffffff, 0xffffffff, 1  );
-  TEST_IMM_OP( 9,  srli, 0xffffffff, 0xffffffff, 7  );
-  TEST_IMM_OP( 10, srli, 0xffffffff, 0xffffffff, 14 );
-  TEST_IMM_OP( 11, srli, 0xffffffff, 0xffffffff, 31 );
+  TEST_IMM_OP( 8,  srli, 0x7fffffff, 0xffffffff, 1  );
+  TEST_IMM_OP( 9,  srli, 0x01ffffff, 0xffffffff, 7  );
+  TEST_IMM_OP( 10, srli, 0x0003ffff, 0xffffffff, 14 );
+  TEST_IMM_OP( 11, srli, 0x00000001, 0xffffffff, 31 );
 
   TEST_IMM_OP( 12, srli, 0x21212121, 0x21212121, 0  );
   TEST_IMM_OP( 13, srli, 0x10909090, 0x21212121, 1  );
@@ -33,26 +33,36 @@ RVTEST_CODE_BEGIN
   TEST_IMM_OP( 15, srli, 0x00008484, 0x21212121, 14 );
   TEST_IMM_OP( 16, srli, 0x00000000, 0x21212121, 31 );
 
+  # Verify that shifts only use bottom five bits
+
+  TEST_IMM_OP( 17, srli, 0x21212121, 0x21212121, 0xffffffc0 );
+  TEST_IMM_OP( 18, srli, 0x10909090, 0x21212121, 0xffffffc1 );
+  TEST_IMM_OP( 19, srli, 0x00424242, 0x21212121, 0xffffffc7 );
+  TEST_IMM_OP( 20, srli, 0x00008484, 0x21212121, 0xffffffce );
+
+
+
   #-------------------------------------------------------------
   # Source/Destination tests
   #-------------------------------------------------------------
 
-  TEST_IMM_SRC1_EQ_DEST( 17, srli, 0xff000000, 0x80000000, 7 );
+  TEST_IMM_SRC1_EQ_DEST( 21, srli, 0x7fffc000, 0xffff8000, 1  );
 
   #-------------------------------------------------------------
   # Bypassing tests
   #-------------------------------------------------------------
 
-  TEST_IMM_DEST_BYPASS( 18, 0, srli, 0xff000000, 0x80000000, 7  );
-  TEST_IMM_DEST_BYPASS( 19, 1, srli, 0xfffe0000, 0x80000000, 14 );
-  TEST_IMM_DEST_BYPASS( 20, 2, srli, 0xffffffff, 0x80000001, 31 );
+  TEST_IMM_DEST_BYPASS( 22, 0, srl, 0x7fffc000, 0xffff8000, 1  );
+  TEST_IMM_DEST_BYPASS( 23, 1, srl, 0x0003fffe, 0xffff8000, 14 );
+  TEST_IMM_DEST_BYPASS( 24, 2, srl, 0x0001ffff, 0xffff8000, 15 );
+  
+  TEST_IMM_SRC1_BYPASS( 25, 0, srl, 0x7fffc000, 0xffff8000, 1  );
+  TEST_IMM_SRC1_BYPASS( 26, 1, srl, 0x0003fffe, 0xffff8000, 14 );
+  TEST_IMM_SRC1_BYPASS( 27, 2, srl, 0x0001ffff, 0xffff8000, 15 );
+  
 
-  TEST_IMM_SRC1_BYPASS( 21, 0, srli, 0xff000000, 0x80000000, 7  );
-  TEST_IMM_SRC1_BYPASS( 22, 1, srli, 0xfffe0000, 0x80000000, 14 );
-  TEST_IMM_SRC1_BYPASS( 23, 2, srli, 0xffffffff, 0x80000001, 31 );
-
-  TEST_IMM_ZEROSRC1( 24, srli, 0, 32 );
-  TEST_IMM_ZERODEST( 25, srli, 33, 50 );
+  TEST_IMM_ZEROSRC1( 28, srli, 0, 31 );
+  TEST_IMM_ZERODEST( 29, srli, 33, 20 );
 
   TEST_PASSFAIL
 

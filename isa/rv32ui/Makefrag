@@ -20,7 +20,7 @@ rv32ui_sc_tests = \
 	sll slli \
 	slt slti \
 	sra srai \
-	srl #srli \
+	srl srli \
 	#sub \
 	#xor xori \
 
