@@ -40,13 +40,13 @@ wait:
 
   la s3,result
   ld s4,0(s3)
-  li x28,2
+  li TESTNUM,2
   bne s2,s4,fail
 
   li a2,0
 loop:
   ld a0,0(a5)
-  addi x28,a2,3
+  addi TESTNUM,a2,3
   bne a0,s4,fail
   addi a5,a5,8
   addi a2,a2,1

@@ -15,7 +15,7 @@ RVTEST_CODE_BEGIN
   # Test basic
   #-------------------------------------------------------------
 
-  li  x28, 2;
+  li  TESTNUM, 2;
   j test_2;
   j fail;
 test_2:

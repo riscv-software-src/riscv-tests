@@ -16,7 +16,7 @@ RVTEST_CODE_BEGIN
   #-------------------------------------------------------------
 
 test_2:
-  li  x28, 2
+  li  TESTNUM, 2
   li  ra, 0
 
 linkaddr_2:

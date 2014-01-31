@@ -10,14 +10,14 @@
 test_ ## testnum: \
     code; \
     li  x29, correctval; \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     bne testreg, x29, fail;
 
 #define TEST_CASE_JUMP( testnum, testreg, correctval, code... ) \
 test_ ## testnum: \
     code; \
     li  x29, correctval; \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     beq testreg, x29, pass_ ## testnum; \
     j fail; \
 pass_ ## testnum: \
@@ -264,7 +264,7 @@ pass_ ## testnum: \
 
 #define TEST_LD_DEST_BYPASS( testnum, nop_cycles, inst, result, offset, base ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x1, base; \
     inst x3, offset(x1); \
@@ -278,7 +278,7 @@ test_ ## testnum: \
 
 #define TEST_LD_SRC1_BYPASS( testnum, nop_cycles, inst, result, offset, base ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x1, base; \
     TEST_INSERT_NOPS_ ## nop_cycles \
@@ -291,7 +291,7 @@ test_ ## testnum: \
 
 #define TEST_ST_SRC12_BYPASS( testnum, src1_nops, src2_nops, load_inst, store_inst, result, offset, base ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x1, result; \
     TEST_INSERT_NOPS_ ## src1_nops \
@@ -307,7 +307,7 @@ test_ ## testnum: \
 
 #define TEST_ST_SRC21_BYPASS( testnum, src1_nops, src2_nops, load_inst, store_inst, result, offset, base ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x2, base; \
     TEST_INSERT_NOPS_ ## src1_nops \
@@ -327,28 +327,28 @@ test_ ## testnum: \
 
 #define TEST_BR1_OP_TAKEN( testnum, inst, val1 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x1, val1; \
     inst x1, 2f; \
-    bne x0, x28, fail; \
-1:  bne x0, x28, 3f; \
+    bne x0, TESTNUM, fail; \
+1:  bne x0, TESTNUM, 3f; \
 2:  inst x1, 1b; \
-    bne x0, x28, fail; \
+    bne x0, TESTNUM, fail; \
 3:
 
 #define TEST_BR1_OP_NOTTAKEN( testnum, inst, val1 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x1, val1; \
     inst x1, 1f; \
-    bne x0, x28, 2f; \
-1:  bne x0, x28, fail; \
+    bne x0, TESTNUM, 2f; \
+1:  bne x0, TESTNUM, fail; \
 2:  inst x1, 1b; \
 3:
 
 #define TEST_BR1_SRC1_BYPASS( testnum, nop_cycles, inst, val1 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  li  x1, val1; \
     TEST_INSERT_NOPS_ ## nop_cycles \
@@ -359,30 +359,30 @@ test_ ## testnum: \
 
 #define TEST_BR2_OP_TAKEN( testnum, inst, val1, val2 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x1, val1; \
     li  x2, val2; \
     inst x1, x2, 2f; \
-    bne x0, x28, fail; \
-1:  bne x0, x28, 3f; \
+    bne x0, TESTNUM, fail; \
+1:  bne x0, TESTNUM, 3f; \
 2:  inst x1, x2, 1b; \
-    bne x0, x28, fail; \
+    bne x0, TESTNUM, fail; \
 3:
 
 #define TEST_BR2_OP_NOTTAKEN( testnum, inst, val1, val2 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x1, val1; \
     li  x2, val2; \
     inst x1, x2, 1f; \
-    bne x0, x28, 2f; \
-1:  bne x0, x28, fail; \
+    bne x0, TESTNUM, 2f; \
+1:  bne x0, TESTNUM, fail; \
 2:  inst x1, x2, 1b; \
 3:
 
 #define TEST_BR2_SRC12_BYPASS( testnum, src1_nops, src2_nops, inst, val1, val2 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  li  x1, val1; \
     TEST_INSERT_NOPS_ ## src1_nops \
@@ -395,7 +395,7 @@ test_ ## testnum: \
 
 #define TEST_BR2_SRC21_BYPASS( testnum, src1_nops, src2_nops, inst, val1, val2 ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  li  x2, val2; \
     TEST_INSERT_NOPS_ ## src1_nops \
@@ -412,24 +412,24 @@ test_ ## testnum: \
 
 #define TEST_JR_SRC1_BYPASS( testnum, nop_cycles, inst ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x6, 2f; \
     TEST_INSERT_NOPS_ ## nop_cycles \
     inst x6; \
-    bne x0, x28, fail; \
+    bne x0, TESTNUM, fail; \
 2:  addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
 
 #define TEST_JALR_SRC1_BYPASS( testnum, nop_cycles, inst ) \
 test_ ## testnum: \
-    li  x28, testnum; \
+    li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x6, 2f; \
     TEST_INSERT_NOPS_ ## nop_cycles \
     inst x19, x6, 0; \
-    bne x0, x28, fail; \
+    bne x0, TESTNUM, fail; \
 2:  addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -445,7 +445,7 @@ test_ ## testnum: \
 
 #define TEST_FP_OP_S_INTERNAL( testnum, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
-  li  x28, testnum; \
+  li  TESTNUM, testnum; \
   la  a0, test_ ## testnum ## _data ;\
   flw f0, 0(a0); \
   flw f1, 4(a0); \
@@ -464,7 +464,7 @@ test_ ## testnum: \
 
 #define TEST_FP_OP_D_INTERNAL( testnum, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
-  li  x28, testnum; \
+  li  TESTNUM, testnum; \
   la  a0, test_ ## testnum ## _data ;\
   fld f0, 0(a0); \
   fld f1, 8(a0); \
@@ -531,7 +531,7 @@ test_ ## testnum: \
 
 #define TEST_INT_FP_OP_S( testnum, inst, result, val1 ) \
 test_ ## testnum: \
-  li  x28, testnum; \
+  li  TESTNUM, testnum; \
   la  a0, test_ ## testnum ## _data ;\
   lw  a3, 0(a0); \
   li  a0, val1; \
@@ -546,7 +546,7 @@ test_ ## testnum: \
 
 #define TEST_INT_FP_OP_D( testnum, inst, result, val1 ) \
 test_ ## testnum: \
-  li  x28, testnum; \
+  li  TESTNUM, testnum; \
   la  a0, test_ ## testnum ## _data ;\
   ld  a3, 0(a0); \
   li  a0, val1; \
@@ -591,7 +591,7 @@ vtcode2 ## testnum: \
   stop; \
 handler ## testnum: \
   vxcptkill; \
-  li x28,2; \
+  li TESTNUM,2; \
   vxcptcause a0; \
   li a1,HWACHA_CAUSE_TVEC_ILLEGAL_REGID; \
   bne a0,a1,fail; \
@@ -613,16 +613,16 @@ handler ## testnum: \
   fence; \
   ld a1,0(a3); \
   li a2,5; \
-  li x28,2; \
+  li TESTNUM,2; \
   bne a1,a2,fail; \
   ld a1,8(a3); \
-  li x28,3; \
+  li TESTNUM,3; \
   bne a1,a2,fail; \
   ld a1,16(a3); \
-  li x28,4; \
+  li TESTNUM,4; \
   bne a1,a2,fail; \
   ld a1,24(a3); \
-  li x28,5; \
+  li TESTNUM,5; \
   bne a1,a2,fail; \
 
 #define TEST_ILLEGAL_VT_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, reg3) \
@@ -651,7 +651,7 @@ vtcode2 ## testnum: \
   stop; \
 handler ## testnum: \
   vxcptkill; \
-  li x28,2; \
+  li TESTNUM,2; \
   vxcptcause a0; \
   li a1,HWACHA_CAUSE_VF_ILLEGAL_REGID; \
   bne a0,a1,fail; \
@@ -672,24 +672,24 @@ handler ## testnum: \
   fence; \
   ld a1,0(a3); \
   li a2,5; \
-  li x28,2; \
+  li TESTNUM,2; \
   bne a1,a2,fail; \
   ld a1,8(a3); \
-  li x28,3; \
+  li TESTNUM,3; \
   bne a1,a2,fail; \
   ld a1,16(a3); \
-  li x28,4; \
+  li TESTNUM,4; \
   bne a1,a2,fail; \
   ld a1,24(a3); \
-  li x28,5; \
+  li TESTNUM,5; \
   bne a1,a2,fail; \
 
 #-----------------------------------------------------------------------
-# Pass and fail code (assumes test num is in x28)
+# Pass and fail code (assumes test num is in TESTNUM)
 #-----------------------------------------------------------------------
 
 #define TEST_PASSFAIL \
-        bne x0, x28, pass; \
+        bne x0, TESTNUM, pass; \
 fail: \
         RVTEST_FAIL \
 pass: \
