@@ -1,22 +1,20 @@
 #ifndef _ENV_VIRTUAL_SINGLE_CORE_H
 #define _ENV_VIRTUAL_SINGLE_CORE_H
 
+#include "../p/riscv_test.h"
+
 //-----------------------------------------------------------------------
 // Begin Macro
 //-----------------------------------------------------------------------
 
-#define RVTEST_RV64U                                                    \
-  .macro init;                                                          \
-  .endm
+#undef RVTEST_FP_ENABLE
+#define RVTEST_FP_ENABLE fssr x0
 
-#define RVTEST_RV64UF                                                   \
-  .macro init;                                                          \
-  fssr x0;                                                              \
-  .endm
-
+#undef RVTEST_RV64UV
 #define RVTEST_RV64UV                                                   \
 	RVTEST_RV64UF
 
+#undef RVTEST_CODE_BEGIN
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
         .align  13;                                                     \
@@ -25,34 +23,28 @@ userstart:                                                              \
         init
 
 //-----------------------------------------------------------------------
-// End Macro
-//-----------------------------------------------------------------------
-
-#define RVTEST_CODE_END                                                 \
-
-//-----------------------------------------------------------------------
 // Pass/Fail Macro
 //-----------------------------------------------------------------------
 
-#define RVTEST_PASS li a0, 1; scall;
-#define RVTEST_FAIL sll a0, x28, 1; 1:beqz a0, 1b; or a0, a0, 1; scall;
+#undef RVTEST_PASS
+#define RVTEST_PASS li a0, 1; scall
+
+#undef RVTEST_FAIL
+#define RVTEST_FAIL sll a0, TESTNUM, 1; 1:beqz a0, 1b; or a0, a0, 1; scall;
 
 //-----------------------------------------------------------------------
 // Data Section Macro
 //-----------------------------------------------------------------------
 
+#undef RVTEST_DATA_BEGIN
 #define RVTEST_DATA_BEGIN
-#define RVTEST_DATA_END
 
-//#define RVTEST_DATA_BEGIN .align 4; .global begin_signature; begin_signature:
-//#define RVTEST_DATA_END .align 4; .global end_signature; end_signature:
+#undef RVTEST_DATA_END
+#define RVTEST_DATA_END
 
 //-----------------------------------------------------------------------
 // Supervisor mode definitions and macros
 //-----------------------------------------------------------------------
-
-#include "../encoding.h"
-#include "../hwacha_xcpt.h"
 
 #define dword_bit_cmd(dw) ((dw >> 32) & 0x1)
 #define dword_bit_cnt(dw) (!dword_bit_cmd(dw))

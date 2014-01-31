@@ -97,20 +97,18 @@ _start:                                                                 \
         csrw tohost, 1;                                                 \
 1:      b 1b;                                                           \
 
+#define TESTNUM x28
 #define RVTEST_FAIL                                                     \
         fence;                                                          \
-        beqz x28, 1f;                                                   \
-        sll x28, x28, 1;                                                \
-        or x28, x28, 1;                                                 \
-        csrw tohost, x28;                                               \
+        beqz TESTNUM, 1f;                                               \
+        sll TESTNUM, TESTNUM, 1;                                        \
+        or TESTNUM, TESTNUM, 1;                                         \
+        csrw tohost, TESTNUM;                                           \
 1:      b 1b;                                                           \
 
 //-----------------------------------------------------------------------
 // Data Section Macro
 //-----------------------------------------------------------------------
-
-//#define RVTEST_DATA_BEGIN EXTRA_DATA
-//#define RVTEST_DATA_END
 
 #define EXTRA_DATA
 
