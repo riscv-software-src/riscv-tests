@@ -29,7 +29,7 @@ vpath %.S $(isa_src_dir)
 # Build assembly tests
 
 %.hex: %
-	elf2hex 16 16384 $< > $@
+	(elf2hex 16 8192 $< 2> /dev/null || elf2hex 16 16384 $<) > $@
 
 %.dump: %
 	$(RISCV_OBJDUMP) $< > $@
