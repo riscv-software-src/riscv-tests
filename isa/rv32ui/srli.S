@@ -33,15 +33,6 @@ RVTEST_CODE_BEGIN
   TEST_IMM_OP( 15, srli, 0x00008484, 0x21212121, 14 );
   TEST_IMM_OP( 16, srli, 0x00000000, 0x21212121, 31 );
 
-  # Verify that shifts only use bottom five bits
-
-  TEST_IMM_OP( 17, srli, 0x21212121, 0x21212121, 0xffffffc0 );
-  TEST_IMM_OP( 18, srli, 0x10909090, 0x21212121, 0xffffffc1 );
-  TEST_IMM_OP( 19, srli, 0x00424242, 0x21212121, 0xffffffc7 );
-  TEST_IMM_OP( 20, srli, 0x00008484, 0x21212121, 0xffffffce );
-
-
-
   #-------------------------------------------------------------
   # Source/Destination tests
   #-------------------------------------------------------------

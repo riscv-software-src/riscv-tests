@@ -44,7 +44,7 @@ RVTEST_CODE_BEGIN
 
 evec:
   # Trapping on tests 10, 11, and 13 is usually good news.
-  # Note that since the test didn't finished, TESTNUM is smaller by 1.
+  # Note that since the test didn't complete, TESTNUM is smaller by 1.
   li t0, 9
   beq TESTNUM, t0, privileged
   li t0, 10
