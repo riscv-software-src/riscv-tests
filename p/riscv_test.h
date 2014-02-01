@@ -45,6 +45,11 @@
   .macro init;                                                          \
   .endm
 
+#define RVTEST_RV32S                                                    \
+  .macro init;                                                          \
+  RVTEST_32_ENABLE;                                                     \
+  .endm
+
 #define RVTEST_32_ENABLE                                                \
   li a0, SR_S64;                                                        \
   csrc status, a0;                                                      \
