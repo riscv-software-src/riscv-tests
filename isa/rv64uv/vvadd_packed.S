@@ -13,8 +13,8 @@ RVTEST_CODE_BEGIN
 
 	li x1, 12 # number of test elements
 	move x10, x1
-	vsetcfg 3, 1
-	vsetprec 16
+	vsetucfg x2, 0x2
+	vsetcfg x2, 3, 1
 loop:
 	vsetvl x4, x1
 	la x2, addr
