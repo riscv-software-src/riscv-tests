@@ -25,6 +25,7 @@ bmarks = \
 	dhrystone \
 	spmv \
 	mt-vvadd \
+	#vec-fft \
 	#mt-matmul \
 	#vec-vvadd \
 	#vec-cmplxmult \
@@ -90,7 +91,7 @@ $(bmarks_riscv_out): %.riscv.out: %.riscv
 	             -c $(incs) $< -o $@
 
 %.o: %.S
-	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(bmarks_defs) \
+	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(bmarks_defs) -D__ASSEMBLY__=1 \
 	             -c $(incs) $< -o $@
 
 riscv: $(bmarks_riscv_dump) $(bmarks_riscv_hex)
