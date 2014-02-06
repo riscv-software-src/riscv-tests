@@ -152,7 +152,21 @@ trap_entry:
   and   ra,ra,SR_EA
   beqz  ra, 2f
   addi  x2,x2,38*REGBYTES
-  vxcptsave x2
+
+  # rocket currently doesn't support vxcptsave/vxcptrestore natively
+  csrr  x3,impl 
+  li    x4,IMPL_ROCKET
+  bne   x3,x4,3f
+  vgetcfg x4
+  sd    x4,0(x2)
+  vgetvl x4
+  sd    x4,8(x2)
+  addi  x2,x2,16
+  vxcptevac x2
+  j     2f
+
+  # native vxcptsave
+3:vxcptsave x2
 2:jal   handle_trap
 
   # when coming from kernel, continue below its stack

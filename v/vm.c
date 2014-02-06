@@ -99,16 +99,6 @@ void handle_fault(unsigned long addr)
   __builtin___clear_cache(0,0);
 }
 
-static void emulate_vxcptsave(trapframe_t* tf)
-{
-  long* where = (long*)tf->gpr[(tf->insn >> 15) & 0x1F];
-
-  where[0] = vgetcfg();
-  where[1] = vgetvl();
-  vxcptevac(&where[2]);
-  fence();
-}
-
 static void do_vxcptrestore(long* where)
 {
   vsetcfg(where[0]);
@@ -157,13 +147,6 @@ static void do_vxcptrestore(long* where)
   }
 }
 
-static void emulate_vxcptrestore(trapframe_t* tf)
-{
-  long* where = (long*)tf->gpr[(tf->insn >> 15) & 0x1F];
-  vxcptkill();
-  do_vxcptrestore(where);
-}
-
 static void restore_vector(trapframe_t* tf)
 {
   if (read_csr(impl) == IMPL_ROCKET)
@@ -192,12 +175,6 @@ void handle_trap(trapframe_t* tf)
 
     if (tf->insn == fssr)
       terminate(1); // FP test on non-FP hardware.  "succeed."
-#if 0
-    else if ((tf->insn & 0xF83FFFFF) == 0x37B)
-      emulate_vxcptsave(tf);
-    else if ((tf->insn & 0xF83FFFFF) == 0x77B)
-      emulate_vxcptrestore(tf);
-#endif
     else
       assert(0);
     tf->epc += 4;
