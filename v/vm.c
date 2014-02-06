@@ -150,9 +150,9 @@ static void do_vxcptrestore(long* where)
 static void restore_vector(trapframe_t* tf)
 {
   if (read_csr(impl) == IMPL_ROCKET)
-    do_vxcptrestore(tf->evac);
+    do_vxcptrestore(tf->hwacha_opaque);
   else
-    vxcptrestore(tf->evac);
+    vxcptrestore(tf->hwacha_opaque);
 }
 
 void handle_trap(trapframe_t* tf)
@@ -185,10 +185,9 @@ void handle_trap(trapframe_t* tf)
     handle_fault(tf->badvaddr);
   else if ((long)tf->cause < 0 && (uint8_t)tf->cause == IRQ_COP)
   {
-    long hwacha_cause = vxcptcause();
-    if (hwacha_cause == HWACHA_CAUSE_VF_FAULT_FETCH ||
-        hwacha_cause == HWACHA_CAUSE_FAULT_LOAD ||
-        hwacha_cause == HWACHA_CAUSE_FAULT_STORE)
+    if (tf->hwacha_cause == HWACHA_CAUSE_VF_FAULT_FETCH ||
+        tf->hwacha_cause == HWACHA_CAUSE_FAULT_LOAD ||
+        tf->hwacha_cause == HWACHA_CAUSE_FAULT_STORE)
     {
       long badvaddr = vxcptaux();
       handle_fault(badvaddr);

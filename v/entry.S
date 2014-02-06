@@ -68,6 +68,18 @@ save_tf:  # write the trap frame onto the stack
   csrr   x3,cause        # cause
   STORE  x3,35*REGBYTES(x2)
 
+  # get hwacha cause if IRQ_COP
+  # vxcptcause clears hwacha interrupt bit
+
+  bge   x3,x0,1f
+  slli  x3,x3,1 # clearing MSB of cause
+  srli  x3,x3,1 # clearing MSB of cause
+  li    x4,IRQ_COP
+  bne   x3,x4,1f
+  vxcptcause x3
+  STORE  x3,36*REGBYTES(x2)
+1:
+
   ret
 
   .globl  pop_tf
@@ -136,18 +148,18 @@ trap_entry:
   move  a0,x2
   csrr  ra,status
   and   ra,ra,SR_EA
-  beqz  ra, 2f
-  addi  x2,x2,36*REGBYTES
+  beqz  ra,2f
+  addi  x2,x2,37*REGBYTES
 
   # rocket currently doesn't support vxcptsave/vxcptrestore natively
   csrr  x3,impl 
   li    x4,IMPL_ROCKET
   bne   x3,x4,3f
   vgetcfg x4
-  sd    x4,0(x2)
+  STORE x4,0*REGBYTES(x2)
   vgetvl x4
-  sd    x4,8(x2)
-  addi  x2,x2,16
+  STORE x4,1*REGBYTES(x2)
+  addi  x2,x2,2*REGBYTES
   vxcptevac x2
   j     2f
 
@@ -156,8 +168,9 @@ trap_entry:
 2:jal   handle_trap
 
   # when coming from kernel, continue below its stack
-1:li x2,17712
-  sub   x2, sp, x2
+  # we assume vector unit wasn't used in kernel
+1:li    x2,SIZEOF_TRAPFRAME_T_SCALAR
+  sub   x2,sp,x2
   jal   save_tf
   move  sp,x2
   csrs  status,SR_EI
