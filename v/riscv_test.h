@@ -79,7 +79,7 @@ userstart:                                                              \
 #define PGSHIFT 13
 #define PGSIZE (1 << PGSHIFT)
 
-#define SIZEOF_TRAPFRAME_T 20784
+#define SIZEOF_TRAPFRAME_T 20768
 
 #ifndef __ASSEMBLER__
 
@@ -109,9 +109,16 @@ static inline long vgetvl()
 
 static inline long vxcptaux()
 {
-  int aux;
+  long aux;
   asm volatile ("vxcptaux %0" : "=r"(aux) :);
   return aux;
+}
+
+static inline long vxcptcause()
+{
+  long cause;
+  asm volatile ("vxcptcause %0" : "=r"(cause) :);
+  return cause;
 }
 
 static inline void vxcptrestore(long* mem)
@@ -138,8 +145,6 @@ typedef struct
   long epc;
   long badvaddr;
   long cause;
-  long insn;
-  long hwacha_cause;
   long evac[2560];
 } trapframe_t;
 #endif

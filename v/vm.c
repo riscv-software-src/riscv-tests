@@ -170,10 +170,12 @@ void handle_trap(trapframe_t* tf)
     handle_fault(tf->epc);
   else if (tf->cause == CAUSE_ILLEGAL_INSTRUCTION)
   {
+    assert(tf->epc % 4 == 0);
+
     int fssr;
     asm ("la %0, 1f; lw %0, 0(%0); b 2f; 1: fssr x0; 2:" : "=r"(fssr));
 
-    if (tf->insn == fssr)
+    if (*(int*)tf->epc == fssr)
       terminate(1); // FP test on non-FP hardware.  "succeed."
     else
       assert(0);
@@ -181,11 +183,12 @@ void handle_trap(trapframe_t* tf)
   }
   else if (tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE)
     handle_fault(tf->badvaddr);
-  else if ((tf->cause << 1) == (IRQ_COP << 1))
+  else if ((long)tf->cause < 0 && (uint8_t)tf->cause == IRQ_COP)
   {
-    if (tf->hwacha_cause == HWACHA_CAUSE_VF_FAULT_FETCH ||
-        tf->hwacha_cause == HWACHA_CAUSE_FAULT_LOAD ||
-        tf->hwacha_cause == HWACHA_CAUSE_FAULT_STORE)
+    long hwacha_cause = vxcptcause();
+    if (hwacha_cause == HWACHA_CAUSE_VF_FAULT_FETCH ||
+        hwacha_cause == HWACHA_CAUSE_FAULT_LOAD ||
+        hwacha_cause == HWACHA_CAUSE_FAULT_STORE)
     {
       long badvaddr = vxcptaux();
       handle_fault(badvaddr);

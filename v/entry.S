@@ -10,10 +10,12 @@
 # define REGBYTES 4
 #endif
 
+#define STACK_TOP (_end + 131072)
+
   .text
   .global _start
 _start:
-  la sp, stack_top
+  la sp, STACK_TOP
   li a1, 1337
   la a0, userstart
   j vm_boot
@@ -65,22 +67,6 @@ save_tf:  # write the trap frame onto the stack
   STORE  x3,34*REGBYTES(x2)
   csrr   x3,cause        # cause
   STORE  x3,35*REGBYTES(x2)
-
-  # get faulting insn, if it wasn't a fetch-related trap
-  li    x5, CAUSE_MISALIGNED_FETCH
-  li    x6, CAUSE_FAULT_FETCH
-  beq   x3, x5, 1f
-  beq   x3, x6, 1f
-  lh    x5,0(x4)
-  lh    x6,2(x4)
-  sh    x5,  36*REGBYTES(x2)
-  sh    x6,2+36*REGBYTES(x2)
-1:
-
-  bge   x3, x0, 1f
-  vxcptcause x3
-  STORE  x3,37*REGBYTES(x2)
-1:
 
   ret
 
@@ -143,7 +129,7 @@ trap_entry:
   bnez  ra, 1f
 
   # no, so start at the top of the stack
-  la    x2,stack_top-SIZEOF_TRAPFRAME_T
+  la    x2,STACK_TOP-SIZEOF_TRAPFRAME_T
   jal   save_tf
   move  sp,x2
   csrs  status,SR_EI
@@ -151,7 +137,7 @@ trap_entry:
   csrr  ra,status
   and   ra,ra,SR_EA
   beqz  ra, 2f
-  addi  x2,x2,38*REGBYTES
+  addi  x2,x2,36*REGBYTES
 
   # rocket currently doesn't support vxcptsave/vxcptrestore natively
   csrr  x3,impl 
@@ -177,10 +163,4 @@ trap_entry:
   csrs  status,SR_EI
   move  a0,x2
   jal   handle_trap
-
-  .bss
-  .global stack_bot
-  .global stack_top
-stack_bot:
-  .skip  32768
-stack_top:
+  unimp
