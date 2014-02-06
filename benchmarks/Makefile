@@ -51,10 +51,10 @@ HOST_OPTS = -std=gnu99 -DPREALLOCATE=0 -DHOST_DEBUG=1
 HOST_COMP = gcc $(HOST_OPTS)
 
 RISCV_GCC = riscv-gcc
-RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -nostdlib -nostartfiles -ffast-math
+RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math
 RISCV_LINK = riscv-gcc -T $(bmarkdir)/common/test.ld $(incs)
 RISCV_LINK_MT = riscv-gcc -T $(bmarkdir)/common/test-mt.ld
-RISCV_LINK_OPTS = -lc
+RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike
 

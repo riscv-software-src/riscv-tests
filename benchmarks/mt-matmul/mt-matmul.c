@@ -25,7 +25,7 @@
 //--------------------------------------------------------------------------
 // Input/Reference Data
 
-typedef float data_t;
+typedef double data_t;
 #include "dataset.h"
  
   
@@ -34,6 +34,7 @@ typedef float data_t;
 
 __thread unsigned long coreid;
 unsigned long ncores;
+#define ncores ncores
 
 #include "util.h"
    
@@ -47,41 +48,6 @@ unsigned long ncores;
       printf("%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n", \
              stringify(code), _c, _c/DIM_SIZE/DIM_SIZE/DIM_SIZE, 10*_c/DIM_SIZE/DIM_SIZE/DIM_SIZE%10, _c/_i, 10*_c/_i%10); \
   } while(0)
- 
-
-//--------------------------------------------------------------------------
-// Helper functions
-    
-void printArray( char name[], int n, data_t arr[] )
-{
-   int i;
-   if (coreid != 0)
-      return;
-  
-   printf( " %10s :", name );
-   for ( i = 0; i < n; i++ )
-      printf( " %3ld ", (long) arr[i] );
-   printf( "\n" );
-}
-      
-void __attribute__((noinline)) verify(size_t n, const data_t* test, const data_t* correct)
-{
-   if (coreid != 0)
-      return;
-
-   size_t i;
-   for (i = 0; i < n; i++)
-   {
-      if (test[i] != correct[i])
-      {
-         printf("FAILED test[%d]= %3ld, correct[%d]= %3ld\n", 
-            i, (long)test[i], i, (long)correct[i]);
-         exit(-1);
-      }
-   }
-   
-   return;
-}
  
 //--------------------------------------------------------------------------
 // matmul function
@@ -139,8 +105,11 @@ void thread_entry(int cid, int nc)
  
    
    // verify
-   verify(ARRAY_SIZE, results_data, verify_data);
-   
+   int res = verifyDouble(ARRAY_SIZE, results_data, verify_data);
+   if (res)
+      exit(res);
+
+#if 0
    // clear results from the first trial
    size_t i;
    if (coreid == 0) 
@@ -159,9 +128,11 @@ void thread_entry(int cid, int nc)
 #endif
    
    // verify
-   verify(ARRAY_SIZE, results_data, verify_data);
+   res = verify(ARRAY_SIZE, results_data, verify_data);
+   if (res)
+      exit(res);
    barrier();
+#endif
 
    exit(0);
 }
-

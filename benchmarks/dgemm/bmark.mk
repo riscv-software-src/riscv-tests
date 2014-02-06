@@ -10,6 +10,7 @@
 
 dgemm_c_src = \
 	dgemm_main.c \
+	syscalls.c \
 
 dgemm_riscv_src = \
 	crt.S \
@@ -23,7 +24,7 @@ $(dgemm_host_bin) : $(dgemm_c_src)
 
 dgemm_riscv_bin = dgemm.riscv
 $(dgemm_riscv_bin) : $(dgemm_c_objs) $(dgemm_riscv_objs)
-	$(RISCV_LINK) $(dgemm_c_objs) $(dgemm_riscv_objs) -o $(dgemm_riscv_bin)
+	$(RISCV_LINK) $(dgemm_c_objs) $(dgemm_riscv_objs) -o $(dgemm_riscv_bin) $(RISCV_LINK_OPTS)
 
 junk += $(dgemm_c_objs) $(dgemm_riscv_objs) \
         $(dgemm_host_bin) $(dgemm_riscv_bin)

@@ -11,6 +11,7 @@
 multiply_c_src = \
 	multiply_main.c \
 	multiply.c \
+	syscalls.c \
 
 multiply_riscv_src = \
 	crt.S \
@@ -24,7 +25,7 @@ $(multiply_host_bin): $(multiply_c_src)
 
 multiply_riscv_bin = multiply.riscv
 $(multiply_riscv_bin): $(multiply_c_objs) $(multiply_riscv_objs)
-	$(RISCV_LINK) $(multiply_c_objs) $(multiply_riscv_objs) -o $(multiply_riscv_bin)
+	$(RISCV_LINK) $(multiply_c_objs) $(multiply_riscv_objs) -o $(multiply_riscv_bin) $(RISCV_LINK_OPTS)
 
 junk += $(multiply_c_objs) $(multiply_riscv_objs) \
         $(multiply_host_bin) $(multiply_riscv_bin)

@@ -93,48 +93,52 @@ _start:
   fmv.s.x f31,x0
 1:
 
-  lui a0, %hi(trap_entry)    
-  add a0, a0, %lo(trap_entry)
-  csrw evec, a0
+  la t0, trap_entry
+  csrw evec, t0
 
-  lui a0, %hi(main)    
-  add a0, a0, %lo(main)
-  csrw epc, a0
+  la  tp, _end + 63
+  and tp, tp, -64
 
-  # only allow core 0 to proceed
-1:csrr a0, hartid
-  bnez a0, 1b
+  # get core id and number of cores
+  csrr a0, hartid
+  lw a1, 4(zero)
 
-  la  sp,stacktop
-  
-  # jmp to main as a user program
-  sret 
-1:b 1b
+  # give each core a 1KB TLS and a 127KB stack
+#define STKSHIFT 17
+  sll a2, a0, STKSHIFT
+  add tp, tp, a2
+  add sp, a0, 1
+  sll sp, sp, STKSHIFT
+  add sp, sp, tp
+  add tp, tp, 1024
 
-.align 4
-.globl trap_entry
-trap_entry:                # only check for SYS_exit, otherwise crash out
-  li a3, 1337              # magic "bad things" happened error code
-  csrr a1, cause
-  li a2, 6                 # syscall exception number
-  bne a1, a2, exit_error
-handle_syscall:
-  li a1, 93                # SYS_exit number
-  bne v0, a1, exit_error
-  li a1, 1                 # successful exit code
-  move a3, a0
-  bne a3, a1, exit_error
-  csrw tohost, a1          # exit successfully (tohost == 1)
-1:b 1b
-exit_error:
-  sll a3, a3, 1
-  or  a3, a3, 1
-  csrw tohost, a3
-1:b 1b
+  jal _init
+  unimp
 
-  .bss
-  .globl stacktop
+trap_entry:
+  csrw sup0, t0
+  csrw sup1, t1
+  la t0, uarch_insn
+  lw t0, (t0)
+  csrr t1, epc
+  and t1, t1, ~3
+  lw t1, (t1)
+  and t1, t1, t0
+  beq t1, t0, handle_uarch_insn
 
-  .align 4
-  .skip 131072
-stacktop:
+  # a trap occurred that shouldn't have.
+  li t0, 1337
+  csrw tohost, t0
+1:j 1b
+
+handle_uarch_insn:
+  # we trapped on an illegal uarch-specific CSR.  just skip over it.
+  csrr t1, epc
+  add t1, t1, 4
+  csrw epc, t1
+  csrr t0, sup0
+  csrr t1, sup1
+  sret
+
+uarch_insn:
+  csrr x0, uarch0

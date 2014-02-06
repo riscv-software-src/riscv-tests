@@ -53,8 +53,9 @@
    #include <stdlib.h>
 #else
 void printstr(const char*);
-void exit();
 #endif
+
+#include "util.h"
 
 
 //--------------------------------------------------------------------------

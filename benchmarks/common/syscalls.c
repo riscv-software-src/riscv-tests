@@ -1,50 +1,106 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <limits.h>
 #include <machine/syscall.h>
 #include "encoding.h"
 
-void exit(int code)
-{
-  volatile uint64_t magic_mem[8] = {0};
-  magic_mem[0] = SYS_exit;
-  magic_mem[1] = code;
-  __sync_synchronize();
-  write_csr(tohost, (long)magic_mem);
-  while(1);
-}
+#define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
-void printstr(const char* s)
+void syscall(long which, long arg0, long arg1, long arg2)
 {
-  volatile uint64_t magic_mem[8] = {0};
-  magic_mem[0] = SYS_write;
-  magic_mem[1] = 1;
-  magic_mem[2] = (unsigned long)s;
-  magic_mem[3] = strlen(s);
+  volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
+  magic_mem[0] = which;
+  magic_mem[1] = arg0;
+  magic_mem[2] = arg1;
+  magic_mem[3] = arg2;
   __sync_synchronize();
   write_csr(tohost, (long)magic_mem);
   while (swap_csr(fromhost, 0) == 0);
 }
 
+void exit(int code)
+{
+  write_csr(tohost, (code << 1) | 1);
+  while (1);
+}
+
+void printstr(const char* s)
+{
+  syscall(SYS_write, 1, (long)s, strlen(s));
+}
+
+// In setStats, we might trap reading uarch-specific counters.
+// The trap handler will skip over the instruction, but we want
+// to pretend as though we read the value 0 in this case.
+#define read_csr_safe(reg) ({ long __tmp = 0; \
+  asm volatile ("csrr %0, " #reg : "+r"(__tmp)); \
+  __tmp; })
+
+#define NUM_COUNTERS 18
+static long counters[NUM_COUNTERS];
+static char* counter_names[NUM_COUNTERS];
+void setStats(int enable)
+{
+  int i = 0;
+#define READ_CTR(name) do { \
+    if (i >= NUM_COUNTERS) exit(-1); \
+    long csr = read_csr_safe(name); \
+    if (!enable) { csr -= counters[i]; counter_names[i] = #name; } \
+    counters[i++] = csr; \
+  } while (0)
+  READ_CTR(cycle);   READ_CTR(instret);
+  READ_CTR(uarch0);  READ_CTR(uarch1);  READ_CTR(uarch2);  READ_CTR(uarch3);
+  READ_CTR(uarch4);  READ_CTR(uarch5);  READ_CTR(uarch6);  READ_CTR(uarch7);
+  READ_CTR(uarch8);  READ_CTR(uarch9);  READ_CTR(uarch10); READ_CTR(uarch11);
+  READ_CTR(uarch12); READ_CTR(uarch13); READ_CTR(uarch14); READ_CTR(uarch15);
+#undef READ_CTR
+}
+
+void __attribute__((weak)) thread_entry(int cid, int nc)
+{
+  // multi-threaded programs override this function.
+  // for the case of single-threaded programs, only let core 0 proceed.
+  while (cid != 0);
+}
+
+int __attribute__((weak)) main(int argc, char** argv)
+{
+  // single-threaded programs override this function.
+  printstr("Implement main(), foo!\n");
+  return -1;
+}
+
+void _init(int cid, int nc)
+{
+  thread_entry(cid, nc);
+
+  // only single-threaded programs should ever get here.
+  int ret = main(0, 0);
+
+  char buf[NUM_COUNTERS * 32] __attribute__((aligned(64)));
+  char* pbuf = buf;
+  for (int i = 0; i < NUM_COUNTERS; i++)
+    if (counters[i])
+      pbuf += sprintf(pbuf, "%s = %d\n", counter_names[i], counters[i]);
+  if (pbuf != buf)
+    printstr(buf);
+
+  exit(ret);
+}
+
+#undef putchar
 int putchar(int ch)
 {
-  static char buf[64];
+  static char buf[64] __attribute__((aligned(64)));
   static int buflen = 0;
 
-  if(ch != -1)
-    buf[buflen++] = ch;
+  buf[buflen++] = ch;
 
-  if(ch == -1 || buflen == sizeof(buf))
+  if (ch == '\n' || buflen == sizeof(buf))
   {
-    volatile uint64_t magic_mem[8] = {0};
-    magic_mem[0] = SYS_write;
-    magic_mem[1] = 1;
-    magic_mem[2] = (long)buf;
-    magic_mem[3] = buflen;
-    __sync_synchronize();
-    write_csr(tohost, (long)magic_mem);
-    while (swap_csr(fromhost, 0) == 0);
-
+    syscall(SYS_write, 1, (long)buf, buflen);
     buflen = 0;
   }
 
@@ -65,15 +121,25 @@ void printhex(uint64_t x)
   printstr(str);
 }
 
-static void printnum(void (*putch)(int, void**), void **putdat,
-                   unsigned long long num, unsigned base, int width, int padc)
+static inline void printnum(void (*putch)(int, void**), void **putdat,
+                    unsigned long long num, unsigned base, int width, int padc)
 {
-  if (num >= base)
-    printnum(putch, putdat, num / base, base, width - 1, padc);
-  else while (--width > 0)
+  unsigned digs[sizeof(num)*CHAR_BIT];
+  int pos = 0;
+
+  while (1)
+  {
+    digs[pos++] = num % base;
+    if (num < base)
+      break;
+    num /= base;
+  }
+
+  while (width-- > pos)
     putch(padc, putdat);
 
-  putch("0123456789abcdef"[num % base], putdat);
+  while (pos-- > 0)
+    putch(digs[pos] + (digs[pos] >= 10 ? 'a' - 10 : '0'), putdat);
 }
 
 static unsigned long long getuint(va_list *ap, int lflag)
@@ -96,7 +162,7 @@ static long long getint(va_list *ap, int lflag)
     return va_arg(*ap, int);
 }
 
-void vprintfmt(void (*putch)(int, void**), void **putdat, const char *fmt, va_list ap)
+static void vprintfmt(void (*putch)(int, void**), void **putdat, const char *fmt, va_list ap)
 {
   register const char* p;
   const char* last_fmt;
@@ -188,10 +254,7 @@ void vprintfmt(void (*putch)(int, void**), void **putdat, const char *fmt, va_li
         for (width -= strnlen(p, precision); width > 0; width--)
           putch(padc, putdat);
       for (; (ch = *p) != '\0' && (precision < 0 || --precision >= 0); width--) {
-        if (altflag && (ch < ' ' || ch > '~'))
-          putch('?', putdat);
-        else
-          putch(ch, putdat);
+        putch(ch, putdat);
         p++;
       }
       for (; width > 0; width--)
@@ -206,35 +269,33 @@ void vprintfmt(void (*putch)(int, void**), void **putdat, const char *fmt, va_li
         num = -(long long) num;
       }
       base = 10;
-      goto number;
+      goto signed_number;
 
     // unsigned decimal
     case 'u':
-      num = getuint(&ap, lflag);
       base = 10;
-      goto number;
+      goto unsigned_number;
 
     // (unsigned) octal
     case 'o':
       // should do something with padding so it's always 3 octits
-      num = getuint(&ap, lflag);
       base = 8;
-      goto number;
+      goto unsigned_number;
 
     // pointer
     case 'p':
+      static_assert(sizeof(long) == sizeof(void*));
+      lflag = 1;
       putch('0', putdat);
       putch('x', putdat);
-      num = (unsigned long long)
-        (uintptr_t) va_arg(ap, void *);
-      base = 16;
-      goto number;
+      /* fall through to 'x' */
 
     // (unsigned) hexadecimal
     case 'x':
-      num = getuint(&ap, lflag);
       base = 16;
-    number:
+    unsigned_number:
+      num = getuint(&ap, lflag);
+    signed_number:
       printnum(putch, putdat, num, base, width, padc);
       break;
 
@@ -258,8 +319,27 @@ int printf(const char* fmt, ...)
   va_start(ap, fmt);
 
   vprintfmt((void*)putchar, 0, fmt, ap);
-  putchar(-1);
 
   va_end(ap);
   return 0; // incorrect return value, but who cares, anyway?
+}
+
+int sprintf(char* str, const char* fmt, ...)
+{
+  va_list ap;
+  char* str0 = str;
+  va_start(ap, fmt);
+
+  void sprintf_putch(int ch, void** data)
+  {
+    char** pstr = (char**)data;
+    **pstr = ch;
+    (*pstr)++;
+  }
+
+  vprintfmt(sprintf_putch, (void**)&str, fmt, ap);
+  *str = 0;
+
+  va_end(ap);
+  return str - str0;
 }

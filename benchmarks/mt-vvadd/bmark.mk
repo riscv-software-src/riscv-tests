@@ -13,7 +13,7 @@ mt_vvadd_c_src = \
 	syscalls.c \
 
 mt_vvadd_riscv_src = \
-	crt-mt.S \
+	crt.S \
 
 mt_vvadd_c_objs     = $(patsubst %.c, %.o, $(mt_vvadd_c_src))
 mt_vvadd_riscv_objs = $(patsubst %.S, %.o, $(mt_vvadd_riscv_src))
@@ -24,7 +24,7 @@ $(mt_vvadd_host_bin) : $(mt_vvadd_c_src)
 
 mt_vvadd_riscv_bin = mt-vvadd.riscv
 $(mt_vvadd_riscv_bin) : $(mt_vvadd_c_objs) $(mt_vvadd_riscv_objs)
-	$(RISCV_LINK_MT) $(mt_vvadd_c_objs) $(mt_vvadd_riscv_objs) $(RISCV_LINK_OPTS) -o $(mt_vvadd_riscv_bin)
+	$(RISCV_LINK) $(mt_vvadd_c_objs) $(mt_vvadd_riscv_objs) $(RISCV_LINK_OPTS) -o $(mt_vvadd_riscv_bin)
 
 junk += $(mt_vvadd_c_objs) $(mt_vvadd_riscv_objs) \
         $(mt_vvadd_host_bin) $(mt_vvadd_riscv_bin)

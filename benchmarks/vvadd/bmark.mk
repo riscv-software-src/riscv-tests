@@ -10,6 +10,7 @@
 
 vvadd_c_src = \
 	vvadd_main.c \
+	syscalls.c \
 
 vvadd_riscv_src = \
 	crt.S \
@@ -23,7 +24,7 @@ $(vvadd_host_bin) : $(vvadd_c_src)
 
 vvadd_riscv_bin = vvadd.riscv
 $(vvadd_riscv_bin) : $(vvadd_c_objs) $(vvadd_riscv_objs)
-	$(RISCV_LINK) $(vvadd_c_objs) $(vvadd_riscv_objs) -o $(vvadd_riscv_bin)
+	$(RISCV_LINK) $(vvadd_c_objs) $(vvadd_riscv_objs) -o $(vvadd_riscv_bin) $(RISCV_LINK_OPTS)
 
 junk += $(vvadd_c_objs) $(vvadd_riscv_objs) \
         $(vvadd_host_bin) $(vvadd_riscv_bin)
