@@ -10,6 +10,7 @@ include $(isa_src_dir)/rv64uv/Makefrag
 include $(isa_src_dir)/rv64si/Makefrag
 include $(isa_src_dir)/rv64sv/Makefrag
 include $(isa_src_dir)/rv32ui/Makefrag
+include $(isa_src_dir)/rv32si/Makefrag
 
 default: all
 
@@ -18,7 +19,7 @@ default: all
 #--------------------------------------------------------------------
 
 RISCV_GCC = riscv-gcc
-RISCV_GCC_OPTS = -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
+RISCV_GCC_OPTS = -fpic -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --section=.text --section=.data --section=.bss
 RISCV_SIM = spike --extension=hwacha
 
@@ -28,7 +29,7 @@ vpath %.S $(isa_src_dir)
 # Build assembly tests
 
 %.hex: %
-	elf2hex 16 16384 $< > $@
+	(elf2hex 16 8192 $< 2> /dev/null || elf2hex 16 16384 $<) > $@
 
 %.dump: %
 	$(RISCV_OBJDUMP) $< > $@
@@ -69,6 +70,7 @@ tests += $$($(1)_v_vec_tests)
 endef
 
 $(eval $(call compile_template,rv32ui,-m32))
+$(eval $(call compile_template,rv32si,-m32))
 $(eval $(call compile_template,rv64ui))
 $(eval $(call compile_template,rv64uf))
 $(eval $(call compile_template,rv64uv))

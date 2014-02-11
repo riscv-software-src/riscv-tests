@@ -34,7 +34,7 @@ vtcode2:
 handler:
   vxcptkill
 
-  li x28,2
+  li TESTNUM,2
 
   # check cause
   vxcptcause a3
@@ -63,16 +63,16 @@ handler:
 
   ld a1,0(a5)
   li a2,5
-  li x28,2
+  li TESTNUM,2
   bne a1,a2,fail
   ld a1,8(a5)
-  li x28,3
+  li TESTNUM,3
   bne a1,a2,fail
   ld a1,16(a5)
-  li x28,4
+  li TESTNUM,4
   bne a1,a2,fail
   ld a1,24(a5)
-  li x28,5
+  li TESTNUM,5
   bne a1,a2,fail
 
   TEST_PASSFAIL

@@ -29,35 +29,35 @@ RVTEST_CODE_BEGIN
 
   ld a1,0(a5)
   li a2,0xdeadbeefcafebabe
-  li x28,2
+  li TESTNUM,2
   bne a1,a2,fail
   ld a1,8(a5)
-  li x28,3
+  li TESTNUM,3
   bne a1,a2,fail
   ld a1,16(a5)
-  li x28,4
+  li TESTNUM,4
   bne a1,a2,fail
   ld a1,24(a5)
-  li x28,5
+  li TESTNUM,5
   bne a1,a2,fail
 
   # check default hw vector length, which is 32
   li a3, 32
   vsetvl a3, a3
   li a0, 32
-  li x28, 6
+  li TESTNUM, 6
   bne a3, a0, fail
 
   li a3, 33
   vsetvl a3, a3
   li a0, 32
-  li x28, 7
+  li TESTNUM, 7
   bne a3, a0, fail
 
   li a3, 31
   vsetvl a3, a3
   li a0, 31
-  li x28, 8
+  li TESTNUM, 8
   bne a3, a0, fail
 
   # now do some vector stuff without vsetcfg
@@ -77,16 +77,16 @@ RVTEST_CODE_BEGIN
 
   ld a1,0(a5)
   li a2,5
-  li x28,9
+  li TESTNUM,9
   bne a1,a2,fail
   ld a1,8(a5)
-  li x28,10
+  li TESTNUM,10
   bne a1,a2,fail
   ld a1,16(a5)
-  li x28,11
+  li TESTNUM,11
   bne a1,a2,fail
   ld a1,24(a5)
-  li x28,12
+  li TESTNUM,12
   bne a1,a2,fail
 
   # initialize dest memory
@@ -112,16 +112,16 @@ RVTEST_CODE_BEGIN
 
   ld a1,0(a5)
   li a2,0xdeadbeefcafebabe
-  li x28,13
+  li TESTNUM,13
   bne a1,a2,fail
   ld a1,8(a5)
-  li x28,14
+  li TESTNUM,14
   bne a1,a2,fail
   ld a1,16(a5)
-  li x28,15
+  li TESTNUM,15
   bne a1,a2,fail
   ld a1,24(a5)
-  li x28,16
+  li TESTNUM,16
   bne a1,a2,fail
 
   j pass

@@ -26,7 +26,7 @@ RVTEST_CODE_BEGIN
   li a2,0
 loop:
   lw a0,0(a6)
-  addi x28,a2,2
+  addi TESTNUM,a2,2
   lw a1,0(a5)
   bne a0,a1,fail
   addi a6,a6,4

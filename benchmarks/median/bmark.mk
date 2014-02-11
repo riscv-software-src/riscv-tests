@@ -11,6 +11,7 @@
 median_c_src = \
 	median_main.c \
 	median.c \
+	syscalls.c \
 
 median_riscv_src = \
 	crt.S \
@@ -24,7 +25,7 @@ $(median_host_bin): $(median_c_src)
 
 median_riscv_bin = median.riscv
 $(median_riscv_bin): $(median_c_objs) $(median_riscv_objs)
-	$(RISCV_LINK) $(median_c_objs) $(median_riscv_objs) -o $(median_riscv_bin)
+	$(RISCV_LINK) $(median_c_objs) $(median_riscv_objs) -o $(median_riscv_bin) $(RISCV_LINK_OPTS)
 
 junk += $(median_c_objs) $(median_riscv_objs) \
         $(median_host_bin) $(median_riscv_bin)

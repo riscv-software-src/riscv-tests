@@ -11,35 +11,7 @@
 // processor simulator itself. You should not change anything except
 // the HOST_DEBUG and PREALLOCATE macros for your timing run.
 
-int ncores = 1;
 #include "util.h"
-
-//--------------------------------------------------------------------------
-// Macros
-
-// Set HOST_DEBUG to 1 if you are going to compile this for a host
-// machine (ie Athena/Linux) for debug purposes and set HOST_DEBUG
-// to 0 if you are compiling with the smips-gcc toolchain.
-
-#ifndef HOST_DEBUG
-#define HOST_DEBUG 0
-#endif
-
-// Set PREALLOCATE to 1 if you want to preallocate the benchmark
-// function before starting stats. If you have instruction/data
-// caches and you don't want to count the overhead of misses, then
-// you will need to use preallocation.
-
-#ifndef PREALLOCATE
-#define PREALLOCATE 0
-#endif
-
-// Set SET_STATS to 1 if you want to carve out the piece that actually
-// does the computation.
-
-#ifndef SET_STATS
-#define SET_STATS 0
-#endif
 
 // The INSERTION_THRESHOLD is the size of the subarray when the
 // algorithm switches to using an insertion sort instead of
@@ -60,38 +32,6 @@ int ncores = 1;
 // Input/Reference Data
 
 #include "dataset1.h"
-
-//--------------------------------------------------------------------------
-// Helper functions
-
-int verify( int n, int test[], int correct[] )
-{
-  int i;
-  for ( i = 0; i < n; i++ ) {
-    if ( test[i] != correct[i] ) {
-      return 2;
-    }
-  }
-  return 1;
-}
-
-#if HOST_DEBUG
-void printArray( char name[], int n, int arr[] )
-{
-  int i;
-  printf( " %10s :", name );
-  for ( i = 0; i < n; i++ )
-    printf( " %3d ", arr[i] );
-  printf( "\n" );
-}
-#endif
-
-void setStats( int enable )
-{
-#if ( !HOST_DEBUG && SET_STATS )
-  asm( "mtpcr %0, cr10" : : "r" (enable) );
-#endif
-}
 
 //--------------------------------------------------------------------------
 // Quicksort function
@@ -195,34 +135,23 @@ void sort( int n, int arr[] )
 
 int main( int argc, char* argv[] )
 {
-
   // Output the input array
-
-#if HOST_DEBUG
   printArray( "input", DATA_SIZE, input_data );
   printArray( "verify", DATA_SIZE, verify_data );
-#endif
-
-  // If needed we preallocate everything in the caches
 
 #if PREALLOCATE
+  // If needed we preallocate everything in the caches
   sort( DATA_SIZE, input_data );
 #endif
 
   // Do the sort
-
   setStats(1);
   sort( DATA_SIZE, input_data );
   setStats(0);
 
   // Print out the results
-
-#if HOST_DEBUG
   printArray( "test", DATA_SIZE, input_data );
-#endif
 
   // Check the results
-
-  finishTest(verify( DATA_SIZE, input_data, verify_data ));
-
+  return verify( DATA_SIZE, input_data, verify_data );
 }

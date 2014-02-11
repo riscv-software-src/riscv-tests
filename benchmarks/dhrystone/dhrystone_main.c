@@ -8,9 +8,6 @@
 
 #include "dhrystone.h"
 
-int ncores = 1;
-#include "util.h"
-
 //--------------------------------------------------------------------------
 // Macros
 
@@ -47,12 +44,7 @@ int __attribute__((noinline)) do_fprintf(FILE* f, const char* str, ...)
 }
 #endif
 
-void setStats( int enable )
-{
-#if ( !HOST_DEBUG && SET_STATS )
-  asm( "mtpcr %0, cr10" : : "r" (enable) );
-#endif
-}
+#include "util.h"
 
 #include <alloca.h>
 
@@ -299,7 +291,7 @@ int main (int argc, char** argv)
     do_fprintf (stdout, "\n");
 #endif
 
-  finishTest(1);
+  return 0;
 }
 
 

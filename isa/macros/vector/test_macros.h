@@ -25,7 +25,7 @@ test_ ## testnum: \
   fence; \
   li a1,correctval; \
   li a2,0; \
-  li x28, testnum; \
+  li TESTNUM, testnum; \
 test_loop ## testnum: \
   ld a0,0(a4); \
   beq a0,a1,skip ## testnum; \
@@ -238,7 +238,7 @@ test_ ## testnum: \
   fence; \
   lw  a1, 0(a5); \
   li a2, 0; \
-  li x28, testnum; \
+  li TESTNUM, testnum; \
 test_loop ## testnum: \
   lw a0,0(a4); \
   beq a0,a1,skip ## testnum; \
@@ -278,7 +278,7 @@ test_ ## testnum: \
   fence; \
   ld  a1, 0(a5); \
   li a2, 0; \
-  li x28, testnum; \
+  li TESTNUM, testnum; \
 test_loop ## testnum: \
   ld a0,0(a4); \
   beq a0,a1,skip ## testnum; \
@@ -352,7 +352,7 @@ test_ ## testnum: \
   la  a5, test_ ## testnum ## _data ;\
   lw  a1, 0(a5); \
   li a2, 0; \
-  li x28, testnum; \
+  li TESTNUM, testnum; \
 test_loop ## testnum: \
   lw a0,0(a4); \
   beq a0,a1,skip ## testnum; \
@@ -385,7 +385,7 @@ test_ ## testnum: \
   la  a5, test_ ## testnum ## _data ;\
   ld  a1, 0(a5); \
   li a2, 0; \
-  li x28, testnum; \
+  li TESTNUM, testnum; \
 test_loop ## testnum: \
   ld a0,0(a4); \
   beq a0,a1,skip ## testnum; \
@@ -533,7 +533,7 @@ test_ ## testnum: \
   fence; \
   li a1,correctval; \
   li a2,0; \
-  li x28, testnum; \
+  li TESTNUM, testnum; \
 test_loop ## testnum: \
   ld a0,0(a4); \
   beq a0,a1,skip ## testnum; \
@@ -591,11 +591,11 @@ next ## testnum :
                  )
 
 #-----------------------------------------------------------------------
-# Pass and fail code (assumes test num is in x28)
+# Pass and fail code (assumes test num is in TESTNUM)
 #-----------------------------------------------------------------------
 
 #define TEST_PASSFAIL \
-        bne x0, x28, pass; \
+        bne x0, TESTNUM, pass; \
 fail: \
         RVTEST_FAIL \
 pass: \

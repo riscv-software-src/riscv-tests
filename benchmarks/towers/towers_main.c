@@ -16,49 +16,11 @@
 // smips processor simulator itself. You should not change anything except
 // the HOST_DEBUG and PREALLOCATE macros for your timing run.
 
-int ncores = 1;
 #include "util.h"
-
-//--------------------------------------------------------------------------
-// Macros
-
-// Set HOST_DEBUG to 1 if you are going to compile this for a host
-// machine (ie Athena/Linux) for debug purposes and set HOST_DEBUG
-// to 0 if you are compiling with the smips-gcc toolchain.
-
-#ifndef HOST_DEBUG
-#define HOST_DEBUG 0
-#endif
-
-// Set PREALLOCATE to 1 if you want to preallocate the benchmark
-// function before starting stats. If you have instruction/data
-// caches and you don't want to count the overhead of misses, then
-// you will need to use preallocation.
-
-#ifndef PREALLOCATE
-#define PREALLOCATE 0
-#endif
-
-// Set SET_STATS to 1 if you want to carve out the piece that actually
-// does the computation.
-
-#ifndef SET_STATS
-#define SET_STATS 0
-#endif
 
 // This is the number of discs in the puzzle.
 
 #define NUM_DISCS  7
-
-//--------------------------------------------------------------------------
-// Helper functions
-
-void setStats( int enable )
-{
-#if ( !HOST_DEBUG && SET_STATS )
-  asm( "mtpcr %0, cr10" : : "r" (enable) );
-#endif
-}
 
 //--------------------------------------------------------------------------
 // List data structure and functions
@@ -278,7 +240,7 @@ int towers_verify( struct Towers* this )
     return 6;
   }
 
-  return 1;
+  return 0;
 }
 
 //--------------------------------------------------------------------------
@@ -323,8 +285,6 @@ int main( int argc, char* argv[] )
 #endif
 
   // Check the results
-
-  finishTest( towers_verify( &towers ) );
-
+  return towers_verify( &towers );
 }
 

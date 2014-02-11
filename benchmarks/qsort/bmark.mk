@@ -10,6 +10,7 @@
 
 qsort_c_src = \
 	qsort_main.c \
+	syscalls.c \
 
 qsort_riscv_src = \
 	crt.S \
@@ -23,7 +24,7 @@ $(qsort_host_bin) : $(qsort_c_src)
 
 qsort_riscv_bin = qsort.riscv
 $(qsort_riscv_bin) : $(qsort_c_objs) $(qsort_riscv_objs)
-	$(RISCV_LINK) $(qsort_c_objs) $(qsort_riscv_objs) -o $(qsort_riscv_bin)
+	$(RISCV_LINK) $(qsort_c_objs) $(qsort_riscv_objs) -o $(qsort_riscv_bin) $(RISCV_LINK_OPTS)
 
 junk += $(qsort_c_objs) $(qsort_riscv_objs) \
         $(qsort_host_bin) $(qsort_riscv_bin)

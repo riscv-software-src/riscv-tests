@@ -27,16 +27,16 @@ RVTEST_CODE_BEGIN
 
   ld a1,0(a5)
   li a2,5
-  li x28,2
+  li TESTNUM,2
   bne a1,a2,fail
   ld a1,8(a5)
-  li x28,3
+  li TESTNUM,3
   bne a1,a2,fail
   ld a1,16(a5)
-  li x28,4
+  li TESTNUM,4
   bne a1,a2,fail
   ld a1,24(a5)
-  li x28,5
+  li TESTNUM,5
   bne a1,a2,fail
 
   la a3,src1
@@ -49,19 +49,19 @@ RVTEST_CODE_BEGIN
 
   ld a1,0(a5)
   li a2,1
-  li x28,6
+  li TESTNUM,6
   bne a1,a2,fail
   ld a1,8(a5)
   li a2,2
-  li x28,7
+  li TESTNUM,7
   bne a1,a2,fail
   ld a1,16(a5)
   li a2,3
-  li x28,8
+  li TESTNUM,8
   bne a1,a2,fail
   ld a1,24(a5)
   li a2,4
-  li x28,9
+  li TESTNUM,9
   bne a1,a2,fail
 
   la a3,src2
@@ -74,19 +74,19 @@ RVTEST_CODE_BEGIN
 
   ld a1,0(a5)
   li a2,4
-  li x28,6
+  li TESTNUM,6
   bne a1,a2,fail
   ld a1,8(a5)
   li a2,3
-  li x28,7
+  li TESTNUM,7
   bne a1,a2,fail
   ld a1,16(a5)
   li a2,2
-  li x28,8
+  li TESTNUM,8
   bne a1,a2,fail
   ld a1,24(a5)
   li a2,1
-  li x28,9
+  li TESTNUM,9
   bne a1,a2,fail
 
   j pass

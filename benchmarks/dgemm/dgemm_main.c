@@ -2,74 +2,12 @@
 // Double-precision general matrix multiplication benchmark
 //--------------------------------------------------------------------------
 
-int ncores = 1;
 #include "util.h"
-
-//--------------------------------------------------------------------------
-// Macros
-
-// Set HOST_DEBUG to 1 if you are going to compile this for a host
-// machine (ie Athena/Linux) for debug purposes and set HOST_DEBUG
-// to 0 if you are compiling with the smips-gcc toolchain.
-
-#ifndef HOST_DEBUG
-#define HOST_DEBUG 0
-#endif
-
-// Set PREALLOCATE to 1 if you want to preallocate the benchmark
-// function before starting stats. If you have instruction/data
-// caches and you don't want to count the overhead of misses, then
-// you will need to use preallocation.
-
-#ifndef PREALLOCATE
-#define PREALLOCATE 0
-#endif
-
-// Set SET_STATS to 1 if you want to carve out the piece that actually
-// does the computation.
-
-#ifndef SET_STATS
-#define SET_STATS 0
-#endif
 
 //--------------------------------------------------------------------------
 // Input/Reference Data
 
 #include "dataset1.h"
-
-//--------------------------------------------------------------------------
-// Helper functions
-
-int verify( long n, const double test[], const double correct[] )
-{
-  int i;
-  for ( i = 0; i < n; i++ ) {
-    if ( test[i] != correct[i] ) {
-      return 2;
-    }
-  }
-  return 1;
-}
-
-#if HOST_DEBUG
-#include <stdio.h>
-#include <stdlib.h>
-void printArray( char name[], long n, const double arr[] )
-{
-  int i;
-  printf( " %10s :", name );
-  for ( i = 0; i < n; i++ )
-    printf( " %8.1f ", arr[i] );
-  printf( "\n" );
-}
-#endif
-
-void setStats( int enable )
-{
-#if ( !HOST_DEBUG && SET_STATS )
-  asm( "mtpcr %0, cr10" : : "r" (enable) );
-#endif
-}
 
 //--------------------------------------------------------------------------
 // square_dgemm function
@@ -162,33 +100,23 @@ int main( int argc, char* argv[] )
   double results_data[DATA_SIZE*DATA_SIZE];
 
   // Output the input array
-
-#if HOST_DEBUG
-  printArray( "input1", DATA_SIZE*DATA_SIZE, input1_data );
-  printArray( "input2", DATA_SIZE*DATA_SIZE, input2_data );
-  printArray( "verify", DATA_SIZE*DATA_SIZE, verify_data );
-#endif
-
-  // If needed we preallocate everything in the caches
+  printDoubleArray( "input1", DATA_SIZE*DATA_SIZE, input1_data );
+  printDoubleArray( "input2", DATA_SIZE*DATA_SIZE, input2_data );
+  printDoubleArray( "verify", DATA_SIZE*DATA_SIZE, verify_data );
 
 #if PREALLOCATE
+  // If needed we preallocate everything in the caches
   square_dgemm( DATA_SIZE, input1_data, input2_data, results_data );
 #endif
 
   // Do the dgemm
-
   setStats(1);
   square_dgemm( DATA_SIZE, input1_data, input2_data, results_data );
   setStats(0);
 
   // Print out the results
-
-#if HOST_DEBUG
-  printArray( "results", DATA_SIZE*DATA_SIZE, results_data );
-#endif
+  printDoubleArray( "results", DATA_SIZE*DATA_SIZE, results_data );
 
   // Check the results
-
-  finishTest(verify( DATA_SIZE*DATA_SIZE, results_data, verify_data ));
-
+  return verifyDouble( DATA_SIZE*DATA_SIZE, results_data, verify_data );
 }

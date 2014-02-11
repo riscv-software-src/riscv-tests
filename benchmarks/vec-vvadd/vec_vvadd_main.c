@@ -4,58 +4,13 @@
 //
 // This benchmark uses adds to vectors and writes the results to a third
 // vector. The input data (and reference data) should be generated using the
-// vvadd_gendata.pl perl script and dumped to a file named dataset.h. The
-// riscv-gcc toolchain does not support system calls so printf's can only be
-// used on a host system, not on the riscv-v processor simulator itself. 
-//
-// HOWEVER: printstr() and printhex() are provided, for a primitive form of
-// printing strings and hexadecimal values to stdout.
-
+// vvadd_gendata.pl perl script and dumped to a file named dataset.h.
 
 // Choose which implementation you wish to test... but leave only one on!
 // (only the first one will be executed).
 //#define SCALAR_C
 //#define SCALAR_ASM
 #define VT_ASM
-
-//--------------------------------------------------------------------------
-// Macros
-
-// Set HOST_DEBUG to 1 if you are going to compile this for a host
-// machine (ie Athena/Linux) for debug purposes and set HOST_DEBUG
-// to 0 if you are compiling with the smips-gcc toolchain.
-
-#ifndef HOST_DEBUG
-#define HOST_DEBUG 0
-#endif
-
-// Set PREALLOCATE to 1 if you want to preallocate the benchmark
-// function before starting stats. If you have instruction/data
-// caches and you don't want to count the overhead of misses, then
-// you will need to use preallocation.
-
-#ifndef PREALLOCATE
-#define PREALLOCATE 0
-#endif
-
-// Set SET_STATS to 1 if you want to carve out the piece that actually
-// does the computation.
-
-#ifndef SET_STATS
-#define SET_STATS 0
-#endif
-
-//--------------------------------------------------------------------------
-// Platform Specific Includes
-
-#if HOST_DEBUG
-   #include <stdio.h>
-   #include <stdlib.h>
-#else
-void printstr(const char*);
-void exit();
-#endif
-
 
 //--------------------------------------------------------------------------
 // Input/Reference Data
@@ -86,18 +41,6 @@ int verify( int n, float test[], float correct[] )
   }
   return 1;
 }
-
-#if HOST_DEBUG
-void printArray( char name[], int n, float arr[] )
-{
-  int i;
-  printf( " %10s :", name );
-  for ( i = 0; i < n; i++ )
-    printf( " %03.2f ", arr[i] );
-  printf( "\n" );
-}
-#endif
-
  
 void finishTest( int correct, long long num_cycles, long long num_retired )
 {

@@ -29,7 +29,7 @@ loop:
   ld a1,0(a5)
   sll a3,a1,48
   sra a3,a3,48
-  addi x28,a2,2
+  addi TESTNUM,a2,2
   bne a0,a3,fail
   addi a6,a6,8
   addi a5,a5,8

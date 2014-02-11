@@ -48,14 +48,14 @@ RVTEST_CODE_BEGIN
   fence
 
   li s2,40
-  li x28,2
+  li TESTNUM,2
   bne s1,s2,fail
 
   li a1,0
   li a2,0
 loop:
   ld a0,0(a5)
-  addi x28,a2,3
+  addi TESTNUM,a2,3
   bne a0,a1,fail
   addi a5,a5,8
   addi a1,a1,20

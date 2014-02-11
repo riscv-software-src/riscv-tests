@@ -24,7 +24,7 @@
 //--------------------------------------------------------------------------
 // Input/Reference Data
 
-typedef float data_t;
+typedef double data_t;
 #include "dataset.h"
  
   
@@ -33,6 +33,7 @@ typedef float data_t;
 
 __thread unsigned long coreid;
 unsigned long ncores;
+#define ncores ncores
 
 #include "util.h"
    
@@ -46,41 +47,6 @@ unsigned long ncores;
       printf("%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n", \
              stringify(code), _c, _c/DATA_SIZE, 10*_c/DATA_SIZE%10, _c/_i, 10*_c/_i%10); \
   } while(0)
- 
-
-//--------------------------------------------------------------------------
-// Helper functions
- 
-void printArray( char name[], int n, data_t arr[] )
-{
-  int i;
-  if (coreid != 0)
-     return;
-
-  printf( " %10s :", name );
-  for ( i = 0; i < n; i++ )
-    printf( " %4ld ", (long) arr[i] );
-  printf( "\n" );
-}
-      
-void __attribute__((noinline)) verify(size_t n, const data_t* test, const data_t* correct)
-{
-   if (coreid != 0)
-      return;
-
-   size_t i;
-   for (i = 0; i < n; i++)
-   {
-      if (test[i] != correct[i])
-      {
-         printf("FAILED test[%d]= %4ld, correct[%d]= %4ld\n", 
-            i, (long) test[i], i, (long)correct[i]);
-         exit(-1);
-      }
-   }
-   
-   return;
-}
  
 //--------------------------------------------------------------------------
 // vvadd function
@@ -136,8 +102,11 @@ void thread_entry(int cid, int nc)
  
    
    // verify
-   verify(DATA_SIZE, results_data, verify_data);
-   
+   int res = verifyDouble(DATA_SIZE, results_data, verify_data);
+   if (res)
+      exit(res);
+
+#if 0
    // reset results from the first trial
    if (coreid == 0) 
    {
@@ -145,21 +114,22 @@ void thread_entry(int cid, int nc)
          results_data[i] = input1_data[i];
    }
    barrier();
-                                            
-   
+
    // Execute your faster vvadd
    barrier();
    stats(vvadd_opt(DATA_SIZE, results_data, input2_data); barrier());
 
 #ifdef DEBUG
-   printArray("results: ", DATA_SIZE, results_data);
-   printArray("verify : ", DATA_SIZE, verify_data);
+   printDoubleArray("results: ", DATA_SIZE, results_data);
+   printDoubleArray("verify : ", DATA_SIZE, verify_data);
 #endif
    
    // verify
-   verify(DATA_SIZE, results_data, verify_data);
+   res = verifyDouble(DATA_SIZE, results_data, verify_data);
+   if (res)
+      exit(res);
    barrier();
+#endif
 
    exit(0);
 }
-

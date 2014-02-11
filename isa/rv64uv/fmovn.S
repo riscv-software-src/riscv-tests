@@ -29,7 +29,7 @@ loop:
   slli a4,a4,63
   srai a4,a4,63
   and a5,a2,a4
-  addi x28,a1,2
+  addi TESTNUM,a1,2
   bne a0,a5,fail
   addi a7,a7,8
   addi a1,a1,1
