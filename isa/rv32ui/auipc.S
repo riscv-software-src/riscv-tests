@@ -11,22 +11,18 @@
 RVTEST_RV32U
 RVTEST_CODE_BEGIN
 
-  TEST_CASE(2, a0, 1<<12, \
+  TEST_CASE(2, a0, 10000, \
     .align 3; \
-    auipc a0, 0x00001; \
+    lla a0, 1f + 10000; \
     jal a1, 1f; \
-    1: srl a1, a1, 12; \
-    sll a1, a1, 12; \
-    sub a0, a0, a1; \
+    1: sub a0, a0, a1; \
   )
 
-  TEST_CASE(3, a0, -1<<12, \
+  TEST_CASE(3, a0, -10000, \
     .align 3; \
-    auipc a0, 0xfffff; \
+    lla a0, 1f - 10000; \
     jal a1, 1f; \
-    1: srl a1, a1, 12; \
-    sll a1, a1, 12; \
-    sub a0, a0, a1; \
+    1: sub a0, a0, a1; \
   )
 
   TEST_PASSFAIL

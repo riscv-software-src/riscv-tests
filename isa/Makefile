@@ -19,7 +19,7 @@ default: all
 #--------------------------------------------------------------------
 
 RISCV_GCC = riscv-gcc
-RISCV_GCC_OPTS = -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
+RISCV_GCC_OPTS = -fpic -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --section=.text --section=.data --section=.bss
 RISCV_SIM = spike --extension=hwacha
 
