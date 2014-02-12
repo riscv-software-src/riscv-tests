@@ -6,9 +6,10 @@
 #include <machine/syscall.h>
 #include "encoding.h"
 
+#define SYS_stats 1234
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
-void syscall(long which, long arg0, long arg1, long arg2)
+static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {
   volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
   magic_mem[0] = which;
@@ -18,34 +19,24 @@ void syscall(long which, long arg0, long arg1, long arg2)
   __sync_synchronize();
   write_csr(tohost, (long)magic_mem);
   while (swap_csr(fromhost, 0) == 0);
-}
-
-void exit(int code)
-{
-  write_csr(tohost, (code << 1) | 1);
-  while (1);
-}
-
-void printstr(const char* s)
-{
-  syscall(SYS_write, 1, (long)s, strlen(s));
+  return magic_mem[0];
 }
 
 // In setStats, we might trap reading uarch-specific counters.
-// The trap handler will skip over the instruction, but we want
-// to pretend as though we read the value 0 in this case.
-#define read_csr_safe(reg) ({ long __tmp = 0; \
-  asm volatile ("csrr %0, " #reg : "+r"(__tmp)); \
+// The trap handler will skip over the instruction and write 0,
+// but only if v0 is the destination register.
+#define read_csr_safe(reg) ({ register long __tmp asm("v0"); \
+  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
   __tmp; })
 
 #define NUM_COUNTERS 18
 static long counters[NUM_COUNTERS];
 static char* counter_names[NUM_COUNTERS];
-void setStats(int enable)
+static int handle_stats(int enable)
 {
   int i = 0;
 #define READ_CTR(name) do { \
-    if (i >= NUM_COUNTERS) exit(-1); \
+    while (i >= NUM_COUNTERS) ; \
     long csr = read_csr_safe(name); \
     if (!enable) { csr -= counters[i]; counter_names[i] = #name; } \
     counters[i++] = csr; \
@@ -56,6 +47,60 @@ void setStats(int enable)
   READ_CTR(uarch8);  READ_CTR(uarch9);  READ_CTR(uarch10); READ_CTR(uarch11);
   READ_CTR(uarch12); READ_CTR(uarch13); READ_CTR(uarch14); READ_CTR(uarch15);
 #undef READ_CTR
+  return 0;
+}
+
+static void tohost_exit(int code)
+{
+  write_csr(tohost, (code << 1) | 1);
+  while (1);
+}
+
+long handle_trap(long cause, long epc, long regs[32])
+{
+  int csr_insn;
+  asm volatile ("lw %0, 1f; j 2f; 1: csrr v0, uarch0; 2:" : "=r"(csr_insn));
+  long sys_ret = 0;
+
+  if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
+      (*(int*)epc & csr_insn) == csr_insn)
+    ;
+  else if (cause != CAUSE_SYSCALL)
+    tohost_exit(1337);
+  else if (regs[16] == SYS_exit)
+    tohost_exit(regs[18]);
+  else if (regs[16] == SYS_stats)
+    sys_ret = handle_stats(regs[18]);
+  else
+    sys_ret = handle_frontend_syscall(regs[16], regs[18], regs[19], regs[20]);
+
+  regs[16] = sys_ret;
+  return epc+4;
+}
+
+static long syscall(long num, long arg0, long arg1, long arg2)
+{
+  register long v0 asm("v0") = num;
+  register long a0 asm("a0") = arg0;
+  register long a1 asm("a1") = arg1;
+  register long a2 asm("a2") = arg2;
+  asm volatile ("scall" : "+r"(v0) : "r"(a0), "r"(a1), "r"(a2) : "s0");
+  return v0;
+}
+
+void exit(int code)
+{
+  syscall(SYS_exit, code, 0, 0);
+}
+
+void setStats(int enable)
+{
+  syscall(SYS_stats, enable, 0, 0);
+}
+
+void printstr(const char* s)
+{
+  syscall(SYS_write, 1, (long)s, strlen(s));
 }
 
 void __attribute__((weak)) thread_entry(int cid, int nc)

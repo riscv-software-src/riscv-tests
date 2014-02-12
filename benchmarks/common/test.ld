@@ -33,11 +33,16 @@ SECTIONS
     *(.text)
   }
 
-  /* data: Initialized data segment */
-  .data : 
-  {
-    *(.data)
+  /* data segmemt */
+  .data : { *(.data) }
+  .bss : { *(.bss) }
+
+  /* thread-local data segment */
+  .tbss : { 
+    crt.o(.tbss) /* Make sure tls_start is the first TLS symbol */
+    *(.tbss)
   }
+  .tdata : { *(.tdata) }
 
   /* End of uninitalized data segement */
   _end = .;

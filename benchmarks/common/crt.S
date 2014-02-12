@@ -1,5 +1,13 @@
 #include "encoding.h"
 
+#ifdef __riscv64
+# define LREG ld
+# define SREG sd
+#else
+# define LREG lw
+# define SREG sw
+#endif
+
   .data
   .globl _heapend
   .globl environ
@@ -48,6 +56,7 @@ _start:
   li a0, SR_U64 | SR_S64
   csrs status, a0
 #endif
+  csrc status, SR_PS
 
   # enable fp and accelerator
   li a0, SR_EF | SR_EA
@@ -103,42 +112,120 @@ _start:
   csrr a0, hartid
   lw a1, 4(zero)
 
-  # give each core a 1KB TLS and a 127KB stack
+  # give each core 128KB of stack + TLS
 #define STKSHIFT 17
   sll a2, a0, STKSHIFT
   add tp, tp, a2
   add sp, a0, 1
   sll sp, sp, STKSHIFT
   add sp, sp, tp
-  add tp, tp, 1024
 
-  jal _init
-  unimp
+  lui t0, %tprel_hi(tls_start)
+  add t0, t0, %tprel_lo(tls_start)
+  sub tp, tp, t0
 
-trap_entry:
-  csrw sup0, t0
-  csrw sup1, t1
-  la t0, uarch_insn
-  lw t0, (t0)
-  csrr t1, epc
-  and t1, t1, ~3
-  lw t1, (t1)
-  and t1, t1, t0
-  beq t1, t0, handle_uarch_insn
-
-  # a trap occurred that shouldn't have.
-  li t0, 1337
-  csrw tohost, t0
-1:j 1b
-
-handle_uarch_insn:
-  # we trapped on an illegal uarch-specific CSR.  just skip over it.
-  csrr t1, epc
-  add t1, t1, 4
-  csrw epc, t1
-  csrr t0, sup0
-  csrr t1, sup1
+  la t0, _init
+  csrw epc, t0
   sret
 
-uarch_insn:
-  csrr x0, uarch0
+trap_entry:
+  csrw sup0, sp
+  csrw sup1, t0
+  csrr t0, status
+  andi t0, t0, SR_PS
+  bnez t0, 1f
+  la sp, kstacktop
+1:
+  addi sp, sp, -272
+  csrr t0, sup1
+
+  SREG x1, 8(sp)
+  SREG x2, 16(sp)
+  SREG x3, 24(sp)
+  SREG x4, 32(sp)
+  SREG x5, 40(sp)
+  SREG x6, 48(sp)
+  SREG x7, 56(sp)
+  SREG x8, 64(sp)
+  SREG x9, 72(sp)
+  SREG x10, 80(sp)
+  SREG x11, 88(sp)
+  SREG x12, 96(sp)
+  SREG x13, 104(sp)
+  SREG x14, 112(sp)
+  SREG x15, 120(sp)
+  SREG x16, 128(sp)
+  SREG x17, 136(sp)
+  SREG x18, 144(sp)
+  SREG x19, 152(sp)
+  SREG x20, 160(sp)
+  SREG x21, 168(sp)
+  SREG x22, 176(sp)
+  SREG x23, 184(sp)
+  SREG x24, 192(sp)
+  SREG x25, 200(sp)
+  SREG x26, 208(sp)
+  SREG x27, 216(sp)
+  SREG x28, 224(sp)
+  SREG x29, 232(sp)
+  SREG x30, 240(sp)
+  SREG x31, 248(sp)
+
+  csrr t0, sup0
+  csrr t1, status
+  SREG t0, 256(sp)
+  SREG t1, 264(sp)
+
+  csrr a0, cause
+  csrr a1, epc
+  mv a2, sp
+  jal handle_trap
+  csrw epc, v0
+
+  LREG t0, 256(sp)
+  LREG t1, 264(sp)
+  csrw sup0, t0
+  csrw status, t1
+
+  LREG x1, 8(sp)
+  LREG x2, 16(sp)
+  LREG x3, 24(sp)
+  LREG x4, 32(sp)
+  LREG x5, 40(sp)
+  LREG x6, 48(sp)
+  LREG x7, 56(sp)
+  LREG x8, 64(sp)
+  LREG x9, 72(sp)
+  LREG x10, 80(sp)
+  LREG x11, 88(sp)
+  LREG x12, 96(sp)
+  LREG x13, 104(sp)
+  LREG x14, 112(sp)
+  LREG x15, 120(sp)
+  LREG x16, 128(sp)
+  LREG x17, 136(sp)
+  LREG x18, 144(sp)
+  LREG x19, 152(sp)
+  LREG x20, 160(sp)
+  LREG x21, 168(sp)
+  LREG x22, 176(sp)
+  LREG x23, 184(sp)
+  LREG x24, 192(sp)
+  LREG x25, 200(sp)
+  LREG x26, 208(sp)
+  LREG x27, 216(sp)
+  LREG x28, 224(sp)
+  LREG x29, 232(sp)
+  LREG x30, 240(sp)
+  LREG x31, 248(sp)
+
+  csrr sp, sup0
+  sret
+
+.bss
+.align 4
+.skip 4096
+kstacktop:
+
+.section .tbss
+tls_start:
