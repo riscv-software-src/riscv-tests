@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define USE_N_SQUARED_SORT
+
 #define FAKE_MALLOC_INIT(words, name) \
   uint32_t heap_##name[words]; \
   const size_t max_alloc_##name = (words) * sizeof(uint32_t); \
