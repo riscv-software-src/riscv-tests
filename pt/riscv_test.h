@@ -3,8 +3,8 @@
 
 #include "../p/riscv_test.h"
 
-#undef EXTRA_INIT
-#define EXTRA_INIT                                                      \
+#undef EXTRA_INIT_TIMER
+#define EXTRA_INIT_TIMER                                                \
   ENABLE_TIMER_INTERRUPT;                                               \
   b 6f;                                                                 \
   XCPT_HANDLER;                                                         \
@@ -59,30 +59,40 @@ evac:                              \
         la a0,_handler;              \
         csrw evec,a0;                \
         csrw count,x0;               \
-        addi a0,x0,60;               \
+        addi a0,x0,100;              \
         csrw compare,a0;             \
 
 #define XCPT_HANDLER \
 _handler: \
         csrw sup0,a0;                \
         csrw sup1,a1;                \
+        csrr a0,cause;               \
+        li a1,CAUSE_SYSCALL;         \
+        bne a0,a1,_cont;             \
+        li a1,1;                     \
+        bne x27,a1,_fail;            \
+_pass: \
+        fence;                       \
+        csrw tohost, 1;              \
+1:      b 1b;                        \
+_fail: \
+        fence;                       \
+        beqz TESTNUM, 1f;            \
+        sll TESTNUM, TESTNUM, 1;     \
+        or TESTNUM, TESTNUM, 1;      \
+        csrw tohost, TESTNUM;        \
+1:      b 1b;                        \
+_cont: \
+        csrr a0,impl;                \
+        li a1,IMPL_ROCKET;           \
+        beq a0,a1,_rocket_handler;   \
         vxcptcause x0;               \
         la a0,evac;                  \
         vxcptsave a0;                \
         vxcptrestore a0;             \
-        csrs status,SR_PEI;          \
-        csrr a0,count;               \
-        addi a0,a0,60;               \
-        csrr a0,compare;             \
-        csrr a0,sup0;                \
-        csrr a1,sup1;                \
-        sret;                        \
-
-#if 0
-#define XCPT_HANDLER \
-_handler: \
-        mtpcr a0,sup0;               \
-        mtpcr a1,sup1;               \
+        j _exit;                     \
+                                     \
+_rocket_handler: \
         la a0,regspill;              \
         sd a2,0(a0);                 \
         sd a3,8(a0);                 \
@@ -147,13 +157,25 @@ _done_skip: \
         ld a5,24(a0);                \
         ld s0,32(a0);                \
         ld s1,40(a0);                \
-        mfpcr a0,count;              \
-        addi a0,a0,60;               \
-        mtpcr a0,compare;            \
-        mfpcr a0,sup0;               \
-        mfpcr a1,sup1;               \
-        eret;                        \
+                                     \
+_exit: \
+        csrs status,SR_PEI;          \
+        csrc status,SR_PS;           \
+        csrr a0,count;               \
+        addi a0,a0,100;              \
+        csrw compare,a0;             \
+        csrr a0,sup0;                \
+        csrr a1,sup1;                \
+        sret;                        \
 
-#endif
+#undef RVTEST_PASS
+#define RVTEST_PASS \
+        li x27, 1; \
+        scall; \
+
+#undef RVTEST_FAIL
+#define RVTEST_FAIL \
+        li x27,2; \
+        scall; \
 
 #endif
