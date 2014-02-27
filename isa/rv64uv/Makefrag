@@ -16,7 +16,7 @@ rv64uv_sc_tests = \
 	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoswap_w amoxor_w \
 	imul \
 	movn movz \
-	fcvt fma \
+	fcvt fma fma_many \
 	fmovn fmovz \
 	vvadd_d vvadd_w vvadd_fd vvadd_fw \
 	vvadd_packed \
