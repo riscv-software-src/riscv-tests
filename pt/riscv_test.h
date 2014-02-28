@@ -55,12 +55,12 @@ evac:                              \
         li a1,SR_IM;                 \
         or a0,a0,a1;                 \
         csrw status,a0;              \
-        csrs status,SR_EI;           \
         la a0,_handler;              \
         csrw evec,a0;                \
         csrw count,x0;               \
         addi a0,x0,100;              \
         csrw compare,a0;             \
+        csrs status,SR_EI;           \
 
 #define XCPT_HANDLER \
 _handler: \
