@@ -1,8 +1,8 @@
 #*****************************************************************************
-# vfmsv.S
+# vfmsv_s.S
 #-----------------------------------------------------------------------------
 #
-# Test vfmsv instruction.
+# Test vfmsv.s instruction.
 #
 
 #include "riscv_test.h"
@@ -16,7 +16,7 @@ RVTEST_CODE_BEGIN
   vsetvl a2,a2
 
   li a3,-1
-  vfmsv vf0,a3
+  vfmsv.s vf0,a3
   lui a0,%hi(vtcode)
   vf %lo(vtcode)(a0)
   la a4,dest
@@ -26,7 +26,7 @@ RVTEST_CODE_BEGIN
   li a1,0
 loop:
   ld a0,0(a4)
-  addi x28,a1,2
+  addi TESTNUM,a1,2
   bne a0,a1,fail
   addi a4,a4,8
   addi a1,a1,1
@@ -36,7 +36,7 @@ loop:
 vtcode:
   utidx x1
   addi x1,x1,1
-  fmv.x.d x2, f0
+  fmv.x.s x2, f0
   add x2,x1,x2
   stop
 
