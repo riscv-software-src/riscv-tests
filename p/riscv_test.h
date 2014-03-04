@@ -76,8 +76,8 @@
   csrr a0, hartid;                                                      \
   1: bnez a0, 1b;                                                       \
 
-#define EXTRA_INIT_TIMER
 #define EXTRA_INIT
+#define EXTRA_INIT_TIMER
 
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
@@ -86,8 +86,8 @@
 _start:                                                                 \
         RISCV_MULTICORE_DISABLE;                                        \
         init;                                                           \
-        EXTRA_INIT_TIMER;                                               \
         EXTRA_INIT;                                                     \
+        EXTRA_INIT_TIMER;                                               \
 
 //-----------------------------------------------------------------------
 // End Macro
