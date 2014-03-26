@@ -57,7 +57,7 @@ static void printDoubleArray(const char name[], int n, const double arr[])
 #endif
 }
 
-static int verify(int n, const int test[], const int verify[])
+static int verify(int n, const volatile int* test, const int* verify)
 {
   int i;
   // Unrolled for faster verification
@@ -73,7 +73,7 @@ static int verify(int n, const int test[], const int verify[])
   return 0;
 }
 
-static int verifyDouble(int n, const double test[], const double verify[])
+static int verifyDouble(int n, const volatile double* test, const double* verify)
 {
   int i;
   // Unrolled for faster verification

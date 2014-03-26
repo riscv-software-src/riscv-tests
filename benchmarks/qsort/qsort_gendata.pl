@@ -61,7 +61,7 @@ sub printArray
   my $numCols = 20;
   my $arrayLen = scalar(@{$arrayRef});
 
-  print "int ".$arrayName."[DATA_SIZE] = \n";
+  print "type ".$arrayName."[DATA_SIZE] = \n";
   print "{\n";
 
   if ( $arrayLen <= $numCols ) {
@@ -118,7 +118,7 @@ sub main()
 
   my @values;
   for ( my $i = 0; $i < $opts{"size"}; $i++ ) {
-    push( @values, int(rand(999)) );
+    push( @values, int(rand((1<<31)-1)) );
   }
   my @sorted = sort { $a <=> $b } @values;
 
