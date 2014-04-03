@@ -34,6 +34,13 @@ static long counters[NUM_COUNTERS];
 static char* counter_names[NUM_COUNTERS];
 static int handle_stats(int enable)
 {
+  //use csrs to set stats register
+  if(enable) {
+    asm volatile (R"(
+      addi v0, x0, 1
+      csrrs v0, stats, v0
+    )" : : : "v0");
+  }
   int i = 0;
 #define READ_CTR(name) do { \
     while (i >= NUM_COUNTERS) ; \
@@ -47,6 +54,12 @@ static int handle_stats(int enable)
   READ_CTR(uarch8);  READ_CTR(uarch9);  READ_CTR(uarch10); READ_CTR(uarch11);
   READ_CTR(uarch12); READ_CTR(uarch13); READ_CTR(uarch14); READ_CTR(uarch15);
 #undef READ_CTR
+  if(!enable) {
+    asm volatile (R"(
+      addi v0, x0, 1
+      csrrc v0, stats, v0
+    )" : : : "v0");
+  }
   return 0;
 }
 
@@ -59,7 +72,7 @@ static void tohost_exit(int code)
 long handle_trap(long cause, long epc, long regs[32])
 {
   int csr_insn;
-  asm volatile ("lw %0, 1f; j 2f; 1: csrr v0, uarch0; 2:" : "=r"(csr_insn));
+  asm volatile ("lw %0, 1f; j 2f; 1: csrr v0, stats; 2:" : "=r"(csr_insn));
   long sys_ret = 0;
 
   if (cause == CAUSE_ILLEGAL_INSTRUCTION &&

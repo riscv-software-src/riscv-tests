@@ -24,10 +24,6 @@
 // Set SET_STATS to 1 if you want to carve out the piece that actually
 // does the computation.
 
-#ifndef SET_STATS
-#define SET_STATS 0
-#endif
-
 #if HOST_DEBUG
 #include <stdio.h>
 static void setStats(int enable) {}
