@@ -18,6 +18,7 @@ instbasedir = $(UCB_VLSI_HOME)/install
 bmarks = \
 	median \
 	qsort \
+	rsort \
 	towers \
 	vvadd \
 	multiply \

@@ -4,10 +4,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <machine/syscall.h>
-#include "encoding.h"
+#include "util.h"
 
 #define SYS_stats 1234
-#define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
 static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {

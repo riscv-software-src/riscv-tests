@@ -31,6 +31,8 @@ static void setStats(int enable) {}
 extern void setStats(int enable);
 #endif
 
+#define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
+
 static void printArray(const char name[], int n, const int arr[])
 {
 #if HOST_DEBUG
