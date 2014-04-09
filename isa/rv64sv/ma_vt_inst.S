@@ -48,6 +48,8 @@ handler:
   # check badvaddr
   vxcptaux a3
   la a4,vtcode1+2
+  andi a3, a3, -4 # mask off lower bits so that may
+  andi a4, a4, -4 # ignore impl. specific behavior
   bne a3,a4,fail
 
   # make sure vector unit has cleared out
