@@ -8,14 +8,6 @@
 # define SREG sw
 #endif
 
-  .data
-  .globl _heapend
-  .globl environ
-_heapend:
-  .word 0
-environ:
-  .word 0
-
   .text
   .globl _start
 
@@ -62,10 +54,13 @@ _start:
   li a0, SR_EF | SR_EA
   csrs status, a0
 
-  ## if that didn't stick, we don't have an FPU, so don't initialize it
   csrr t0, status
-  and t0, t0, SR_EF
-  beqz t0, 1f
+  and t1, t0, SR_EA
+  sw t1, have_vec, t2
+
+  ## if that didn't stick, we don't have an FPU, so don't initialize it
+  and t1, t0, SR_EF
+  beqz t1, 1f
 
   fssr    x0
   fmv.s.x f0, x0

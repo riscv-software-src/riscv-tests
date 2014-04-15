@@ -32,8 +32,6 @@ typedef double data_t;
 // Basic Utilities and Multi-thread Support
 
 __thread unsigned long coreid;
-unsigned long ncores;
-#define ncores ncores
 
 #include "util.h"
    
@@ -52,7 +50,7 @@ unsigned long ncores;
 // vvadd function
 
 //perform in-place vvadd
-void __attribute__((noinline)) vvadd(size_t n, data_t* __restrict__ x, const data_t* __restrict__ y)
+void __attribute__((noinline)) vvadd(int ncores, size_t n, data_t* __restrict__ x, const data_t* __restrict__ y)
 {
    size_t i;
 
@@ -79,7 +77,6 @@ void __attribute__((noinline)) vvadd_opt(size_t n, data_t* __restrict__ x, const
 void thread_entry(int cid, int nc)
 {
    coreid = cid;
-   ncores = nc;
 
    // static allocates data in the binary, which is visible to both threads
    static data_t results_data[DATA_SIZE];
@@ -97,8 +94,8 @@ void thread_entry(int cid, int nc)
 
 
    // Execute the provided, terrible vvadd
-   barrier();
-   stats(vvadd(DATA_SIZE, results_data, input2_data); barrier());
+   barrier(nc);
+   stats(vvadd(nc, DATA_SIZE, results_data, input2_data); barrier(nc));
  
    
    // verify
@@ -113,11 +110,11 @@ void thread_entry(int cid, int nc)
       for (i=0; i < DATA_SIZE; i++)
          results_data[i] = input1_data[i];
    }
-   barrier();
+   barrier(nc);
 
    // Execute your faster vvadd
-   barrier();
-   stats(vvadd_opt(DATA_SIZE, results_data, input2_data); barrier());
+   barrier(nc);
+   stats(vvadd_opt(DATA_SIZE, results_data, input2_data); barrier(nc));
 
 #ifdef DEBUG
    printDoubleArray("results: ", DATA_SIZE, results_data);
@@ -128,7 +125,7 @@ void thread_entry(int cid, int nc)
    res = verifyDouble(DATA_SIZE, results_data, verify_data);
    if (res)
       exit(res);
-   barrier();
+   barrier(nc);
 #endif
 
    exit(0);

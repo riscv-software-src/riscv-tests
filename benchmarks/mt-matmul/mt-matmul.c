@@ -33,8 +33,6 @@ typedef double data_t;
 // Basic Utilities and Multi-thread Support
 
 __thread unsigned long coreid;
-unsigned long ncores;
-#define ncores ncores
 
 #include "util.h"
    
@@ -93,15 +91,14 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
 void thread_entry(int cid, int nc)
 {
    coreid = cid;
-   ncores = nc;
 
    // static allocates data in the binary, which is visible to both threads
    static data_t results_data[ARRAY_SIZE];
 
 
    // Execute the provided, naive matmul
-   barrier();
-   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier());
+   barrier(nc);
+   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
  
    
    // verify
@@ -115,12 +112,12 @@ void thread_entry(int cid, int nc)
    if (coreid == 0) 
       for (i=0; i < ARRAY_SIZE; i++)
          results_data[i] = 0;
-   barrier();
+   barrier(nc);
 
    
    // Execute your faster matmul
-   barrier();
-   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier());
+   barrier(nc);
+   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
  
 #ifdef DEBUG
    printArray("results:", ARRAY_SIZE, results_data);
@@ -131,7 +128,7 @@ void thread_entry(int cid, int nc)
    res = verify(ARRAY_SIZE, results_data, verify_data);
    if (res)
       exit(res);
-   barrier();
+   barrier(nc);
 #endif
 
    exit(0);

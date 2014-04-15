@@ -8,6 +8,9 @@
 
 #define SYS_stats 1234
 
+// initialized in crt.S
+int have_vec;
+
 static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {
   volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
@@ -150,8 +153,8 @@ void _init(int cid, int nc)
 #undef putchar
 int putchar(int ch)
 {
-  static char buf[64] __attribute__((aligned(64)));
-  static int buflen = 0;
+  static __thread char buf[64] __attribute__((aligned(64)));
+  static __thread int buflen = 0;
 
   buf[buflen++] = ch;
 

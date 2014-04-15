@@ -31,6 +31,8 @@ static void setStats(int enable) {}
 extern void setStats(int enable);
 #endif
 
+extern int have_vec;
+
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
 static void printArray(const char name[], int n, const int arr[])
@@ -87,11 +89,7 @@ static int verifyDouble(int n, const volatile double* test, const double* verify
   return 0;
 }
 
-#ifndef ncores
-#define ncores 1
-#endif
-
-static void __attribute__((noinline)) barrier()
+static void __attribute__((noinline)) barrier(int ncores)
 {
   static volatile int sense;
   static volatile int count;

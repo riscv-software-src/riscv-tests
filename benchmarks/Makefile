@@ -22,7 +22,7 @@ bmarks = \
 	towers \
 	vvadd \
 	multiply \
-	dgemm \
+	mm \
 	dhrystone \
 	spmv \
 	mt-vvadd \
@@ -38,7 +38,7 @@ bmarks_host = \
 	towers \
 	vvadd \
 	multiply \
-	dgemm \
+	mm \
 	spmv \
 	vec-vvadd \
 	vec-cmplxmult \
