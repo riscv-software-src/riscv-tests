@@ -6,7 +6,7 @@
 void exit(int code)
 {
   volatile uint64_t magic_mem[8] = {0};
-  magic_mem[0] = 1;
+  magic_mem[0] = 93;
   magic_mem[1] = code;
   __sync_synchronize();
   mtpcr(PCR_TOHOST, (long)magic_mem);
@@ -16,7 +16,7 @@ void exit(int code)
 void printstr(const char* s)
 {
   volatile uint64_t magic_mem[8] = {0};
-  magic_mem[0] = 4;
+  magic_mem[0] = 64;
   magic_mem[1] = 1;
   magic_mem[2] = (unsigned long)s;
   magic_mem[3] = strlen(s);
@@ -28,8 +28,8 @@ void printstr(const char* s)
 int putchar(int ch)
 {
   #define buffered_putch_bufsize 64
-  static char buf[buffered_putch_bufsize];
-  static int buflen = 0;
+  static __thread char buf[buffered_putch_bufsize];
+  static __thread int buflen = 0;
 
   if(ch != -1)
     buf[buflen++] = ch;
@@ -37,7 +37,7 @@ int putchar(int ch)
   if(ch == -1 || buflen == buffered_putch_bufsize)
   {
     volatile uint64_t magic_mem[8] = {0};
-    magic_mem[0] = 4;
+    magic_mem[0] = 64;
     magic_mem[1] = 1;
     magic_mem[2] = (long)buf;
     magic_mem[3] = buflen;

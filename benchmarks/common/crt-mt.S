@@ -96,7 +96,7 @@ _start:
   mfpcr a0,cr10
   lw a1, 4(zero)
 
-  slli a2, a0, 13
+  slli a2, a0, 16
   la sp, stacktop
   sub sp, sp, a2
 
@@ -110,7 +110,7 @@ _start:
   .globl tlstop
 
   .align 4
-  .skip 32768
+  .skip 131072
 stacktop:
-  .skip 65536
+  .skip 131072
 tlstop:
