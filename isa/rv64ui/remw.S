@@ -26,6 +26,7 @@ RVTEST_CODE_BEGIN
   TEST_RR_OP( 8, remw, -1<<31, -1<<31, 0 );
   TEST_RR_OP( 9, remw,      1,      1, 0 );
   TEST_RR_OP(10, remw,      0,      0, 0 );
+  TEST_RR_OP(11, remw, 0xfffffffffffff897,0xfffffffffffff897, 0 );
 
   TEST_PASSFAIL
 
