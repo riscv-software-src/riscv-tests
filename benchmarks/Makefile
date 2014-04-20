@@ -26,6 +26,7 @@ bmarks = \
 	dhrystone \
 	spmv \
 	mt-vvadd \
+	sdisorder \
 	#vec-fft \
 	#mt-matmul \
 	#vec-vvadd \
@@ -43,6 +44,7 @@ bmarks_host = \
 	vec-vvadd \
 	vec-cmplxmult \
 	vec-matmul \
+	sdisorder \
 
 #--------------------------------------------------------------------
 # Build rules
