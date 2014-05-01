@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -11,18 +12,18 @@
 #endif
 
 
-void InitStream(int *a, int n) {
-  for (int i=0; i<n; i++)
+void InitStream(uint *a, uint n) {
+  for (uint i=0; i<n; i++)
     a[i] = (i+STEP) % n;
 }
 
 // TODO: Verify this does the random shuffling well
-void ShuffleStream(int *a, int n) {
+void ShuffleStream(uint *a, uint n) {
   if (n>1) {
-    int i;
+    uint i;
     for (i = 0; i < n-1; i++) {
-        int j = i + rand() / (RAND_MAX / (n-i)+1);
-        int t = a[j];
+      uint j = (i + rand() / (RAND_MAX / (n-i)+1)) % n;
+        uint t = a[j];
         a[j] = a[i];
         a[i] = t;
     }
@@ -30,19 +31,19 @@ void ShuffleStream(int *a, int n) {
 }
 
 
-int Chase(int *a, int n, int iterations) {
-  int loc[MLP];
-  for (int m=0; m<MLP; m++)
-    loc[m] = m * (n/MLP) + m;
+int Chase(uint *a, uint n, uint iterations) {
+  uint loc[MLP];
+  for (uint m=0; m<MLP; m++)
+    loc[m] = (m * (n/MLP) + m) % n;
 
-  for (int k=0; k<iterations; k++) {
-    for (int i=0; i<n/MLP; i++) {
-      for (int m=0; m<MLP; m++) {
+  for (uint k=0; k<iterations; k++) {
+    for (uint i=0; i<n/MLP; i++) {
+      for (uint m=0; m<MLP; m++) {
         loc[m] = a[loc[m]];
       }
     }
   }
-  for (int m=0; m<MLP; m++) {
+  for (uint m=0; m<MLP; m++) {
     if (loc[m] < 0) {
       //printf("woah\n");
     }
@@ -59,14 +60,33 @@ void RandGenBench(int n) {
 }
 
 
+void clogMem(uint len, uint step, uint its)
+{
+  uint arr[len];
+  uint j = its;
+  while(j > 0) {
+    for (uint i = 0; i < len; i += step) {
+      uint idx = i % len;
+      arr[idx] = arr[idx] + 1;
+    }
+    j -= 1;
+  }
+}
+
+void thread_entry(int cid, int nc)
+{
+  while (cid != 0) {
+    clogMem(1<<18, 64<<3,1<<7);
+  }
+}
 
 int main(int argc, char* argv[]) {
- 
-  int num_iters = 1;
-  int length = 1<<12;
-  int randomize = 1;
 
-  int stream[length];
+  uint num_iters = 1;
+  uint length = 1<<18;
+  uint randomize = 0;
+
+  uint stream[length];
   InitStream(stream, length);
 
   if (randomize) {

@@ -107,8 +107,8 @@ _start:
   csrr a0, hartid
   lw a1, 4(zero)
 
-  # give each core 128KB of stack + TLS
-#define STKSHIFT 17
+  # give each core 128MB of stack + TLS
+#define STKSHIFT 27
   sll a2, a0, STKSHIFT
   add tp, tp, a2
   add sp, a0, 1
