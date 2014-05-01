@@ -30,7 +30,7 @@ void ShuffleStream(int *a, int n) {
 }
 
 
-void Chase(int *a, int n, int iterations) {
+int Chase(int *a, int n, int iterations) {
   int loc[MLP];
   for (int m=0; m<MLP; m++)
     loc[m] = m * (n/MLP) + m;
@@ -47,6 +47,7 @@ void Chase(int *a, int n, int iterations) {
       //printf("woah\n");
     }
   }
+  return loc[n];
 }
 
 
@@ -61,16 +62,17 @@ void RandGenBench(int n) {
 
 int main(int argc, char* argv[]) {
  
-  int num_iters = 2;
-  int length = 1<<6;
+  int num_iters = 1;
+  int length = 1<<12;
   int randomize = 1;
 
   int stream[length];
   InitStream(stream, length);
-  
+
   if (randomize) {
     ShuffleStream(stream, length);
   }
-  Chase(stream, length, num_iters);
+
+  randomize = Chase(stream, length, num_iters);
 
 }
