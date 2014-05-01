@@ -1,0 +1,81 @@
+Revisions as of Tue Jun  4 16:31:31 EDT 1996
+
+I have fixed an "off-by-one" error in the RMS time calculation in 
+stream_d.f.  This was already corrected in stream_d.c.
+No results are invalidated, since I use minimum time instead
+of RMS time anyway....
+
+
+Revisions as of Fri Dec  8 14:49:56 EST 1995
+
+I have renamed the timer routines to:
+	second_cpu.c
+	second_wall.c
+	second_cpu.f
+
+All have a function interface named 'second' which returns
+a double precision floating point number.  It should be possible
+to link second_wall.c with stream_d.f without too much trouble,
+though the details will depend on your environment.
+
+If anyone builds versions of these timers for machines running
+the Macintosh O/S or DOS/Windows, I would appreciate getting a 
+copy.
+
+To clarify:
+  * For single-user machines, the wallclock timer is preferred.
+  * For parallel machines, the wallclock timer is required.
+  * For time-shared systems, the cpu timer is more reliable,
+        though less accurate.
+    
+
+
+Revisions as of Wed Oct 25 09:40:32 EDT 1995
+
+(1) NOTICE to C users:
+
+    stream_d.c has been updated to version 4.0 (beta), and
+    should be functionally identical to stream_d.f
+
+    Two timers are provided --- second_cpu.c and second_wall.c
+    second_cpu.c measures cpu time, while second_wall.c measures
+    elapsed (real) time.   
+
+    For single-user machines, the wallclock timer is preferred.
+    For parallel machines, the wallclock timer is required.
+    For time-shared systems, the cpu timer is more reliable,
+    though less accurate.
+    
+(2) cstream.c has been removed -- use stream_d.c
+
+(3) stream_wall.f has been removed --- to do parallel aggregate
+    bandwidth runs, comment out the definition of FUNCTION SECOND
+    in stream_d.f and compile/link with second_wall.c
+
+(4) stream_offset has been deprecated.  It is still here
+    and usable, but stream_d.f is the "standard" version.
+    There are easy hooks in stream_d.f to change the
+    array offsets if you want to.
+
+(5) The rules of the game are clarified as follows:
+
+    The reference case uses array sizes of 2,000,000 elements
+    and no additional offsets.  I would like to see results
+    for this case.
+
+    But, you are free to use any array size and any offset
+    you want, provided that the arrays are each bigger than
+    the last-level of cache.  The output will show me what
+    parameters you chose.
+
+    I expect that I will report just the best number, but
+    if there is a serious discrepancy between the reference
+    case and the "best" case, I reserve the right to report 
+    both.
+
+    Of course, I also reserve the right to reject any results
+    that I do not trust....
+--
+John D. McCalpin, Ph.D.         Supercomputing Performance Analyst
+Advanced Systems Division       http://reality.sgi.com/employees/mccalpin_asd
+Silicon Graphics, Inc.          mccalpin@asd.sgi.com         415-933-7407

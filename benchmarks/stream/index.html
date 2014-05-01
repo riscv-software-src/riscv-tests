@@ -1,0 +1,241 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="description" content="Sustainable memory bandwidth benchmark, with results on a wide variety of computer systems, from Mac's and PC's to most current and recent workstations to Cray supercomputers.">
+   <meta name="keywords" content="bandwidth,memory bandwidth,benchmarks,high performance computing, computer performance measurements,computer performance modelling,machine balance,vector processing">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (X11; I; Linux 2.2.15pre3 ppc) [Netscape]">
+   <title>MEMORY BANDWIDTH: STREAM BENCHMARK PERFORMANCE RESULTS</title>
+</head>
+<body bgcolor="#FFFFFF">
+<img SRC="stream_logo.gif" ALT="STREAM Logo (Image)" SGI_SRC="./stream_logo.gif" height=240 width=320 align=RIGHT><b><a href="http://www.cs.virginia.edu">Department
+of Computer Science</a></b>
+<br><a href="http://www.cs.virginia.edu/~seas/">School of Engineering and
+Applied Science</a>
+<br><a href="http://www.virginia.edu/">University of Virginia</a>, <a href="http://www.virginia.edu/cville.html">Charlottesville,
+Virginia</a>
+<br>
+<hr>
+<h1>
+STREAM: Sustainable Memory Bandwidth in High Performance Computers</h1>
+
+<hr>
+<h2>
+Table of Contents</h2>
+
+<ul>
+<li>
+<a href="new.html">What's New?</a></li>
+
+<ul>
+<li>
+Version 5 of the STREAM benchmark is available in Fortran!&nbsp; <a href="new.html">Check
+it out.</a></li>
+
+<li>
+&nbsp;<a href="ref.html">STREAM FAQ</a> has been significantly revised
+and enhanced, with more discussion of how to run the STREAM benchmark.&nbsp;
+Check it out!</li>
+
+<li>
+The Archives of Original Submissions of STREAM benchmark results have been
+updated through April 18, 2000! All of the results have made it into the
+tables, but the links from the tables back to the original submissions
+are still being (slowly &amp; manually) added.</li>
+</ul>
+
+<li>
+<a href="#ListofTables">Here are the current RESULTS!</a></li>
+
+<li>
+<a href="ref.html">STREAM FAQ</a></li>
+
+<li>
+<a href="analyses.html">Analyses, Commentary, etc....</a></li>
+
+<li>
+<a href="stream_mail/index.html">Hypermail archives of original contributions</a></li>
+
+<li>
+FTP access to code and data:</li>
+
+<br>Many people have reported that the anonymous ftp service is often unavailable,
+especially on weekends. I do not know what is happening, but the service
+does get restarted, and seems to be up more often during the work week,
+so keep on trying!
+<ul>
+<li>
+<a href="ftp://ftp.cs.virginia.edu/pub/stream/">Top of tree</a> (includes
+source code and raw database files).</li>
+
+<li>
+<a href="ftp://ftp.cs.virginia.edu/pub/stream/Code/">Source Code</a></li>
+</ul>
+</ul>
+
+<hr>
+<h2>
+<a NAME="ListofTables"></a>Here are the current RESULTS!</h2>
+
+<h3>
+Top 10 Results for Shared-Memory Systems!</h3>
+This set of results includes the top 10 shared-memory systems, ranked by
+STREAM TRIAD performance. The results are currently presented in the following
+tables:
+<ul>
+<li>
+<a href="top10/Bandwidth.html">Main Table - Bandwidth in MB/s</a></li>
+
+<li>
+<a href="top10/Balance.html">Machine Balance - relative cost of memory
+accesses vs arithmetic</a></li>
+
+<li>
+<a href="top10/MFLOPS.html">Equivalent MFLOPS</a></li>
+</ul>
+
+<hr>
+<h3>
+Standard Results</h3>
+The "standard" set of results presents the results of the C or Fortran
+versions of the STREAM benchmark running with 64-bit data types on production
+hardware. The "standard" set of results <b>excludes</b>:
+<ul>
+<li>
+Cases with 32-bit operands or operations.</li>
+
+<li>
+Cases with significantly modified code or assembly language.</li>
+
+<li>
+Simulated results.</li>
+
+<li>
+Results from experimental or non-production hardware or software.</li>
+</ul>
+The results are currently presented in the following tables:
+<ul>
+<li>
+<a href="standard/Bandwidth.html">Main Table - Bandwidth in MB/s, alphabetized
+by vendor (mostly)</a></li>
+
+<li>
+<a href="standard/Balance.html">Machine Balance - relative cost of memory
+accesses vs arithmetic</a></li>
+
+<li>
+<a href="standard/MFLOPS.html">Equivalent MFLOPS</a></li>
+</ul>
+
+<hr WIDTH="100%">
+<h3>
+PC-compatible Results</h3>
+This set of tables summarizes the "standard" test cases, but restricted
+to IBM PC-compatible computers.
+<p>Users are free to re-compile the <a href="ftp://ftp.cs.virginia.edu/pub/stream/Code/">code</a>
+or use the new <a href="ftp://ftp.cs.virginia.edu/pub/stream/Contrib/MasonCabot/win32/wstream.exe">NT</a>
+or <a href="ftp://ftp.cs.virginia.edu/pub/stream/Contrib/MasonCabot/linux/stream_l">Linux</a>
+binaries.&nbsp; Use of the old DOS binaries is discouraged.
+<p>The results are currently presented in the following tables:
+<ul>
+<li>
+<a href="peecee/Bandwidth.html">Main Table - Bandwidth in MB/s</a></li>
+
+<li>
+<a href="peecee/Balance.html">Machine Balance - relative cost of memory
+accesses vs arithmetic</a></li>
+
+<li>
+<a href="peecee/MFLOPS.html">Equivalent MFLOPS</a></li>
+</ul>
+
+<hr WIDTH="100%">
+<h3>
+Macintosh-Compatible Results</h3>
+This set of tables summarizes the "standard" test cases, but restricted
+to Macintosh and compatible computers.
+<p>Users are free to re-compile the <a href="ftp://ftp.cs.virginia.edu/pub/stream/Code/">code</a>
+or use the <a href="ftp://ftp.cs.virginia.edu/pub/stream/STREAM.sea.hqx">contributed
+binaries.</a>
+<p>The results are currently presented in the following tables:
+<ul>
+<li>
+<a href="mac/Bandwidth.html">Main Table - Bandwidth in MB/s</a></li>
+
+<li>
+<a href="mac/Balance.html">Machine Balance - relative cost of memory accesses
+vs arithmetic</a></li>
+
+<li>
+<a href="mac/MFLOPS.html">Equivalent MFLOPS</a></li>
+</ul>
+
+<h3>
+
+<hr WIDTH="100%"></h3>
+
+<h3>
+Experimental/Nonstandard Results</h3>
+These tables include <b>only</b> results that are
+<ul>
+<li>
+Assembly language coded, or</li>
+
+<li>
+Simulated, or</li>
+
+<li>
+Based on experimental or non-production hardware, or</li>
+
+<li>
+Based on <a href="#note">partially depopulated</a> systems.</li>
+</ul>
+<a NAME="note"></a><b>Note:</b>
+<br>A "partially depopulated" system is one in which only a subset of the
+cpus are used for the benchmark, and for which this subset is spread around
+the machine to decrease contention. For example on the SGI Origin2000,
+each node has 2 cpus sharing a single bus and memory subsystem. The results
+in this table labelled "1 per node" are based on using only one cpu per
+node board, and are considered a "nonstandard" way of using the machine.
+Similarly, the Sun Ultra10000 has 4 cpus per node board, so results using
+1, 2, or 3 cpus per node also go into this table of "nonstandard" results.&nbsp;<img SRC="new01.gif" ALT="NEW!" SGI_SRC="./new01.gif" >
+<p>The results are currently presented in the following tables:
+<ul>
+<li>
+<a href="experimental/Bandwidth.html">Main Table - Bandwidth in MB/s, alphabetized
+by vendor (mostly)</a></li>
+
+<li>
+<a href="experimental/Balance.html">Machine Balance - relative cost of
+memory accesses vs arithmetic</a></li>
+
+<li>
+<a href="experimental/MFLOPS.html">Equivalent MFLOPS</a></li>
+</ul>
+
+<hr>
+<h3>
+32-bit Results</h3>
+These tables include <b>only</b> results with 32-bit operands or operations.
+Results using 64-bit operands that move the data in 32-bit "chunks" are
+<b>not</b>
+here. The results are currently presented in the following tables:
+<ul>
+<li>
+<a href="thirty-two/Bandwidth.html">Main Table - Bandwidth in MB/s, alphabetized
+by vendor (mostly)</a></li>
+
+<li>
+<a href="thirty-two/Balance.html">Machine Balance - relative cost of memory
+accesses vs arithmetic</a></li>
+
+<li>
+<a href="thirty-two/MFLOPS.html">Equivalent MFLOPS</a></li>
+</ul>
+
+<hr>
+<address>
+<i>John D. McCalpin <a href="mailto:mccalpin@cs.virginia.edu">mccalpin@cs.virginia.edu</a></i></address>
+
+</body>
+</html>

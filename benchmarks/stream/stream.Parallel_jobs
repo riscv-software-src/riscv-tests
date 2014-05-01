@@ -1,0 +1,31 @@
+#!/bin/csh
+#
+# This program runs multiple copies of the stream_wall benchmark
+# to measure how much they interfere with each other....
+#
+# John D. McCalpin, mccalpin@cs.virginia.edu
+# Mon May  2 18:51:19 EDT 1994
+# set verbose
+
+#switch ($#argv)
+#case 1:
+#  breaksw
+#default:
+#  echo "Usage: $0 <ncpus>"
+#  exit 1
+#endsw
+
+foreach k (1 2 4 6 8)
+    set NCPU=$k
+    set i=$k
+    echo "Starting $i jobs"
+    while (`expr $i - 1` >= 0)
+	echo stream_d >P${NCPU}.${i} &
+	set i=`expr $i - 1`
+    end
+    wait
+    cat P${NCPU}.[1-${NCPU}] >P${NCPU}.out
+    rm  P${NCPU}.[1-${NCPU}]
+    echo "All jobs done.... Output is in P${NCPU}.out"
+end
+exit 0

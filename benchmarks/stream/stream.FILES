@@ -1,0 +1,8 @@
+FILES                 0 27 Jul 02:02  file descriptions
+Parallel_jobs       647 28 Oct  1994  Runs several jobs concurrently
+README             2803  4 Jun 16:24  Important info
+second_cpu.c        285 24 Oct  1995  A cpu timer in C for UNIX systems
+second_cpu.f        574  8 Dec  1995  A cpu timer in Fortran for UNIX systems
+second_wall.c       571  8 Dec  1995  A wallclock timer in C for UNIX systems
+stream_d.c         5515  8 Dec  1995  A C version
+stream_d.f        10520  4 Jun 16:22  Double precision memory bandwidth tester

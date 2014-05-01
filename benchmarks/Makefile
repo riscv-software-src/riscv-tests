@@ -27,6 +27,7 @@ bmarks = \
 	spmv \
 	mt-vvadd \
 	sdisorder \
+	stream \
 	#vec-fft \
 	#mt-matmul \
 	#vec-vvadd \
@@ -45,6 +46,7 @@ bmarks_host = \
 	vec-cmplxmult \
 	vec-matmul \
 	sdisorder \
+	stream \
 
 #--------------------------------------------------------------------
 # Build rules
