@@ -1,0 +1,319 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (X11; I; Linux 2.2.15pre3 ppc) [Netscape]">
+   <title>STREAM Benchmark Reference Information</title>
+</head>
+<body bgcolor="#FFFFFF">
+<img SRC="stream_logo.gif" ALT="STREAM Logo (Image)" height=240 width=320 align=RIGHT><b><a href="http://www.cs.virginia.edu">Department
+of Computer Science</a></b>
+<br><a href="http://www.cs.virginia.edu/~seas/">School of Engineering and
+Applied Science</a>
+<br><a href="http://www.virginia.edu/">University of Virginia</a>,
+<a href="http://www.virginia.edu/cville.html">Charlottesville,
+Virginia</a>
+<hr>
+<h2>
+FAQ's</h2>
+
+<li>
+Background:</li>
+
+<blockquote>
+<li>
+<a href="#what">What is STREAM?</a></li>
+
+<li>
+<a href="#why">Why should I care?</a></li>
+</blockquote>
+
+<li>
+Technical Information:</li>
+
+<blockquote>
+<li>
+<a href="#runrules">How do I run STREAM?</a></li>
+
+<li>
+<a href="#counting">How does STREAM count Bytes and FLOPs?</a></li>
+</blockquote>
+
+<li>
+Administration:</li>
+
+<blockquote>
+<li>
+<a href="#who">Who is responsible for STREAM?</a></li>
+
+<li>
+<a href="#how">How can I help?</a></li>
+
+<li>
+<a href="#future">Future directions for STREAM?</a></li>
+</blockquote>
+
+<hr WIDTH="100%">
+<h3>
+<a NAME="what"></a>What is STREAM?</h3>
+The STREAM benchmark is a simple synthetic benchmark program that measures
+sustainable memory bandwidth (in MB/s) and the corresponding computation
+rate for simple vector kernels.&nbsp;
+<hr>
+<h3>
+<a NAME="why"></a>Why should I care?</h3>
+Computer cpus are getting faster much more quickly than computer memory
+systems. As this progresses, more and more programs will be limited in
+performance by the memory bandwidth of the system, rather than by the computational
+performance of the cpu.
+<p>As an extreme example, several current high-end machines run simple
+arithmetic kernels for out-of-cache operands at 4-5% of their rated peak
+speeds --- that means that they are spending 95-96% of their time idle
+and waiting for cache misses to be satisfied.
+<p>The STREAM benchmark is specifically designed to work with datasets
+much larger than the available cache on any given system, so that the results
+are (presumably) more indicative of the performance of very large, vector
+style applications.
+<p>If you want more words, I have written a paper on STREAM:
+<a href="http://home.austin.rr.com/mccalpin/papers/bandwidth/bandwidth.html">Sustainable
+Memory Bandwidth in Current High Performance Computers</a>
+<p>A somewhat broader look on the issue, see my paper: <a href="http://home.austin.rr.com/mccalpin/papers/balance/index.html">Memory
+Bandwidth and Machine Balance in Current High Performance Computers</a>.
+A version of this paper was published in the newsletter of the IEEE <a href="http://www.computer.org/tab/tcca/tcca.htm">Technical
+Committee on Computer Architecture (TCCA)</a> in December 1995.&nbsp;
+<hr>
+<h3>
+<a NAME="runrules"></a>How Do I Run STREAM?</h3>
+STREAM is relatively easy to run, though there are bazillions of variations
+in operating systems and hardware, so it is hard to be comprehensive.
+<p>There are a couple of systems with precompiled binaries:
+<blockquote>
+<li>
+PC's running DOS - <a href="ftp://ftp.cs.virginia.edu/pub/stream/Contrib/streamd2.zip">zipped
+binary package</a></li>
+
+<li>
+PC's running Windows95/98/NT - <a href="ftp://ftp.cs.virginia.edu/pub/stream/Contrib/MasonCabot/win32/wstream.exe">use
+this binary</a></li>
+
+<li>
+PC's running Linux - <a href="ftp://ftp.cs.virginia.edu/pub/stream/Contrib/MasonCabot/linux/stream_l">use
+this binary</a></li>
+
+<li>
+Power Mac systems - <a href="ftp://ftp.cs.virginia.edu/pub/stream/Contrib/STREAM.sea.hqx">grab
+this set of binaries</a></li>
+</blockquote>
+If there is not a precompiled binary, then you have to compile the code.
+<h4>
+Uniprocessor Runs</h4>
+If you want to run STREAM on a single processor, then you are in luck --
+it is an easy thing to do.&nbsp; Grab the source code from the <a href="ftp://ftp.cs.virginia.edu/pub/stream/Code/">source
+code directory at the ftp site</a>.&nbsp; You will need the main stream
+code in either Fortran or C, and you will need a timer code.&nbsp; For
+unix/linux systems, the timer code provide (second_wall.c) works fine.&nbsp;
+Some systems provide higher resolution timers -- check with the documentation
+on your own unix/linux box to see what you have access to.....
+<h4>
+Multiprocessor Runs</h4>
+If you want to run STREAM on multiple processors, then the situation is
+not quite so easy.
+<p>First, you need to <a href="#size">adjust the problem size</a> so that
+the data is not cacheable.
+<p>Second, you need to make sure that you are using a wall-clock timer
+instead of a cpu-time timer.
+<p>Third, you need to figure out how to run the code in parallel.
+<p>On "industrial-strength" systems, you may have an automatically parallelizing
+compiler for Fortran or C.&nbsp; It should have no trouble parallelizing
+the four kernels in STREAM.
+<p>If you do not have an automatically parallelizing compiler, you may
+still have a compiler with OpenMP support.&nbsp;&nbsp; It requires only
+4 OpenMP directives to parallelize STREAM.&nbsp; Just insert "!$OMP PARALLEL
+DO" before each of the four main DO loops in the Fortran code.&nbsp; The
+C pragma's for OpenMP are similar, but I don't remember the syntax off
+the top of my head.
+<p>If you do not have a compiler with OpenMP support, you may need to figure
+out how to get pthreads (or NT threads) working.&nbsp; You are on your
+own here, unfortunately.
+<p>If you have no threads support and you want to see how bandwidth scales
+in a multiprocessor system, you can try the following hack:
+<blockquote>
+<li>
+set up a "background" version of STREAM with a very high value of "ntimes"
+(Fortran) or "NTIMES" (C).</li>
+
+<li>
+set up a "foreground" version of STREAM with a normal value for ntimes/NTIMES.</li>
+
+<li>
+start up as many "background" copies as you want</li>
+
+<li>
+start up one "foreground" copy</li>
+
+<li>
+The STREAM bandwidth will be approximately equal to the value for the "foreground"
+job times the total number of foreground + background jobs.</li>
+</blockquote>
+Note that results using this hack are not "standard" STREAM benchmark numbers,
+and I will not publish them in the tables, but they will give you an idea
+of the throughput of the memory system under test.
+<br>&nbsp;
+<h4>
+<a NAME="size"></a>Adjust the Problem Size</h4>
+STREAM is intended to measure the bandwidth from main memory.&nbsp; It
+can, of course, be used to measure cache bandwidth as well, but that is
+not what I have been publishing at the web site.&nbsp; Maybe someday....
+<br>&nbsp;
+<blockquote>
+<blockquote><b>The general rule for STREAM is that each array must be at
+least 4x the size of the sum of all the last-level caches used in the run,
+or 1 Million elements -- whichever is <i>larger</i>.</b></blockquote>
+</blockquote>
+
+<p><br>So, for a uniprocessor machine with a 256kB L2 cache (like a new
+PentiumIII, for example), each array needs to be at least 128k elements.&nbsp;&nbsp;
+This is smaller than the standard test size of 2,000,000 elements, which
+is appropriate for systems with 4 MB L2 caches.&nbsp;&nbsp; There should
+be relatively little difference in the performance of different sizes once
+the size of each array becomes significantly larger than the cache size,
+but since there are some differences (typically associated with TLB reach),
+for comparability I require that results even for small cache machines
+use 1 million elements whenever possible.&nbsp; This requires only 22 MB,
+so it should be workable on even a 32 MB machine.
+<p>If this size requirement is a problem and you are interested in submitting
+results on a system that cannot meet this criterion, <a href="mailto:mccalpin@cs.virginia.edu">e-mail
+me</a> and we can discuss the issues.
+<p>For an automatically parallelized run on (for example) 16 cpus, each
+with 8 MB L2 caches, the problem size must be increased to at least N=64,000,000.&nbsp;&nbsp;
+This will require a lot of memory!&nbsp; (about 1.5 GB)
+<p>
+<hr WIDTH="100%">
+<h3>
+<a NAME="who"></a>Who is responsible for STREAM?</h3>
+STREAM was created and is maintained by
+<a href="http://home.austin.rr.com/mccalpin/">John
+McCalpin</a>, <a href="mailto:mccalpin@cs.virginia.edu">mccalpin@cs.virginia.edu</a>.
+<h4>
+NOTICE and DISCLAIMER</h4>
+The STREAM benchmark was developed while McCalpin was on the faculty at
+the University of Delaware. After three years at
+<a href="http://www.sgi.com">SGI</a>,
+I am now employed by
+<a href="http://www.ibm.com">IBM</a>, where I work
+on performance analysis of computer systems under development. The STREAM
+benchmark remains an independent academic project, which will <b>not</b>
+be influenced or directed by commercial concerns. In order to maintain
+this independence, the STREAM benchmark is hosted here at U.Va. under the
+sponsorship of
+<a href="http://www.cs.virginia.edu/brochure/profs/batson.html">Professor
+Alan Batson</a> and <a href="http://www.cs.virginia.edu/brochure/profs/wulf.html">Professor
+William Wulf</a>.&nbsp;
+<hr>
+<h3>
+<a NAME="how"></a>How can I help?</h3>
+Contributions are always welcome!!!!
+<p>STREAM has become a useful and important benchmark because lots of results
+are available. Please help us keep up with this rapidly changing market.
+If you have access to a new machine that is not listed here, give STREAM
+a try!
+<p>(See the
+<a href="ftp://ftp.cs.virginia.edu/pub/stream/">FTP Archives</a>
+for the source code and comma-delimited database files with the raw data
+in them.)&nbsp;
+<hr>
+<h3>
+<a NAME="future"></a>Future Directions for STREAM?</h3>
+Extensions of the STREAM benchmark for the future are currently being considered.
+The main issues that need to be addressed are:
+<ul>
+<li>
+Memory Hierarchies: STREAM needs to be extended to measure bandwidths at
+each level of the memory hierarchy.</li>
+
+<li>
+Latency: Bandwidth and Latency are a powerful pair of descriptors for memory
+systems -- Latency measurements should be added.</li>
+
+<li>
+Access Patterns: Currently STREAM measures only unit-stride performance.
+This is easy and sensible, but non-unit stride and irregular/indirect performance
+are an important piece of the memory system performance picture.</li>
+
+<li>
+Locality: Many new machines are being developed with physically distributed
+main memory. STREAM may be enhanced to measure bandwidth/latency between
+"nodes" of distributed shared memory systems.</li>
+</ul>
+A "second-generation" STREAM benchmark (STREAM2) is being evaluated, with
+the source code and some results available at the <a href="http://www.cs.virginia.edu/stream/stream2/">STREAM2
+page</a>.&nbsp;&nbsp; STREAM2 emphases measurements across all levels of
+the memory hierarchy, and tries to focus on the difference between read
+and write performance in memory systems.
+<hr>
+<h2>
+<a NAME="counting"></a>Counting Bytes and FLOPS</h2>
+It may be surprising, but there are at least three different ways to count
+Bytes for a benchmark like STREAM, and unfortunately all three are in common
+use!
+<p>The three conventions for counting can be called:
+<blockquote>
+<li>
+bcopy</li>
+
+<li>
+STREAM</li>
+
+<li>
+hardware</li>
+</blockquote>
+
+<li>
+"bcopy" counts how many bytes get moved from one place in memory to another.&nbsp;
+So if it takes your computer 1 second to&nbsp; read 1 million bytes at
+one location and write those 1 million bytes to a second location, the
+resulting "bcopy bandwidth" is said to be "1 MB per second".</li>
+
+<li>
+"STREAM" counts how many bytes the user asked to be read plus how many
+bytes the user asked to be written.&nbsp; For the simple "Copy" kernel,
+this is exactly twice the number obtained from the "bcopy" convention.&nbsp;&nbsp;
+Why does STREAM do this?&nbsp; Because 3 of the 4 kernels do arithmetic,
+so it makes sense to count both the data read into the CPU and the data
+written back from the CPU.&nbsp;&nbsp; The "Copy" kernel does no arithmetic,
+but I chose to count bytes the same way as the other three.</li>
+
+<li>
+"hardware" may move a different number of bytes than what the user specified.&nbsp;
+In particular, most cached systems perform what is called a "write allocate"
+when a store operation misses the data cache.&nbsp; The system <b>loads</b>
+the cache line containing the data before overwriting it.</li>
+
+<br>Why does it do this?
+<br>It does it so that there will be a single copy of the cache line in
+the system for which all the bytes are current and valid.&nbsp;&nbsp; If
+you only wrote 1/2 the bytes in the cache line, for example, the result
+would have to be merged with the other 1/2 of the bytes from memory.&nbsp;
+The best place to do this is in the cache, so the data is loaded there
+first and life is much simpler.
+<br>&nbsp;
+<p>The table below shows how many Bytes and FLOPs are counted in each iteration
+of the STREAM loops.
+<br>The test consists of multiple repetitions of four the kernels, and
+the best results of (typically) 10 trials are chosen.
+<pre>&nbsp;&nbsp;&nbsp; ------------------------------------------------------------------
+&nbsp;&nbsp;&nbsp; name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; kernel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bytes/iter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FLOPS/iter
+&nbsp;&nbsp;&nbsp; ------------------------------------------------------------------
+&nbsp;&nbsp;&nbsp; COPY:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a(i) = b(i)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0
+&nbsp;&nbsp;&nbsp; SCALE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a(i) = q*b(i)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1
+&nbsp;&nbsp;&nbsp; SUM:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a(i) = b(i) + c(i)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 24&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1
+&nbsp;&nbsp;&nbsp; TRIAD:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a(i) = b(i) + q*c(i)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 24&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2
+&nbsp;&nbsp;&nbsp; ------------------------------------------------------------------</pre>
+So you need to be careful comparing "MB/s" from different sources.&nbsp;
+STREAM always uses the same approach, and always counts only the bytes
+that the user program requested to be loaded or stored, so results are always
+directly comparable.
+<br>
+<hr WIDTH="100%">
+</body>
+</html>
