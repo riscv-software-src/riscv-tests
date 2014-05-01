@@ -1,3 +1,4 @@
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,23 +61,10 @@ void RandGenBench(int n) {
 }
 
 
-void clogMem(uint len, uint step, uint its)
-{
-  uint arr[len];
-  uint j = its;
-  while(j > 0) {
-    for (uint i = 0; i < len; i += step) {
-      uint idx = i % len;
-      arr[idx] = arr[idx] + 1;
-    }
-    j -= 1;
-  }
-}
-
 void thread_entry(int cid, int nc)
 {
   while (cid != 0) {
-    clogMem(1<<18, 64<<3,1<<7);
+    //    clogMem(1<<18, 64<<3,1<<7);
   }
 }
 

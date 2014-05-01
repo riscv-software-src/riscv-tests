@@ -109,6 +109,19 @@ static void __attribute__((noinline)) barrier(int ncores)
   __sync_synchronize();
 }
 
+void clogMem(int len, int step, int its)
+{
+  int arr[len];
+  int j = its;
+  while(j > 0) {
+    for (int i = 0; i < len; i += step) {
+      int idx = i % len;
+      arr[idx] = arr[idx] + 1;
+    }
+    j -= 1;
+  }
+}
+
 #ifdef __riscv
 #include "encoding.h"
 #endif

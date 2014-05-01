@@ -7,6 +7,7 @@
 */
 /*  Set THREAD_NBR macro equal to the number of threads if a multithreaded OpenMP run */
 /*  Set to 1 if a single-CPU run */
+#include "util.h"
 #define THREAD_NBR 1
 
 #if defined(THREAD_NBR)
@@ -43,7 +44,7 @@
  *          that should be good to about 5% precision.
  */
 
-# define N	20000 // 2000000
+# define N	2000 // 2000000
 # define NTIMES	10
 # define OFFSET	0
 
@@ -89,6 +90,14 @@ static double	bytes[4] = {
     3 * sizeof(double) * N
     };
 
+
+void
+thread_entry(int cid, int nc)
+{
+  while (cid !=0) {
+    clogMem(1<<16, 64>>2, 1<<7);
+  }
+}
 
 int
 main()
