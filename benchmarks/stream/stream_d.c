@@ -44,7 +44,7 @@
  *          that should be good to about 5% precision.
  */
 
-# define N	2000 // 2000000
+# define N 10000
 # define NTIMES	10
 # define OFFSET	0
 
@@ -95,7 +95,7 @@ void
 thread_entry(int cid, int nc)
 {
   while (cid !=0) {
-    clogMem(1<<16, 64>>2, 1<<7);
+    //clogMem(1<<16, 64>>2, 1<<7);
   }
 }
 
