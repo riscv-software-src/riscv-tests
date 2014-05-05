@@ -9,7 +9,7 @@
   #define MLP 32
 #endif
 #ifndef STEP
-  #define STEP 64
+#define STEP 16
 #endif
 
 
@@ -64,14 +64,14 @@ void RandGenBench(int n) {
 void thread_entry(int cid, int nc)
 {
   while (cid != 0) {
-    //    clogMem(1<<18, 64<<3,1<<7);
+    clogMem(1<<16, 64>>2,1<<7);
   }
 }
 
 int main(int argc, char* argv[]) {
 
   uint num_iters = 1;
-  uint length = 1<<18;
+  uint length = 1<<16;
   uint randomize = 0;
 
   uint stream[length];
