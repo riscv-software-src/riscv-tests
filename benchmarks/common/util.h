@@ -114,9 +114,11 @@ void clogMem(int len, int step, int its)
   int arr[len];
   int j = its;
   while(j > 0) {
-    for (int i = 0; i < len; i += step) {
-      int idx = i % len;
-      arr[idx] = arr[idx] + 1;
+    for (int i = 0; i < len; i += step<<2) {
+      for(int k = 0; k < 4; k++) {
+        int idx = (i + k*step) % len;
+        arr[idx] = arr[idx] + 1;
+      }
     }
     j -= 1;
   }

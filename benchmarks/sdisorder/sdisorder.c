@@ -6,7 +6,7 @@
 
 
 #ifndef MLP
-  #define MLP 32
+  #define MLP 256
 #endif
 #ifndef STEP
 #define STEP 16
@@ -70,10 +70,10 @@ void thread_entry(int cid, int nc)
 
 int main(int argc, char* argv[]) {
 
-  uint num_iters = 1;
+  uint num_iters = 2;
   uint length = 1<<16;
   uint randomize = 0;
-
+  uint result = 0;
   uint stream[length];
   InitStream(stream, length);
 
@@ -81,6 +81,6 @@ int main(int argc, char* argv[]) {
     ShuffleStream(stream, length);
   }
 
-  randomize = Chase(stream, length, num_iters);
+  result = Chase(stream, length, num_iters);
 
 }
