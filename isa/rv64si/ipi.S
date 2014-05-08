@@ -15,10 +15,8 @@ RVTEST_CODE_BEGIN
   la a0, handler
   csrw evec, a0
   csrw clear_ipi, x0
-  csrr a0, status
-  li a1, SR_EI | (1 << (IRQ_IPI + SR_IM_SHIFT))
-  or a0, a0, a1
-  csrw status, a0
+  li a0, SR_EI | (1 << (IRQ_IPI + SR_IM_SHIFT))
+  csrs status, a0
 
   # wait for all cores to boot
   la a0, coreid

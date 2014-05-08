@@ -5,6 +5,7 @@
 rv64si_sc_tests = \
 	coreid \
 	csr \
+	timer \
 
 rv64si_mc_tests = \
 	ipi \
