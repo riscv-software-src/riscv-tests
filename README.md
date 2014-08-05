@@ -1,10 +1,13 @@
-About
-=====
+riscv-tests
+================
 
-Unit tests for RISCV processors
+About
+-----------
+
+Unit tests for RISC-V processors
 
 Building from repository
-========================
+-----------------------------
 
     $ git clone https://github.com/ucb-bar/riscv-tests
     $ cd riscv-tests
