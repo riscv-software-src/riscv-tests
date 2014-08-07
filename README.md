@@ -134,7 +134,7 @@ registers (pc, x0-x31, f0-f31, fsr) can be accessed.
 The `rv32ui` and `rv64ui` TVMs are integer-only subsets of `rv32u` and `rv64u`
 respectively. These subsets can not use any floating-point instructions (major
 opcodes: LOAD-FP, STORE-FP, MADD, MSUB, NMSUB, NMADD, OP-FP), and hence cannot
-access the floating-point register state (f0â-f31 and fsr). The integer-only
+access the floating-point register state (f0-f31 and fsr). The integer-only
 TVMs are useful for initial processor bringup and to test simpler
 implementations that lack a hardware FPU.
 
