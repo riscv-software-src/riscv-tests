@@ -3,6 +3,7 @@
 #-----------------------------------------------------------------------
 
 rv32ui_sc_tests = \
+   simple \
 	add addi \
 	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoswap_w \
 	and andi \
