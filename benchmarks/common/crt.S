@@ -44,21 +44,20 @@ _start:
   li  x30,0
   li  x31,0
 
+  # initialize status, enable fp, accelerator, interrupts
+  li a0, SR_S | SR_PEI | SR_EF | SR_EA
+  csrw status, a0
+
 #ifdef __riscv64
   li a0, SR_U64 | SR_S64
   csrs status, a0
 #endif
-  csrc status, SR_PS
-
-  # enable fp and accelerator
-  li a0, SR_EF | SR_EA
-  csrs status, a0
 
   csrr t0, status
   and t1, t0, SR_EA
   sw t1, have_vec, t2
 
-  ## if that didn't stick, we don't have an FPU, so don't initialize it
+  ## if that didn't stick, we don't have a FPU, so don't initialize it
   and t1, t0, SR_EF
   beqz t1, 1f
 
