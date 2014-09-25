@@ -89,11 +89,9 @@ bt_vvadd\
 #--------------------------------------------------------------------
 
 RISCV_GCC = riscv-gcc
-RISCV_GCC_OPTS = -std=gnu99 -T common/test.ld -O3 -nostdlib -nostartfiles -funroll-all-loops
-RISCV_LINK = riscv-gcc -T $(common)/test.ld
-RISCV_LINK_MT = riscv-gcc -T $(common)/test-mt.ld
-RISCV_LINK_OPTS = -lc
-RISCV_LINK_SYSCALL = -I$(bmarkdir)/../env $(common)/syscalls.c -lc
+RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math
+RISCV_LINK = riscv-gcc -T $(common)/test.ld $(incs) 
+RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc
 RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike -p2
 
@@ -121,8 +119,8 @@ bmarks_cycles = 80000
 %.hex: %
 	elf2hex 16 32768 $< > $@
 
-$(bmarks_riscv_bin): %.riscv: %.o crt-mt.o
-	$(RISCV_LINK_MT) crt-mt.o $< $(RISCV_LINK_SYSCALL) -o $@
+$(bmarks_riscv_bin): %.riscv: %.o syscalls.o crt.o
+	$(RISCV_LINK) $< syscalls.o crt.o $(RISCV_LINK_OPTS) -o $@
 
 $(bmarks_riscv_dump): %.riscv.dump: %.riscv
 	$(RISCV_OBJDUMP) $< > $@
@@ -131,7 +129,7 @@ $(bmarks_riscv_out): %.riscv.out: %.riscv
 	$(RISCV_SIM) $< > $@
 
 %.o: %.c
-	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(bmarks_defs) \
+	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(bmarks_defs)  -D__ASSEMBLY__=1 \
 	             -c $(incs) $< -o $@
 
 %.o: %.S

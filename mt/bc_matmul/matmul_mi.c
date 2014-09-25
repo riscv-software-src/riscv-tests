@@ -60,7 +60,7 @@ unsigned long ncores;
 //--------------------------------------------------------------------------
 // Helper functions
     
-void printArray( char name[], int n, data_t arr[] )
+void printArrayMT( char name[], int n, data_t arr[] )
 {
    int i;
    if (coreid != 0)
@@ -72,7 +72,7 @@ void printArray( char name[], int n, data_t arr[] )
    printf( "\n" );
 }
       
-void __attribute__((noinline)) verify(size_t n, const data_t* test, const data_t* correct)
+void __attribute__((noinline)) verifyMT(size_t n, const data_t* test, const data_t* correct)
 {
    if (coreid != 0)
       return;
@@ -172,7 +172,7 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
 	    }
 	  }
 	}
-	/* barrier(); */
+	/* barrier(nc); */
 
 	/* kk_start= (coreid == 1 ? 0 : LDA/2); */
 	/* kk_end = (coreid == 1 ? LDA/2 : LDA); */
@@ -216,7 +216,7 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
     }
   
     
-    //barrier();
+    //barrier(nc);
     for (jj = start; jj < end; jj += BLOCK_J) {
       int kk_start= (coreid != 0 ? 0 : LDA/2), kk_end = (coreid != 0 ? LDA/2 : LDA);
       for (kk = kk_start; kk < kk_end; kk += BLOCK_K) {
@@ -285,33 +285,33 @@ void thread_entry(int cid, int nc)
 
 
 //   /* // Execute the provided, naive matmul */
-//   barrier();
-//   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier());
+//   barrier(nc);
+//   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
 // 
 //   
 //   // verify
-//   verify(ARRAY_SIZE, results_data, verify_data);
+//   verifyMT(ARRAY_SIZE, results_data, verify_data);
 //   
 //   // clear results from the first trial
 //   size_t i;
 //   if (coreid == 0) 
 //      for (i=0; i < ARRAY_SIZE; i++)
 //         results_data[i] = 0;
-//   barrier();
+//   barrier(nc);
 
    
    // Execute your faster matmul
-   barrier();
-   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier());
+   barrier(nc);
+   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
  
 #ifdef DEBUG
-   printArray("results:", ARRAY_SIZE, results_data);
-   printArray("verify :", ARRAY_SIZE, verify_data);
+   printArrayMT("results:", ARRAY_SIZE, results_data);
+   printArrayMT("verify :", ARRAY_SIZE, verify_data);
 #endif
    
    // verify
-   verify(ARRAY_SIZE, results_data, verify_data);
-   barrier();
+   verifyMT(ARRAY_SIZE, results_data, verify_data);
+   barrier(nc);
 
    exit(0);
 }

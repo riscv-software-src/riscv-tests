@@ -51,7 +51,7 @@ unsigned long ncores;
 //--------------------------------------------------------------------------
 // Helper functions
  
-void printArray( char name[], int n, data_t arr[] )
+void printArrayMT( char name[], int n, data_t arr[] )
 {
   int i;
   if (coreid != 0)
@@ -63,7 +63,7 @@ void printArray( char name[], int n, data_t arr[] )
   printf( "\n" );
 }
       
-void __attribute__((noinline)) verify(size_t n, const data_t* test, const data_t* correct)
+void __attribute__((noinline)) verifyMT(size_t n, const data_t* test, const data_t* correct)
 {
    if (coreid != 0)
       return;
@@ -141,12 +141,12 @@ void thread_entry(int cid, int nc)
 
 
    // Execute the provided, terrible vvadd
-   barrier();
-   stats(vvadd(DATA_SIZE, results_data, input2_data); barrier());
+   barrier(nc);
+   stats(vvadd(DATA_SIZE, results_data, input2_data); barrier(nc));
  
    
    // verify
-   verify(DATA_SIZE, results_data, verify_data);
+   verifyMT(DATA_SIZE, results_data, verify_data);
    
    // reset results from the first trial
    if (coreid == 0) 
@@ -154,21 +154,21 @@ void thread_entry(int cid, int nc)
       for (i=0; i < DATA_SIZE; i++)
          results_data[i] = input1_data[i];
    }
-   barrier();
+   barrier(nc);
                                             
    
    // Execute your faster vvadd
-   barrier();
-   stats(vvadd_opt(DATA_SIZE, results_data, input2_data); barrier());
+   barrier(nc);
+   stats(vvadd_opt(DATA_SIZE, results_data, input2_data); barrier(nc));
 
 #ifdef DEBUG
-   printArray("results: ", DATA_SIZE, results_data);
-   printArray("verify : ", DATA_SIZE, verify_data);
+   printArrayMT("results: ", DATA_SIZE, results_data);
+   printArrayMT("verify : ", DATA_SIZE, verify_data);
 #endif
    
    // verify
-   verify(DATA_SIZE, results_data, verify_data);
-   barrier();
+   verifyMT(DATA_SIZE, results_data, verify_data);
+   barrier(nc);
 
    exit(0);
 }

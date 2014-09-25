@@ -52,7 +52,7 @@ unsigned long ncores;
 //--------------------------------------------------------------------------
 // Helper functions
     
-void printArray( char name[], int n, data_t arr[] )
+void printArrayMT( char name[], int n, data_t arr[] )
 {
    int i;
    if (coreid != 0)
@@ -64,7 +64,7 @@ void printArray( char name[], int n, data_t arr[] )
    printf( "\n" );
 }
       
-void __attribute__((noinline)) verify(size_t n, const data_t* test, const data_t* correct)
+void __attribute__((noinline)) verifyMT(size_t n, const data_t* test, const data_t* correct)
 {
    if (coreid != 0)
       return;
@@ -119,8 +119,8 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
    int i, j, k, n, m;
 
 
-   //matmul_naive(32, input1_data, input2_data, results_data); barrier(): 957424 cycles, 29.2 cycles/iter, 3.6 CPI
-   //matmul(32, input1_data, input2_data, results_data); barrier(): 340408 cycles, 10.3 cycles/iter, 1.8 CPI
+   //matmul_naive(32, input1_data, input2_data, results_data); barrier(nc): 957424 cycles, 29.2 cycles/iter, 3.6 CPI
+   //matmul(32, input1_data, input2_data, results_data); barrier(nc): 340408 cycles, 10.3 cycles/iter, 1.8 CPI
 
    for (n = 0; n < lda; n += 1) {
       for (m = 0; m < lda; m += 1) {
@@ -128,7 +128,7 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
          bTranspose[lda*n + m] = B[lda*m + n];
       }
    }
-   barrier();
+   barrier(ncores);
 
    for ( j = coreid; j < lda; j += 2*ncores ) {
       for ( i = 0; i < lda; i += 1 ){
@@ -138,21 +138,21 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
             c1 += A[j * lda + k] * bTranspose[i*lda + k];
             c2 += A[(j+2) * lda + k] * bTranspose[i*lda + k];
             
-            //barrier();
+            //barrier(nc);
          }
 
          C[i + j * lda] = c1;
          C[i + (j+2) * lda] = c2;
-         barrier();
+         barrier(ncores);
       }
-   //barrier();
+   //barrier(nc);
    }
 
 
 
 
-   //matmul_naive(32, input1_data, input2_data, results_data); barrier(): 983609 cycles, 30.0 cycles/iter, 3.7 CPI
-   //matmul(32, input1_data, input2_data, results_data); barrier(): 389942 cycles, 11.9 cycles/iter, 2.5 CPI
+   //matmul_naive(32, input1_data, input2_data, results_data); barrier(nc): 983609 cycles, 30.0 cycles/iter, 3.7 CPI
+   //matmul(32, input1_data, input2_data, results_data); barrier(nc): 389942 cycles, 11.9 cycles/iter, 2.5 CPI
 
    /*
    for ( j = coreid; j < lda; j += 2*ncores ) {
@@ -163,34 +163,34 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
             c1 += A[j * lda + k] * B[k*lda + i];
             c2 += A[(j+2) * lda + k] * B[k*lda + i];
             
-            //barrier();
+            //barrier(nc);
          }
 
          C[i + j * lda] = c1;
          C[i + (j+2) * lda] = c2;
-         barrier();
+         barrier(nc);
       }
-   //barrier();
+   //barrier(nc);
    }
    */
 
-   // matmul_naive(32, input1_data, input2_data, results_data); barrier(): 973781 cycles, 29.7 cycles/iter, 3.7 CPI
-   // matmul(32, input1_data, input2_data, results_data); barrier(): 461066 cycles, 14.0 cycles/iter, 3.5 CPI
+   // matmul_naive(32, input1_data, input2_data, results_data); barrier(nc): 973781 cycles, 29.7 cycles/iter, 3.7 CPI
+   // matmul(32, input1_data, input2_data, results_data); barrier(nc): 461066 cycles, 14.0 cycles/iter, 3.5 CPI
    // for ( k = 0; k < lda; k += 1 ) {
    //    for ( j = coreid; j < lda; j += 2*ncores ) {      
    //       for ( i = 0; i < lda; i += 1 ){
    //          C[i + j * lda] += A[j * lda + k] * B[k*lda + i];
    //          C[i + (j+2) * lda] += A[(j+2) * lda + k] * B[k*lda + i];      
-   //          //barrier();
+   //          //barrier(nc);
    //       }
-   //       barrier();
+   //       barrier(nc);
    //    }
-   // //barrier();
+   // //barrier(nc);
    // }
    
 
-   // matmul_naive(32, input1_data, input2_data, results_data); barrier(): 965136 cycles, 29.4 cycles/iter, 3.7 CPI
-   // matmul(32, input1_data, input2_data, results_data); barrier(): 513779 cycles, 15.6 cycles/iter, 3.2 CPI
+   // matmul_naive(32, input1_data, input2_data, results_data); barrier(nc): 965136 cycles, 29.4 cycles/iter, 3.7 CPI
+   // matmul(32, input1_data, input2_data, results_data); barrier(nc): 513779 cycles, 15.6 cycles/iter, 3.2 CPI
 
    // for ( j = coreid; j < lda; j += 2*ncores ) {
    //    for ( i = 0; i < lda; i += 1 ){
@@ -198,16 +198,16 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
    //          C[i + j * lda] += A[j * lda + k] * B[k*lda + i];
    //          C[i + (j+2) * lda] += A[(j+2) * lda + k] * B[k*lda + i];
             
-   //          //barrier();
+   //          //barrier(nc);
    //       }
-   //       barrier();
+   //       barrier(nc);
    //    }
-   // //barrier();
+   // //barrier(nc);
    //}
 
 
-   // matmul_naive(32, input1_data, input2_data, results_data); barrier(): 937892 cycles, 28.6 cycles/iter, 3.6 CPI
-   // matmul(32, input1_data, input2_data, results_data); barrier(): 576478 cycles, 17.5 cycles/iter, 3.5 CPI
+   // matmul_naive(32, input1_data, input2_data, results_data); barrier(nc): 937892 cycles, 28.6 cycles/iter, 3.6 CPI
+   // matmul(32, input1_data, input2_data, results_data); barrier(nc): 576478 cycles, 17.5 cycles/iter, 3.5 CPI
 
    // for ( i = 0; i < lda; i += 1 ){
    //    for ( j = coreid; j < lda; j += 2*ncores ) {
@@ -215,11 +215,11 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
    //          C[i + j * lda] += A[j * lda + k] * B[k*lda + i];
    //          C[i + (j+2) * lda] += A[(j+2) * lda + k] * B[k*lda + i];
             
-   //          //barrier();
+   //          //barrier(nc);
    //       }
-   //       barrier();
+   //       barrier(nc);
    //    }
-   //    //barrier();
+   //    //barrier(nc);
    // }
 
    //for ( i = coreid; i < lda; i += ncores ){
@@ -227,7 +227,7 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
    //      for ( k = coreid; k < lda; k += ncores ) {
    //         C[i + j*lda] += A[j*lda + k] * B[k*lda + i];
    //      }
-         //barrier();
+         //barrier(nc);
    //   }
    //}
 }
@@ -248,33 +248,33 @@ void thread_entry(int cid, int nc)
 
 
 //   // Execute the provided, naive matmul
-//   barrier();
-//   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier());
+//   barrier(nc);
+//   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
 // 
 //   
 //   // verify
-//   verify(ARRAY_SIZE, results_data, verify_data);
+//   verifyMT(ARRAY_SIZE, results_data, verify_data);
 //   
 //   // clear results from the first trial
 //   size_t i;
 //   if (coreid == 0) 
 //      for (i=0; i < ARRAY_SIZE; i++)
 //         results_data[i] = 0;
-//   barrier();
+//   barrier(nc);
 
    
    // Execute your faster matmul
-   barrier();
-   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier());
+   barrier(nc);
+   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
  
 #ifdef DEBUG
-   printArray("results:", ARRAY_SIZE, results_data);
-   printArray("verify :", ARRAY_SIZE, verify_data);
+   printArrayMT("results:", ARRAY_SIZE, results_data);
+   printArrayMT("verify :", ARRAY_SIZE, verify_data);
 #endif
    
    // verify
-   verify(ARRAY_SIZE, results_data, verify_data);
-   barrier();
+   verifyMT(ARRAY_SIZE, results_data, verify_data);
+   barrier(nc);
 
    exit(0);
 }
