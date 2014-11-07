@@ -172,13 +172,13 @@ void handle_trap(trapframe_t* tf)
   {
     assert(tf->epc % 4 == 0);
 
-    int fssr;
-    asm ("la %0, 1f; lw %0, 0(%0); b 2f; 1: fssr x0; 2:" : "=r"(fssr));
+    int* fssr;
+    asm ("jal %0, 1f; fssr x0; 1:" : "=r"(fssr));
 
-    if (*(int*)tf->epc == fssr)
+    if (*(int*)tf->epc == *fssr)
       terminate(1); // FP test on non-FP hardware.  "succeed."
     else
-      assert(0);
+      assert(!"illegal instruction");
     tf->epc += 4;
   }
   else if (tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE)
@@ -193,10 +193,10 @@ void handle_trap(trapframe_t* tf)
       handle_fault(badvaddr);
     }
     else
-      assert(0);
+      assert(!"unexpected interrupt");
   }
   else
-    assert(0);
+    assert(!"unexpected exception");
 
 out:
   if (!(tf->sr & SR_PS) && (tf->sr & SR_EA)) {
