@@ -1,6 +1,7 @@
 #include "common.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "util.h"
 
 void thread_entry(int cid, int nc)

@@ -106,6 +106,7 @@ static long syscall(long num, long arg0, long arg1, long arg2)
 void exit(int code)
 {
   syscall(SYS_exit, code, 0, 0);
+  while (1);
 }
 
 void setStats(int enable)
