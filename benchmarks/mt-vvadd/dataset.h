@@ -1,5 +1,9 @@
+#ifndef __DATASET_H
+#define __DATASET_H
 
 #define DATA_SIZE 1000 
+
+typedef double data_t;
 
 static data_t input1_data[DATA_SIZE] = 
 {
@@ -163,3 +167,5 @@ static data_t verify_data[DATA_SIZE] =
   32.00, 21.00, 26.00, 13.00, 6.00, 24.00, 22.00, 27.00, 17.00, 26.00, 19.00, 21.00, 19.00, 9.00, 21.00, 25.00, 17.00, 27.00, 15.00, 18.00
 };
 
+
+#endif //__DATASET_H

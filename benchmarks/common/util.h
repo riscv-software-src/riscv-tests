@@ -113,4 +113,15 @@ static void __attribute__((noinline)) barrier(int ncores)
 #include "encoding.h"
 #endif
 
+#define stringify_1(s) #s
+#define stringify(s) stringify_1(s)
+#define stats(code, iter) do { \
+    unsigned long _c = -rdcycle(), _i = -rdinstret(); \
+    code; \
+    _c += rdcycle(), _i += rdinstret(); \
+    if (cid == 0) \
+      printf("\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n", \
+             stringify(code), _c, _c/iter, 10*_c/iter%10, _c/_i, 10*_c/_i%10); \
+  } while(0)
+
 #endif //__UTIL_H

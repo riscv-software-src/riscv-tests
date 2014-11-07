@@ -26,8 +26,8 @@ bmarks = \
 	dhrystone \
 	spmv \
 	mt-vvadd \
+	mt-matmul \
 	#vec-fft \
-	#mt-matmul \
 	#vec-vvadd \
 	#vec-cmplxmult \
 	#vec-matmul \
@@ -38,7 +38,6 @@ bmarks_host = \
 	towers \
 	vvadd \
 	multiply \
-	mm \
 	spmv \
 	vec-vvadd \
 	vec-cmplxmult \

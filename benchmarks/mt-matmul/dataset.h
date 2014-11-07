@@ -1,8 +1,11 @@
+#ifndef __DATASET_H
+#define __DATASET_H
 
 #define ARRAY_SIZE 1024 
 
-
 #define DIM_SIZE 32 
+
+typedef double data_t;
 
 static data_t input1_data[ARRAY_SIZE] = 
 {
@@ -172,3 +175,5 @@ static data_t verify_data[ARRAY_SIZE] =
    69,  73,  94,  89
 };
 
+
+#endif //__DATASET_H

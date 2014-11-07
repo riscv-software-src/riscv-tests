@@ -10,6 +10,7 @@
 
 mt_matmul_c_src = \
 	mt-matmul.c \
+	matmul.c \
 	syscalls.c \
 
 mt_matmul_riscv_src = \

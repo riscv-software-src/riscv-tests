@@ -25,62 +25,20 @@
 //--------------------------------------------------------------------------
 // Input/Reference Data
 
-typedef double data_t;
 #include "dataset.h"
  
-  
+
 //--------------------------------------------------------------------------
 // Basic Utilities and Multi-thread Support
 
-__thread unsigned long coreid;
-
 #include "util.h"
+
    
-#define stringify_1(s) #s
-#define stringify(s) stringify_1(s)
-#define stats(code) do { \
-    unsigned long _c = -rdcycle(), _i = -rdinstret(); \
-    code; \
-    _c += rdcycle(), _i += rdinstret(); \
-    if (coreid == 0) \
-      printf("%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n", \
-             stringify(code), _c, _c/DIM_SIZE/DIM_SIZE/DIM_SIZE, 10*_c/DIM_SIZE/DIM_SIZE/DIM_SIZE%10, _c/_i, 10*_c/_i%10); \
-  } while(0)
- 
 //--------------------------------------------------------------------------
 // matmul function
  
-// single-thread, naive version
-void __attribute__((noinline)) matmul_naive(const int lda,  const data_t A[], const data_t B[], data_t C[] )
-{
-   int i, j, k;
+ extern void __attribute__((noinline)) matmul(const int coreid, const int ncores, const int lda,  const data_t A[], const data_t B[], data_t C[] );
 
-   if (coreid > 0)
-      return;
-  
-   for ( i = 0; i < lda; i++ )
-      for ( j = 0; j < lda; j++ )  
-      {
-         for ( k = 0; k < lda; k++ ) 
-         {
-            C[i + j*lda] += A[j*lda + k] * B[k*lda + i];
-         }
-      }
-
-}
- 
-
-
-void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const data_t B[], data_t C[] )
-{
-   
-   // ***************************** //
-   // **** ADD YOUR CODE HERE ***** //
-   // ***************************** //
-   //
-   // feel free to make a separate function for MI and MSI versions.
- 
-}
 
 //--------------------------------------------------------------------------
 // Main
@@ -90,46 +48,16 @@ void __attribute__((noinline)) matmul(const int lda,  const data_t A[], const da
   
 void thread_entry(int cid, int nc)
 {
-   coreid = cid;
-
-   // static allocates data in the binary, which is visible to both threads
    static data_t results_data[ARRAY_SIZE];
 
-
-   // Execute the provided, naive matmul
-   barrier(nc);
-   stats(matmul_naive(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
+   stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE);
  
-   
-   // verify
    int res = verifyDouble(ARRAY_SIZE, results_data, verify_data);
-   if (res)
-      exit(res);
 
-#if 0
-   // clear results from the first trial
-   size_t i;
-   if (coreid == 0) 
-      for (i=0; i < ARRAY_SIZE; i++)
-         results_data[i] = 0;
-   barrier(nc);
-
-   
-   // Execute your faster matmul
-   barrier(nc);
-   stats(matmul(DIM_SIZE, input1_data, input2_data, results_data); barrier(nc));
- 
 #ifdef DEBUG
    printArray("results:", ARRAY_SIZE, results_data);
    printArray("verify :", ARRAY_SIZE, verify_data);
 #endif
-   
-   // verify
-   res = verify(ARRAY_SIZE, results_data, verify_data);
-   if (res)
-      exit(res);
-   barrier(nc);
-#endif
 
-   exit(0);
+   exit(res);
 }

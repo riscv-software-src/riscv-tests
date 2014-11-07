@@ -10,6 +10,7 @@
 
 mt_vvadd_c_src = \
 	mt-vvadd.c \
+	vvadd.c \
 	syscalls.c \
 
 mt_vvadd_riscv_src = \

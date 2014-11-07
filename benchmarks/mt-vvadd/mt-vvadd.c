@@ -24,49 +24,20 @@
 //--------------------------------------------------------------------------
 // Input/Reference Data
 
-typedef double data_t;
 #include "dataset.h"
  
   
 //--------------------------------------------------------------------------
 // Basic Utilities and Multi-thread Support
 
-__thread unsigned long coreid;
-
 #include "util.h"
    
-#define stringify_1(s) #s
-#define stringify(s) stringify_1(s)
-#define stats(code) do { \
-    unsigned long _c = -rdcycle(), _i = -rdinstret(); \
-    code; \
-    _c += rdcycle(), _i += rdinstret(); \
-    if (coreid == 0) \
-      printf("%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n", \
-             stringify(code), _c, _c/DATA_SIZE, 10*_c/DATA_SIZE%10, _c/_i, 10*_c/_i%10); \
-  } while(0)
  
 //--------------------------------------------------------------------------
 // vvadd function
 
-//perform in-place vvadd
-void __attribute__((noinline)) vvadd(int ncores, size_t n, data_t* __restrict__ x, const data_t* __restrict__ y)
-{
-   size_t i;
+extern void __attribute__((noinline)) vvadd(int coreid, int ncores, size_t n, const data_t* x, const data_t* y, data_t* z);
 
-   // interleave accesses
-   for (i = coreid; i < n; i+=ncores)
-   {
-      x[i] = x[i] + y[i];
-   }
-}
-
-void __attribute__((noinline)) vvadd_opt(size_t n, data_t* __restrict__ x, const data_t* __restrict__ y)
-{
-   // ***************************** //
-   // **** ADD YOUR CODE HERE ***** //
-   // ***************************** //
-}
 
 //--------------------------------------------------------------------------
 // Main
@@ -76,57 +47,41 @@ void __attribute__((noinline)) vvadd_opt(size_t n, data_t* __restrict__ x, const
   
 void thread_entry(int cid, int nc)
 {
-   coreid = cid;
-
    // static allocates data in the binary, which is visible to both threads
    static data_t results_data[DATA_SIZE];
    
-   // because we're going to perform an in-place vvadd (and we're going to run
-   // it a couple of times) let's copy the input data to a temporary results
-   // array
-   
-   size_t i;
-   if (coreid == 0)
-   {
-      for (i = 0; i < DATA_SIZE; i++)
-         results_data[i] = input1_data[i];
-   }
-
-
-   // Execute the provided, terrible vvadd
+   // First do out-of-place vvadd
    barrier(nc);
-   stats(vvadd(nc, DATA_SIZE, results_data, input2_data); barrier(nc));
+   stats(vvadd(cid, nc, DATA_SIZE, input1_data, input2_data, results_data); barrier(nc), DATA_SIZE);
  
-   
-   // verify
-   int res = verifyDouble(DATA_SIZE, results_data, verify_data);
-   if (res)
-      exit(res);
+   if(cid == 0) {
+//#ifdef DEBUG
+     printDoubleArray("out-of-place results: ", DATA_SIZE, results_data);
+     printDoubleArray("out-of-place verify : ", DATA_SIZE, verify_data);
+//#endif
+     int res = verifyDouble(DATA_SIZE, results_data, verify_data);
+     if(res) exit(res);
+   }
 
-#if 0
-   // reset results from the first trial
-   if (coreid == 0) 
-   {
-      for (i=0; i < DATA_SIZE; i++)
-         results_data[i] = input1_data[i];
+   // Second do in-place vvadd
+   // Copying input
+   size_t i;
+   if(cid == 0) {
+     for (i = 0; i < DATA_SIZE; i++)
+           results_data[i] = input1_data[i];
    }
    barrier(nc);
-
-   // Execute your faster vvadd
-   barrier(nc);
-   stats(vvadd_opt(DATA_SIZE, results_data, input2_data); barrier(nc));
-
+   stats(vvadd(cid, nc, DATA_SIZE, results_data, input2_data, results_data); barrier(nc), DATA_SIZE);
+ 
+   if(cid == 0) {
 #ifdef DEBUG
-   printDoubleArray("results: ", DATA_SIZE, results_data);
-   printDoubleArray("verify : ", DATA_SIZE, verify_data);
+     printDoubleArray("in-place results: ", DATA_SIZE, results_data);
+     printDoubleArray("in-place verify : ", DATA_SIZE, verify_data);
 #endif
+     int res = verifyDouble(DATA_SIZE, results_data, verify_data);
+     if(res) exit(res);
+   }
    
-   // verify
-   res = verifyDouble(DATA_SIZE, results_data, verify_data);
-   if (res)
-      exit(res);
    barrier(nc);
-#endif
-
    exit(0);
 }
