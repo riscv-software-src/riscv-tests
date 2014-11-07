@@ -114,8 +114,11 @@ _start:
   sll sp, sp, STKSHIFT
   add sp, sp, tp
 
+  # offset thread pointer by thread pointer bias
   lui t0, %tprel_hi(tls_start)
+  add t0, t0, tp, %tprel_add(tls_start)
   add t0, t0, %tprel_lo(tls_start)
+  sub t0, t0, tp
   sub tp, tp, t0
 
   la t0, _init
