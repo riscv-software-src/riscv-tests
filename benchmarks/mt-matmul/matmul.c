@@ -1,4 +1,5 @@
 #include "dataset.h"
+#include "util.h"
 
 //--------------------------------------------------------------------------
 // single-thread, naive version
@@ -15,6 +16,7 @@ void __attribute__((noinline)) matmul(const int coreid, const int ncores, const 
          {
             C[i + j*lda] += A[j*lda + k] * B[k*lda + i];
          }
+         barrier(ncores);
       }
    }
 }
