@@ -1,22 +1,20 @@
 #include "dataset.h"
 #include "util.h"
 
-//--------------------------------------------------------------------------
-// single-thread, naive version
-//
 void __attribute__((noinline)) matmul(const int coreid, const int ncores, const int lda,  const data_t A[], const data_t B[], data_t C[] )
 {
    int i, j, k;
-  
-   for ( i = 0; i < lda; i++ )
+   int block = lda / ncores;
+   int start = block * coreid;
+ 
+   for ( j = start; j < (start+block); j++ ) 
    {
-      for ( j = 0; j < lda; j++ )  
+      for ( k = 0; k < lda; k++ )  
       {
-         for ( k = coreid; k < lda; k+=ncores ) 
+         for ( i = 0; i < lda; i++ ) 
          {
             C[i + j*lda] += A[j*lda + k] * B[k*lda + i];
          }
-         barrier(ncores);
       }
    }
 }
