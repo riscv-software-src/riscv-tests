@@ -58,7 +58,11 @@ loop:
   li s0, 0xbad1dea0
   beq s1, x0, loop
 
-  j pass
+  li TESTNUM, 10
+  li s0, 0x1ffc
+  lw x0, 0(s0) // if an exception is taken, then would fail because evec is set to evec_store
+
+  j pass // this time it should pass
 
   TEST_PASSFAIL
 
