@@ -6,15 +6,12 @@ rv32si_sc_tests = \
 	csr \
 	shamt \
 	ma_fetch \
-	fa_fetch_zscale_8192 \
 	illegal \
 	privileged \
 	scall \
 	sbreak \
 	ma_addr \
-	fa_addr_zscale_8192 \
 	timer \
-	ipi_zscale \
 
 rv32si_mc_tests = \
 	ipi \
