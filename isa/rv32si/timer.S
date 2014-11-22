@@ -23,7 +23,7 @@ RVTEST_CODE_BEGIN
   csrsi status, 4 # enable interrupts
 
   li TESTNUM, 2
-  li a0,1000
+  li a0,10000
 loop:
   div x0, x0, x0
   addi a0, a0, -1
@@ -33,6 +33,7 @@ loop:
   TEST_PASSFAIL
 
 evec:
+  li TESTNUM, 3
   li t1, 0x80000000|IRQ_TIMER
   csrr t0, cause
   bne t0, t1, fail
