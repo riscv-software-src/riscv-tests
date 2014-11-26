@@ -159,7 +159,7 @@ void handle_trap(trapframe_t* tf)
 {
   if (tf->cause == CAUSE_SYSCALL)
   {
-    int n = tf->gpr[18];
+    int n = tf->gpr[10];
 
     for (long i = 1; i < MAX_TEST_PAGES; i++)
       evict(i*PGSIZE);

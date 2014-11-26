@@ -54,9 +54,9 @@ save_tf:  # write the trap frame onto the stack
   STORE  x31,31*REGBYTES(x2)
 
   csrr   x3,sup0
-  STORE  x3,1*REGBYTES(x2)          # x1 is in PCR_K0
+  STORE  x3,1*REGBYTES(x2)          # x1 is in sup0
   csrr   x3,sup1
-  STORE  x3,2*REGBYTES(x2)          # x2 is in PCR_K1
+  STORE  x3,2*REGBYTES(x2)          # x2 is in sup1
 
   # get sr, epc, badvaddr, cause
   csrr   x3,status          # sr
@@ -80,7 +80,7 @@ save_tf:  # write the trap frame onto the stack
   STORE  x3,36*REGBYTES(x2)
 1:
 
-  ret
+  jr x1
 
   .globl  pop_tf
 pop_tf:  # write the trap frame onto the stack
@@ -132,48 +132,47 @@ pop_tf:  # write the trap frame onto the stack
 
   .global  trap_entry
 trap_entry:
-  csrw sup0,ra
+  csrw sup0,x1
   csrw sup1,x2
 
   # coming from kernel?
-  csrr  ra,status
-  and   ra,ra,SR_PS
-  bnez  ra, 1f
+  csrr  x1,status
+  and   x1,x1,SR_PS
+  bnez  x1, 1f
 
   # no, so start at the top of the stack
   la    x2,STACK_TOP-SIZEOF_TRAPFRAME_T
-  jal   save_tf
+  jal   x1, save_tf
   move  sp,x2
   csrs  status,SR_EI
-  move  a0,x2
-  csrr  ra,status
-  and   ra,ra,SR_EA
-  beqz  ra,2f
-  addi  x2,x2,37*REGBYTES
+  move  a0,sp
+  csrr  t0,status
+  and   t0,t0,SR_EA
+  beqz  t0,2f
+  addi  t0,sp,SIZEOF_TRAPFRAME_T_SCALAR
 
   # rocket currently doesn't support vxcptsave/vxcptrestore natively
   csrr  x3,impl 
   li    x4,IMPL_ROCKET
   bne   x3,x4,3f
   vgetcfg x4
-  STORE x4,0*REGBYTES(x2)
+  STORE x4,0*REGBYTES(t0)
   vgetvl x4
-  STORE x4,1*REGBYTES(x2)
-  addi  x2,x2,2*REGBYTES
-  vxcptevac x2
+  STORE x4,1*REGBYTES(t0)
+  addi  t0,t0,2*REGBYTES
+  vxcptevac t0
   j     2f
 
   # native vxcptsave
-3:vxcptsave x2
+3:vxcptsave t0
 2:jal   handle_trap
 
   # when coming from kernel, continue below its stack
   # we assume vector unit wasn't used in kernel
-1:li    x2,SIZEOF_TRAPFRAME_T_SCALAR
-  sub   x2,sp,x2
-  jal   save_tf
+1:addi  x2,sp,-SIZEOF_TRAPFRAME_T_SCALAR
+  jal   x1, save_tf
   move  sp,x2
   csrs  status,SR_EI
-  move  a0,x2
+  move  a0,sp
   jal   handle_trap
   unimp
