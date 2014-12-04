@@ -13,15 +13,6 @@ test_ ## testnum: \
     li  TESTNUM, testnum; \
     bne testreg, x29, fail;
 
-#define TEST_CASE_JUMP( testnum, testreg, correctval, code... ) \
-test_ ## testnum: \
-    code; \
-    li  x29, correctval; \
-    li  TESTNUM, testnum; \
-    beq testreg, x29, pass_ ## testnum; \
-    j fail; \
-pass_ ## testnum: \
-
 # We use a macro hack to simpify code generation for various numbers
 # of bubble cycles.
 
@@ -99,7 +90,7 @@ pass_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_VSETCFGIVL( testnum, nxpr, nfpr, bank, vl, result ) \
-    TEST_CASE_JUMP( testnum, x1, result, \
+    TEST_CASE( testnum, x1, result, \
       li x1, (bank << 12); \
       vsetcfg x1,nxpr,nfpr; \
       li x1, vl; \
@@ -107,7 +98,7 @@ pass_ ## testnum: \
     )
 
 #define TEST_VVCFG( testnum, nxpr, nfpr, bank, vl, result ) \
-    TEST_CASE_JUMP( testnum, x1, result, \
+    TEST_CASE( testnum, x1, result, \
       li x1, (bank << 12) | (nfpr << 6) | nxpr; \
       vsetcfg x1; \
       li x1, vl; \
@@ -115,7 +106,7 @@ pass_ ## testnum: \
     )
 
 #define TEST_VSETVL( testnum, nxpr, nfpr, bank, vl, result ) \
-    TEST_CASE_JUMP( testnum, x1, result, \
+    TEST_CASE( testnum, x1, result, \
       li x1, (bank << 12); \
       vsetcfg x1,nxpr,nfpr; \
       li x1, vl; \
