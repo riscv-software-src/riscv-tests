@@ -177,7 +177,7 @@ trap_entry:
   csrr a1, epc
   mv a2, sp
   jal handle_trap
-  csrw epc, v0
+  csrw epc, a0
 
   LREG t0, 256(sp)
   LREG t1, 264(sp)

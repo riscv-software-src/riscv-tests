@@ -75,11 +75,12 @@ bmarks = $(bmarks_vvadd) $(bmarks_matmul)
 # Build rules
 #--------------------------------------------------------------------
 
-RISCV_GCC = riscv-gcc
+RISCV_PREFIX=riscv64-unknown-elf-
+RISCV_GCC = $(RISCV_PREFIX)gcc
 RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math
-RISCV_LINK = riscv-gcc -T $(common)/test.ld $(incs) 
+RISCV_LINK = $(RISCV_GCC) -T $(common)/test.ld $(incs)
 RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc
-RISCV_OBJDUMP = riscv-objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
+RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike -p2
 
 VPATH += $(common) $(common)/../mt-matmul $(common)/../mt-vvadd 

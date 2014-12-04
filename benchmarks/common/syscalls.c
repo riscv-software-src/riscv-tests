@@ -26,8 +26,8 @@ static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 
 // In setStats, we might trap reading uarch-specific counters.
 // The trap handler will skip over the instruction and write 0,
-// but only if v0 is the destination register.
-#define read_csr_safe(reg) ({ register long __tmp asm("v0"); \
+// but only if a0 is the destination register.
+#define read_csr_safe(reg) ({ register long __tmp asm("a0"); \
   asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
   __tmp; })
 
@@ -37,12 +37,8 @@ static char* counter_names[NUM_COUNTERS];
 static int handle_stats(int enable)
 {
   //use csrs to set stats register
-  if(enable) {
-    asm volatile (R"(
-      addi v0, x0, 1
-      csrrs v0, stats, v0
-    )" : : : "v0");
-  }
+  if (enable)
+    asm volatile ("csrrs a0, stats, 1" ::: "a0");
   int i = 0;
 #define READ_CTR(name) do { \
     while (i >= NUM_COUNTERS) ; \
@@ -56,12 +52,8 @@ static int handle_stats(int enable)
   READ_CTR(uarch8);  READ_CTR(uarch9);  READ_CTR(uarch10); READ_CTR(uarch11);
   READ_CTR(uarch12); READ_CTR(uarch13); READ_CTR(uarch14); READ_CTR(uarch15);
 #undef READ_CTR
-  if(!enable) {
-    asm volatile (R"(
-      addi v0, x0, 1
-      csrrc v0, stats, v0
-    )" : : : "v0");
-  }
+  if (!enable)
+    asm volatile ("csrrc a0, stats, 1" ::: "a0");
   return 0;
 }
 
@@ -73,34 +65,34 @@ static void tohost_exit(int code)
 
 long handle_trap(long cause, long epc, long regs[32])
 {
-  int csr_insn;
-  asm volatile ("lw %0, 1f; j 2f; 1: csrr v0, stats; 2:" : "=r"(csr_insn));
+  int* csr_insn;
+  asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));
   long sys_ret = 0;
 
   if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
-      (*(int*)epc & csr_insn) == csr_insn)
+      (*(int*)epc & *csr_insn) == *csr_insn)
     ;
   else if (cause != CAUSE_SYSCALL)
     tohost_exit(1337);
-  else if (regs[16] == SYS_exit)
-    tohost_exit(regs[18]);
-  else if (regs[16] == SYS_stats)
-    sys_ret = handle_stats(regs[18]);
+  else if (regs[17] == SYS_exit)
+    tohost_exit(regs[10]);
+  else if (regs[17] == SYS_stats)
+    sys_ret = handle_stats(regs[10]);
   else
-    sys_ret = handle_frontend_syscall(regs[16], regs[18], regs[19], regs[20]);
+    sys_ret = handle_frontend_syscall(regs[17], regs[10], regs[11], regs[12]);
 
-  regs[16] = sys_ret;
+  regs[10] = sys_ret;
   return epc+4;
 }
 
 static long syscall(long num, long arg0, long arg1, long arg2)
 {
-  register long v0 asm("v0") = num;
+  register long a7 asm("a7") = num;
   register long a0 asm("a0") = arg0;
   register long a1 asm("a1") = arg1;
   register long a2 asm("a2") = arg2;
-  asm volatile ("scall" : "+r"(v0) : "r"(a0), "r"(a1), "r"(a2) : "s0");
-  return v0;
+  asm volatile ("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+  return a0;
 }
 
 void exit(int code)

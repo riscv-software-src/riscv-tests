@@ -18,9 +18,10 @@ default: all
 # Build rules
 #--------------------------------------------------------------------
 
-RISCV_GCC = riscv-gcc
+RISCV_PREFIX=riscv64-unknown-elf-
+RISCV_GCC = $(RISCV_PREFIX)gcc
 RISCV_GCC_OPTS = -static -fpic -fvisibility=hidden -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
-RISCV_OBJDUMP = riscv-objdump --disassemble-all --section=.text --section=.data --section=.bss
+RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike --extension=hwacha
 
 vpath %.S $(isa_src_dir)
