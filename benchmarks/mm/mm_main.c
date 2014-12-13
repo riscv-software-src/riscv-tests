@@ -8,6 +8,7 @@ void thread_entry(int cid, int nc)
 {
   const int R = 8;
   int m, n, p;
+  uint64_t s = 0xdeadbeefU;
   
   if (have_vec) {
     m = HCBM;
@@ -25,10 +26,10 @@ void thread_entry(int cid, int nc)
 
   for (size_t i = 0; i < m; i++)
     for (size_t j = 0; j < p; j++)
-      a[i*p+j] = i+j;
+      a[i*p+j] = (t)(s = lfsr(s));
   for (size_t i = 0; i < p; i++)
     for (size_t j = 0; j < n; j++)
-      b[i*n+j] = i-j;
+      b[i*n+j] = (t)(s = lfsr(s));
   memset(c, 0, m*n*sizeof(c[0]));
 
   size_t instret, cycles;
@@ -65,9 +66,10 @@ void thread_entry(int cid, int nc)
     for (size_t j = 0; j < n; j++)
     {
       t s = 0;
-      for (size_t aik = i, bkj = -j; aik < i+p; aik++, bkj++)
-        s += (t)aik*(t)bkj;
-      if (fabs(c[i*n+j]-s*R) > 1e-6*s)
+      for (size_t k = 0; k < p; k++)
+        s += a[i*p+k] * b[k*n+j];
+      s *= R;
+      if (fabs(c[i*n+j]-s) > fabs(1e-6*s))
       {
         printf("C%d: c[%lu][%lu] %f != %f\n", cid, i, j, c[i*n+j], s);
         exit(1);

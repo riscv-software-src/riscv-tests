@@ -31,6 +31,8 @@ static void setStats(int enable) {}
 extern void setStats(int enable);
 #endif
 
+#include <stdint.h>
+
 extern int have_vec;
 
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
@@ -107,6 +109,12 @@ static void __attribute__((noinline)) barrier(int ncores)
     ;
 
   __sync_synchronize();
+}
+
+static uint64_t lfsr(uint64_t x)
+{
+  uint64_t bit = (x ^ (x >> 1)) & 1;
+  return (x >> 1) | (bit << 62);
 }
 
 #ifdef __riscv
