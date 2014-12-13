@@ -114,13 +114,6 @@ _start:
   sll sp, sp, STKSHIFT
   add sp, sp, tp
 
-  # offset thread pointer by thread pointer bias
-  lui t0, %tprel_hi(tls_start)
-  add t0, t0, tp, %tprel_add(tls_start)
-  add t0, t0, %tprel_lo(tls_start)
-  sub t0, t0, tp
-  sub tp, tp, t0
-
   la t0, _init
   csrw epc, t0
   sret
@@ -211,5 +204,14 @@ trap_entry:
   addi sp, sp, 272
   sret
 
-.section .tbss
-tls_start:
+.section ".tdata.begin"
+.globl _tdata_begin
+_tdata_begin:
+
+.section ".tdata.end"
+.globl _tdata_end
+_tdata_end:
+
+.section ".tbss.end"
+.globl _tbss_end
+_tbss_end:

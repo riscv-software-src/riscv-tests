@@ -125,8 +125,20 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
+static void init_tls()
+{
+  register void* thread_pointer asm("tp");
+  extern char _tls_data;
+  extern __thread char _tdata_begin, _tdata_end, _tbss_end;
+  size_t tdata_size = &_tdata_end - &_tdata_begin;
+  memcpy(thread_pointer, &_tls_data, tdata_size);
+  size_t tbss_size = &_tbss_end - &_tdata_end;
+  memset(thread_pointer + tdata_size, 0, tbss_size);
+}
+
 void _init(int cid, int nc)
 {
+  init_tls();
   thread_entry(cid, nc);
 
   // only single-threaded programs should ever get here.
