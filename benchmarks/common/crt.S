@@ -126,15 +126,7 @@ _start:
   sret
 
 trap_entry:
-  csrw sup0, sp
-  csrw sup1, t0
-  csrr t0, status
-  andi t0, t0, SR_PS
-  bnez t0, 1f
-  la sp, kstacktop
-1:
   addi sp, sp, -272
-  csrr t0, sup1
 
   SREG x1, 8(sp)
   SREG x2, 16(sp)
@@ -216,13 +208,8 @@ trap_entry:
   LREG x30, 240(sp)
   LREG x31, 248(sp)
 
-  csrr sp, sup0
+  addi sp, sp, 272
   sret
-
-.bss
-.align 4
-.skip 4096
-kstacktop:
 
 .section .tbss
 tls_start:
