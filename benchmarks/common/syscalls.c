@@ -3,9 +3,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <limits.h>
-#include <machine/syscall.h>
 #include "util.h"
 
+#define SYS_write 64
+#define SYS_exit 93
 #define SYS_stats 1234
 
 // initialized in crt.S
