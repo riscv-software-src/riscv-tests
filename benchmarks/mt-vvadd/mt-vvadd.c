@@ -55,10 +55,10 @@ void thread_entry(int cid, int nc)
    stats(vvadd(cid, nc, DATA_SIZE, input1_data, input2_data, results_data); barrier(nc), DATA_SIZE);
  
    if(cid == 0) {
-//#ifdef DEBUG
+#ifdef DEBUG
      printDoubleArray("out-of-place results: ", DATA_SIZE, results_data);
      printDoubleArray("out-of-place verify : ", DATA_SIZE, verify_data);
-//#endif
+#endif
      int res = verifyDouble(DATA_SIZE, results_data, verify_data);
      if(res) exit(res);
    }
