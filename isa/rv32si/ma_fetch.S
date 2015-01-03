@@ -15,19 +15,21 @@ RVTEST_CODE_BEGIN
   csrw evec, t0
 
   li TESTNUM, 2
-  la t0, evec
+  la t0, 1f
   jr t0, 2
+1:
   j fail
 
   li TESTNUM, 3
-  la t0, next
+  la t0, 2f
   jr t0, 1
+2:
   // this test should pass, since the low bit should be masked off
 
-next:
   li TESTNUM, 4
-  la t0, evec
+  la t0, 3f
   jr t0, 3
+3:
   j fail
 
   j pass
@@ -41,8 +43,9 @@ evec:
   li t1, CAUSE_MISALIGNED_FETCH
   csrr t0, cause
   bne t0, t1, fail
+  li t1, 0
   csrr t0, epc
-  addi t0, t0, 8
+  addi t0, t0, 2 // skip over instruction after jalr
   csrw epc, t0
   sret
 
