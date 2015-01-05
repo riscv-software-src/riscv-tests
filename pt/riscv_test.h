@@ -6,7 +6,7 @@
 #undef EXTRA_INIT_TIMER
 #define EXTRA_INIT_TIMER                                                \
   ENABLE_TIMER_INTERRUPT;                                               \
-  b 6f;                                                                 \
+  j 6f;                                                                 \
   XCPT_HANDLER;                                                         \
 6:
 
@@ -74,14 +74,14 @@ _handler: \
 _pass: \
         fence;                       \
         csrw tohost, 1;              \
-1:      b 1b;                        \
+1:      j 1b;                        \
 _fail: \
         fence;                       \
         beqz TESTNUM, 1f;            \
         sll TESTNUM, TESTNUM, 1;     \
         or TESTNUM, TESTNUM, 1;      \
         csrw tohost, TESTNUM;        \
-1:      b 1b;                        \
+1:      j 1b;                        \
 _cont: \
         csrr a0,impl;                \
         li a1,IMPL_ROCKET;           \

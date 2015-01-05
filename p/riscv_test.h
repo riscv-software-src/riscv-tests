@@ -102,7 +102,7 @@ _start:                                                                 \
 #define RVTEST_PASS                                                     \
         fence;                                                          \
         csrw tohost, 1;                                                 \
-1:      b 1b;                                                           \
+1:      j 1b;                                                           \
 
 #define TESTNUM x28
 #define RVTEST_FAIL                                                     \
@@ -111,7 +111,7 @@ _start:                                                                 \
         sll TESTNUM, TESTNUM, 1;                                        \
         or TESTNUM, TESTNUM, 1;                                         \
         csrw tohost, TESTNUM;                                           \
-1:      b 1b;                                                           \
+1:      j 1b;                                                           \
 
 //-----------------------------------------------------------------------
 // Data Section Macro
