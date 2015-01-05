@@ -22,7 +22,7 @@ li x1, 0x3F800000
   fmv.s.x  f3, x0    ;\
   fmv.d.x  f2, x2    ;\
   fmv.s.x  f1, x1    ;\
-  b 1f ;\
+  j 1f ;\
   .align 5        ;\
 1:fmul.d  f4, f2, f2  ;\
   nops          ;\

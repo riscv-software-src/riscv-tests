@@ -241,7 +241,7 @@ int main (int argc, char** argv)
   do_fprintf (stderr, "Arr_2_Glob[8][7]:    %d\n", Arr_2_Glob[8][7]);
   do_fprintf (stderr, "        should be:   Number_Of_Runs + 10\n");
   do_fprintf (stderr, "Ptr_Glob->\n");
-  do_fprintf (stderr, "  Ptr_Comp:          %d\n", (int) Ptr_Glob->Ptr_Comp);
+  do_fprintf (stderr, "  Ptr_Comp:          %d\n", (long) Ptr_Glob->Ptr_Comp);
   do_fprintf (stderr, "        should be:   (implementation-dependent)\n");
   do_fprintf (stderr, "  Discr:             %d\n", Ptr_Glob->Discr);
   do_fprintf (stderr, "        should be:   %d\n", 0);
@@ -252,7 +252,7 @@ int main (int argc, char** argv)
   do_fprintf (stderr, "  Str_Comp:          %s\n", Ptr_Glob->variant.var_1.Str_Comp);
   do_fprintf (stderr, "        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
   do_fprintf (stderr, "Next_Ptr_Glob->\n");
-  do_fprintf (stderr, "  Ptr_Comp:          %d\n", (int) Next_Ptr_Glob->Ptr_Comp);
+  do_fprintf (stderr, "  Ptr_Comp:          %d\n", (long) Next_Ptr_Glob->Ptr_Comp);
   do_fprintf (stderr, "        should be:   (implementation-dependent), same as above\n");
   do_fprintf (stderr, "  Discr:             %d\n", Next_Ptr_Glob->Discr);
   do_fprintf (stderr, "        should be:   %d\n", 0);

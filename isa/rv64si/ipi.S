@@ -32,7 +32,7 @@ RVTEST_CODE_BEGIN
   add a0, a0, 1
   rem a0, a0, a3
   csrw send_ipi, a0
-  1: b 1b
+  1: j 1b
 
   handler:
   csrr a0, hartid
@@ -44,7 +44,7 @@ RVTEST_CODE_BEGIN
   2: add a0, a0, 1
   rem a0, a0, a3
   csrw send_ipi, a0
-  1: b 1b
+  1: j 1b
 
 RVTEST_CODE_END
 

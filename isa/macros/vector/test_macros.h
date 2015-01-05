@@ -247,7 +247,7 @@ skip ## testnum : \
   addi a4,a4,4; \
   addi a2,a2,1; \
   bne a2,a3,test_loop ## testnum; \
-  b 1f; \
+  j 1f; \
 vtcode ## testnum : \
   code; \
   stop; \
@@ -287,7 +287,7 @@ skip ## testnum : \
   addi a4,a4,8; \
   addi a2,a2,1; \
   bne a2,a3,test_loop ## testnum; \
-  b 1f; \
+  j 1f; \
 vtcode ## testnum : \
   code; \
   stop; \
@@ -361,7 +361,7 @@ skip ## testnum : \
   addi a4,a4,4; \
   addi a2,a2,1; \
   bne a2,a3,test_loop ## testnum; \
-  b 1f; \
+  j 1f; \
 vtcode ## testnum : \
   li x1, val1; \
   inst f0, x1; \
@@ -394,7 +394,7 @@ skip ## testnum : \
   addi a4,a4,8; \
   addi a2,a2,1; \
   bne a2,a3,test_loop ## testnum; \
-  b 1f; \
+  j 1f; \
 vtcode ## testnum : \
   li x1, val1; \
   inst f0, x1; \

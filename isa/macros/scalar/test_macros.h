@@ -540,7 +540,7 @@ test_ ## testnum: \
   fsflags x0; \
   fmv.x.s a0, f0; \
   bne a0, a3, fail; \
-  b 1f; \
+  j 1f; \
   .align 2; \
   test_ ## testnum ## _data: \
   .float result; \
@@ -556,7 +556,7 @@ test_ ## testnum: \
   fsflags x0; \
   fmv.x.d a0, f0; \
   bne a0, a3, fail; \
-  b 1f; \
+  j 1f; \
   .align 3; \
   test_ ## testnum ## _data: \
   .double result; \
