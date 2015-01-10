@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef __FFT_CONST_H
 #define __FFT_CONST_H
 

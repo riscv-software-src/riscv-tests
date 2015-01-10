@@ -1,3 +1,5 @@
+# See LICENSE for license details.
+
 .align 2
 .float 5527.22204077
 .float 1.5241163985e-09

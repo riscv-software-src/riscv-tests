@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef __TEST_MACROS_VECTOR_H
 #define __TEST_MACROS_VECTOR_H
 

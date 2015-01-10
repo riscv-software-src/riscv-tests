@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #include "fft_const.h"
 
 #if !defined(FP_HALF)

@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 
 #define DATA_SIZE 512 
 

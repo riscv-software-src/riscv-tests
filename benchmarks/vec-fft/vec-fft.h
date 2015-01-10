@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef __VEC_FFT_H
 #define __VEC_FFT_H
 

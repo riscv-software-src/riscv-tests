@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef _MM_H
 #define _MM_H
 

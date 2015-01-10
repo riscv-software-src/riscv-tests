@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef __DATASET_H
 #define __DATASET_H
 

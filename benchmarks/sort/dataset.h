@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #define DATA_SIZE_SORT 1024
 float input_data_sort[1024] = {
   0.1757304,

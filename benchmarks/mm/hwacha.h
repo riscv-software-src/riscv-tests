@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 static const int HCBM = 18;
 static const int HCBN = 80;
 static const int HCBK = 16;

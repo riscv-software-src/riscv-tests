@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>

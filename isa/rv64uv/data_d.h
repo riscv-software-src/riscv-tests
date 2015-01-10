@@ -1,3 +1,5 @@
+# See LICENSE for license details.
+
 .dword 0xd1dd560bfe643843
 .dword 0xc8ad10b2feb2c113
 .dword 0xa6ce19b8a92a9e4a

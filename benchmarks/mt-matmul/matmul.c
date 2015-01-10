@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #include "dataset.h"
 #include "util.h"
 

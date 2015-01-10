@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>

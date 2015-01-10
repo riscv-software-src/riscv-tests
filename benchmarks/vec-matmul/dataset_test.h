@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 
 #define ARRAY_SIZE 4 
 

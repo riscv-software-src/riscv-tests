@@ -1,3 +1,5 @@
+# See LICENSE for license details.
+
 .align 2
 .word 0x3ceb3ff3
 .word 0x8b529b44

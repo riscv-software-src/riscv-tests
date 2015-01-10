@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #include "cvt16.h"
 
 #define H_BIAS    (UINT16_C(0xf))

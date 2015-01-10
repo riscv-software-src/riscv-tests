@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef _CVT16_H
 #define _CVT16_H
 

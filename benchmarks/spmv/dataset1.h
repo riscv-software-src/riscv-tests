@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #define R 1000
 #define C 1000
 #define NNZ 10004

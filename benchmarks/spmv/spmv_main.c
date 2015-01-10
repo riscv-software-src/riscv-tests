@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 //**************************************************************************
 // Double-precision general matrix multiplication benchmark
 //--------------------------------------------------------------------------

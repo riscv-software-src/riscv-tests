@@ -1,3 +1,5 @@
+# See LICENSE for license details.
+
 .double 3.82442188112e-88
 .double 9.43371972728e-26
 .double 3.93277941308e+246

@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 static const int RBM = 4, RBN = 5, RBK = 6;
 static const int CBM = 36, CBN = 35, CBK = 36;
 static inline void kloop(size_t p, t* a0, size_t lda, t* b0, size_t ldb, t* c, size_t ldc)

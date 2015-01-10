@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef _DHRYSTONE_H
 #define _DHRYSTONE_H
 
