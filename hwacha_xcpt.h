@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef _HWACHA_XCPT_H
 #define _HWACHA_XCPT_H
 

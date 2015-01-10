@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef _ENV_VIRTUAL_SINGLE_CORE_H
 #define _ENV_VIRTUAL_SINGLE_CORE_H
 

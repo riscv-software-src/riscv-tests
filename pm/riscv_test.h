@@ -1,3 +1,5 @@
+// See LICENSE for license details.
+
 #ifndef _ENV_PHYSICAL_MULTI_CORE_H
 #define _ENV_PHYSICAL_MULTI_CORE_HA
 
