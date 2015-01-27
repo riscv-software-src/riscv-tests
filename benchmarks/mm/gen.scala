@@ -39,7 +39,7 @@ object MMGen {
         s += init("t*", r("a", i), "&"+ar("a", "lda*"+i))
       for (k <- 0 until p)
         s += init("t*", r("b", k), "&"+ar("b", "ldb*"+k))
-      for (i <- 0 until m; j <- 0 until n; k <- 0 until p)
+      for (k <- 0 until p; i <- 0 until m; j <- 0 until n)
         s += assign(r("c", i, j), "fma(" + ar(r("a", i), k) + ", " + ar(r("b", k), j) + ", " + r("c", i, j) + ")")
     }
 
