@@ -12,7 +12,7 @@ Building from repository
 We assume that the RISCV environment variable is set to the RISC-V tools
 install path, and that the riscv-gnu-toolchain package is installed.
 
-    $ git clone https://github.com/ucb-bar/riscv-tests
+    $ git clone https://github.com/riscv/riscv-tests
     $ cd riscv-tests
     $ git submodule update --init --recursive
     $ autoconf
