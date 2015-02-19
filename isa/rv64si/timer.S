@@ -32,8 +32,7 @@ RVTEST_CODE_BEGIN
   srl s0,s0,1
   sll s2,s2,9
   or  s0,s2,s0
-  sll s0,s0,54
-  srl s0,s0,54
+  and s0, s0, 0x3FF
   add s4, s4, 1
   bltu s8, s9, 1b
 
@@ -54,10 +53,13 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
 handler:
-  csrr t0, cause
-  li t1, 0x8000000000000007
   li TESTNUM, 3
-  bne t0, t1, fail
+  csrr t0, cause
+  bgez t0, fail
+
+  sll t0, t0, 1
+  addi t0, t0, -2*IRQ_TIMER
+  bnez t0, fail
 
   csrr t0, count
   addi t0, t0, 999
