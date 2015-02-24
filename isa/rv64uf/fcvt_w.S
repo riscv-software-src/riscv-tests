@@ -89,16 +89,45 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_D(79, fcvt.lu.d, 0x00, 3000000000,  3e9, rtz);
 
   # test negative NaN, negative infinity conversion
-  TEST_CASE(80, x1, 0xffffffff80000000, la x1, tdat; flw f1, 0(x1); fcvt.w.s x1, f1)
-  TEST_CASE(81, x1, 0x8000000000000000, la x1, tdat; flw f1, 0(x1); fcvt.l.s x1, f1)
-  TEST_CASE(82, x1, 0xffffffff80000000, la x1, tdat; flw f1, 8(x1); fcvt.w.s x1, f1)
-  TEST_CASE(83, x1, 0x8000000000000000, la x1, tdat; flw f1, 8(x1); fcvt.l.s x1, f1)
+  TEST_CASE( 80, x1, 0xffffffff80000000, la x1, tdat  ; flw f1,  0(x1); fcvt.w.s x1, f1)
+  TEST_CASE( 81, x1, 0x8000000000000000, la x1, tdat  ; flw f1,  0(x1); fcvt.l.s x1, f1)
+  TEST_CASE( 82, x1, 0xffffffff80000000, la x1, tdat  ; flw f1,  8(x1); fcvt.w.s x1, f1)
+  TEST_CASE( 83, x1, 0x8000000000000000, la x1, tdat  ; flw f1,  8(x1); fcvt.l.s x1, f1)
+
+  TEST_CASE( 84, x1, 0xffffffff80000000, la x1, tdat_d; fld f1,  0(x1); fcvt.w.d x1, f1)
+  TEST_CASE( 85, x1, 0x8000000000000000, la x1, tdat_d; fld f1,  0(x1); fcvt.l.d x1, f1)
+  TEST_CASE( 86, x1, 0xffffffff80000000, la x1, tdat_d; fld f1, 16(x1); fcvt.w.d x1, f1)
+  TEST_CASE( 87, x1, 0x8000000000000000, la x1, tdat_d; fld f1, 16(x1); fcvt.l.d x1, f1)
 
   # test positive NaN, positive infinity conversion
-  TEST_CASE(84, x1, 0x000000007fffffff, la x1, tdat; flw f1, 4(x1); fcvt.w.s x1, f1)
-  TEST_CASE(85, x1, 0x7fffffffffffffff, la x1, tdat; flw f1, 4(x1); fcvt.l.s x1, f1)
-  TEST_CASE(86, x1, 0x000000007fffffff, la x1, tdat; flw f1,12(x1); fcvt.w.s x1, f1)
-  TEST_CASE(87, x1, 0x7fffffffffffffff, la x1, tdat; flw f1,12(x1); fcvt.l.s x1, f1)
+  TEST_CASE( 88, x1, 0x000000007fffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.w.s x1, f1)
+  TEST_CASE( 89, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.l.s x1, f1)
+  TEST_CASE( 90, x1, 0x000000007fffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.w.s x1, f1)
+  TEST_CASE( 91, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.l.s x1, f1)
+
+  TEST_CASE( 92, x1, 0x000000007fffffff, la x1, tdat_d; fld f1,  8(x1); fcvt.w.d x1, f1)
+  TEST_CASE( 93, x1, 0x7fffffffffffffff, la x1, tdat_d; fld f1,  8(x1); fcvt.l.d x1, f1)
+  TEST_CASE( 94, x1, 0x000000007fffffff, la x1, tdat_d; fld f1, 24(x1); fcvt.w.d x1, f1)
+  TEST_CASE( 95, x1, 0x7fffffffffffffff, la x1, tdat_d; fld f1, 24(x1); fcvt.l.d x1, f1)
+
+  # test NaN, infinity conversions to unsigned integer (always return MaxUInt)
+  TEST_CASE( 96, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.wu.s x1, f1)
+  TEST_CASE( 97, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.wu.s x1, f1)
+  TEST_CASE( 98, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  8(x1); fcvt.wu.s x1, f1)
+  TEST_CASE( 99, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.wu.s x1, f1)
+  TEST_CASE(100, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.lu.s x1, f1)
+  TEST_CASE(101, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.lu.s x1, f1)
+  TEST_CASE(102, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  8(x1); fcvt.lu.s x1, f1)
+  TEST_CASE(103, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.lu.s x1, f1)
+   
+  TEST_CASE(104, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1,  0(x1); fcvt.wu.d x1, f1)
+  TEST_CASE(105, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1,  8(x1); fcvt.wu.d x1, f1)
+  TEST_CASE(106, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1, 16(x1); fcvt.wu.d x1, f1)
+  TEST_CASE(107, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1, 24(x1); fcvt.wu.d x1, f1)
+  TEST_CASE(108, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1,  0(x1); fcvt.lu.d x1, f1)
+  TEST_CASE(109, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1,  8(x1); fcvt.lu.d x1, f1)
+  TEST_CASE(110, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1, 16(x1); fcvt.lu.d x1, f1)
+  TEST_CASE(111, x1, 0xffffffffffffffff, la x1, tdat_d; fld f1, 24(x1); fcvt.lu.d x1, f1)
 
   TEST_PASSFAIL
 
@@ -115,5 +144,11 @@ tdat:
 .word 0x7fffffff
 .word 0xff800000
 .word 0x7f800000
+
+tdat_d:
+.dword 0xffffffffffffffff
+.dword 0x7fffffffffffffff
+.dword 0xfff0000000000000
+.dword 0x7ff0000000000000
 
 RVTEST_DATA_END
