@@ -13,8 +13,8 @@
 RVTEST_RV32S
 RVTEST_CODE_BEGIN
 
-  la t0, evec
-  csrw evec, t0
+  la t0, stvec
+  csrw stvec, t0
 
   li TESTNUM, 2
   scall
@@ -24,13 +24,13 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-evec:
-  li t1, CAUSE_SYSCALL
-  csrr t0, cause
+stvec:
+  li t1, CAUSE_SCALL
+  csrr t0, scause
   bne t0, t1, fail
-  csrr t0, epc
+  csrr t0, sepc
   addi t0, t0, 8
-  csrw epc, t0
+  csrw sepc, t0
   sret
 
 RVTEST_CODE_END

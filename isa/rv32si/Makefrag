@@ -7,7 +7,6 @@ rv32si_sc_tests = \
 	shamt \
 	ma_fetch \
 	illegal \
-	privileged \
 	scall \
 	sbreak \
 	ma_addr \

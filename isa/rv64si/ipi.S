@@ -10,23 +10,24 @@
 #include "riscv_test.h"
 #include "test_macros.h"
 
-RVTEST_RV64S
+RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
-  # clear pending IPIs then enable interrupts
-  la a0, handler
-  csrw evec, a0
-  csrw clear_ipi, x0
-  li a0, SR_EI | (1 << (IRQ_IPI + SR_IM_SHIFT))
-  csrs status, a0
+  # enable interrupts
+  csrs mstatus, MSTATUS_IE
 
-  # wait for all cores to boot
+  # get a unique core id
   la a0, coreid
   li a1, 1
-  amoadd.w x0, a1, 0(a0)
-  lw a3, 4(x0)
-  1: lw a1, 0(a0)
-  blt a1, a3, 1b
+  amoadd.w a2, a1, (a0)
+  
+  # for now, only run this on core 0
+  1:li a3, 1
+  bgeu a2, a3, 1b
+  
+  # wait for all cores to boot
+  1: lw a1, (a0)
+  bltu a1, a3, 1b
 
   # IPI dominoes
   csrr a0, hartid
@@ -36,7 +37,7 @@ RVTEST_CODE_BEGIN
   csrw send_ipi, a0
   1: j 1b
 
-  handler:
+mtvec:
   csrr a0, hartid
   bnez a0, 2f
   RVTEST_PASS

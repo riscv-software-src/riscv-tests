@@ -13,13 +13,17 @@
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
-# wait for all cores to boot
+# get a unique core id
 la a0, coreid
 li a1, 1
 amoadd.w a2, a1, (a0)
-lw a3, 4(x0)
+
+# for now, only run this on core 0
+1:li a3, 1
+bgeu a2, a3, 1b
+
 1: lw a1, (a0)
-blt a1, a3, 1b
+bltu a1, a3, 1b
 
 # make sure that sc without a reservation fails.
 TEST_CASE( 2, a4, 1, \

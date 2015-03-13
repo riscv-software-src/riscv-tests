@@ -30,17 +30,17 @@ rv64ui_mc_tests = \
 	lrsc
 
 rv64ui_sc_vec_tests = \
-	add addi addiw addw \
-	and andi \
-	lui \
-	mul mulh mulhsu mulhu mulw \
-	or ori \
-	sll slli slliw sllw \
-	slt slti sltiu sltu \
-	sra srai sraiw sraw \
-	srl srli srliw srlw \
-	sub subw \
-	xor xori \
+	#add addi addiw addw \
+	#and andi \
+	#lui \
+	#mul mulh mulhsu mulhu mulw \
+	#or ori \
+	#sll slli slliw sllw \
+	#slt slti sltiu sltu \
+	#sra srai sraiw sraw \
+	#srl srli srliw srlw \
+	#sub subw \
+	#xor xori \
 
 rv64ui_p_tests = $(addprefix rv64ui-p-, $(rv64ui_sc_tests))
 rv64ui_pm_tests = $(addprefix rv64ui-pm-, $(rv64ui_mc_tests))

@@ -75,7 +75,7 @@ long handle_trap(long cause, long epc, long regs[32])
   if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
       (*(int*)epc & *csr_insn) == *csr_insn)
     ;
-  else if (cause != CAUSE_SYSCALL)
+  else if (cause != CAUSE_SCALL)
     tohost_exit(1337);
   else if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);

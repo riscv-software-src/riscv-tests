@@ -13,10 +13,10 @@
 RVTEST_RV32S
 RVTEST_CODE_BEGIN
 
-  la s0, evec_load
+  la s0, stvec_load
 
-  la t0, evec_load
-  csrw evec, t0
+  la t0, stvec_load
+  csrw stvec, t0
 
   li TESTNUM, 2
   lw x0, 1(s0)
@@ -38,8 +38,8 @@ RVTEST_CODE_BEGIN
   lhu x0, 1(s0)
   j fail
 
-  la t0, evec_store
-  csrw evec, t0
+  la t0, stvec_store
+  csrw stvec, t0
 
   li TESTNUM, 7
   sw x0, 1(s0)
@@ -61,22 +61,22 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-evec_load:
+stvec_load:
   li t1, CAUSE_MISALIGNED_LOAD
-  csrr t0, cause
+  csrr t0, scause
   bne t0, t1, fail
-  csrr t0, epc
+  csrr t0, sepc
   addi t0, t0, 8
-  csrw epc, t0
+  csrw sepc, t0
   sret
 
-evec_store:
+stvec_store:
   li t1, CAUSE_MISALIGNED_STORE
-  csrr t0, cause
+  csrr t0, scause
   bne t0, t1, fail
-  csrr t0, epc
+  csrr t0, sepc
   addi t0, t0, 8
-  csrw epc, t0
+  csrw sepc, t0
   sret
 
 RVTEST_CODE_END

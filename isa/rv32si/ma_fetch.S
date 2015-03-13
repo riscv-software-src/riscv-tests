@@ -13,8 +13,8 @@
 RVTEST_RV32S
 RVTEST_CODE_BEGIN
 
-  la t0, evec
-  csrw evec, t0
+  la t0, stvec
+  csrw stvec, t0
 
   li TESTNUM, 2
   la t0, 1f
@@ -38,17 +38,17 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-evec:
+stvec:
   li t0, 3
   beq TESTNUM, t0, fail
 
   li t1, CAUSE_MISALIGNED_FETCH
-  csrr t0, cause
+  csrr t0, scause
   bne t0, t1, fail
   li t1, 0
-  csrr t0, epc
+  csrr t0, sepc
   addi t0, t0, 2 // skip over instruction after jalr
-  csrw epc, t0
+  csrw sepc, t0
   sret
 
 RVTEST_CODE_END

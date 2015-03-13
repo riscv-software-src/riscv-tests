@@ -7,12 +7,12 @@ rv64uf_sc_tests = \
 	ldst move structural \
 
 rv64uf_sc_vec_tests = \
-	fadd fcmp fcvt fcvt_w fmadd fmin fsgnj \
+#	fadd fcmp fcvt fcvt_w fmadd fmin fsgnj \
 
 rv64uf_p_tests = $(addprefix rv64uf-p-, $(rv64uf_sc_tests))
 rv64uf_v_tests = $(addprefix rv64uf-v-, $(rv64uf_sc_tests))
-rv64uf_p_vec_tests = $(addprefix rv64uf-p-vec-, $(rv64uf_sc_vec_tests))
-rv64uf_pt_vec_tests = $(addprefix rv64uf-pt-vec-, $(rv64uf_sc_vec_tests))
-rv64uf_v_vec_tests = $(addprefix rv64uf-v-vec-, $(rv64uf_sc_vec_tests))
+#rv64uf_p_vec_tests = $(addprefix rv64uf-p-vec-, $(rv64uf_sc_vec_tests))
+#rv64uf_pt_vec_tests = $(addprefix rv64uf-pt-vec-, $(rv64uf_sc_vec_tests))
+#rv64uf_v_vec_tests = $(addprefix rv64uf-v-vec-, $(rv64uf_sc_vec_tests))
 
 spike_tests += $(rv64uf_p_tests) $(rv64uf_v_tests) $(rv64uf_p_vec_tests) $(rv64uf_pt_vec_tests) $(rv64uf_v_vec_tests)

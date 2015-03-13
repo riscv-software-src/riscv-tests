@@ -17,11 +17,11 @@ RVTEST_CODE_BEGIN
   li s8, 0         # number of taken timer interrupts
   li s9, 10        # how many interrupts to run for
   la a0, handler
-  csrw evec, a0
-  csrw compare, 1
-  csrw count, 0
-  li a0, SR_EI | (1 << (IRQ_TIMER + SR_IM_SHIFT))
-  csrs status, a0
+  csrw stvec, a0
+  csrw stimecmp, 1
+  csrw stime, 0
+  li a0, SSTATUS_IE | SSTATUS_TIE
+  csrs sstatus, a0
 
   # advance an LFSR 1000 times
   li s0, 1023
@@ -36,7 +36,7 @@ RVTEST_CODE_BEGIN
   add s4, s4, 1
   bltu s8, s9, 1b
 
-  csrc status, SR_EI
+  csrc sstatus, SSTATUS_IE
 
   # make sure the LFSR was computed correctly
   li s1, 1023
@@ -54,16 +54,16 @@ RVTEST_CODE_BEGIN
 
 handler:
   li TESTNUM, 3
-  csrr t0, cause
+  csrr t0, scause
   bgez t0, fail
 
   sll t0, t0, 1
   addi t0, t0, -2*IRQ_TIMER
   bnez t0, fail
 
-  csrr t0, count
+  csrr t0, stime
   addi t0, t0, 999
-  csrw compare, t0
+  csrw stimecmp, t0
 
   add s8, s8, 1
 

@@ -11,8 +11,24 @@
 #endif
 
   .text
-  .globl _start
+  .align 6
+user_trap_entry:
+  j trap_entry
 
+  .align 6
+supervisor_trap_entry:
+  j supervisor_trap_entry
+
+  .align 6
+hypervisor_trap_entry:
+  j hypervisor_trap_entry
+
+  .align 6
+machine_trap_entry:
+  j trap_entry
+
+  .align 6
+  .globl _start
 _start:
   li  x1, 0
   li  x2, 0
@@ -46,21 +62,23 @@ _start:
   li  x30,0
   li  x31,0
 
-  # initialize status, enable fp, accelerator, interrupts
-  li a0, SR_S | SR_PEI | SR_EF | SR_EA
-  csrw status, a0
+  li t0, MSTATUS_PRV1; csrc mstatus, t0    # run tests in user mode
+  li t0, MSTATUS_IE1;  csrs mstatus, t0    # enable interrupts in user mode
+  li t0, MSTATUS_FS;   csrs mstatus, t0    # enable FPU
+  li t0, MSTATUS_XS;   csrs mstatus, t0    # enable accelerator
 
-#ifdef __riscv64
-  li a0, SR_U64 | SR_S64
-  csrs status, a0
+#ifndef __riscv64
+  li t0, MSTATUS_UA;   csrc mstatus, t0    # disable RV64 for user mode
 #endif
 
-  csrr t0, status
-  and t1, t0, SR_EA
+  csrr t0, mstatus
+  li t1, MSTATUS_XS
+  and t1, t0, t1
   sw t1, have_vec, t2
 
   ## if that didn't stick, we don't have a FPU, so don't initialize it
-  and t1, t0, SR_EF
+  li t1, MSTATUS_FS
+  and t1, t0, t1
   beqz t1, 1f
 
   fssr    x0
@@ -98,15 +116,14 @@ _start:
   fmv.s.x f31,x0
 1:
 
-  la t0, trap_entry
-  csrw evec, t0
-
   la  tp, _end + 63
   and tp, tp, -64
 
-  # get core id and number of cores
+  # get core id
   csrr a0, hartid
-  lw a1, 4(zero)
+  # for now, assume only 1 core
+  li a1, 1
+1:bgeu a0, a1, 1b
 
   # give each core 128KB of stack + TLS
 #define STKSHIFT 17
@@ -117,8 +134,8 @@ _start:
   add sp, sp, tp
 
   la t0, _init
-  csrw epc, t0
-  sret
+  csrw mepc, t0
+  mret
 
 trap_entry:
   addi sp, sp, -272
@@ -155,21 +172,11 @@ trap_entry:
   SREG x30, 240(sp)
   SREG x31, 248(sp)
 
-  csrr t0, sup0
-  csrr t1, status
-  SREG t0, 256(sp)
-  SREG t1, 264(sp)
-
-  csrr a0, cause
-  csrr a1, epc
+  csrr a0, mcause
+  csrr a1, mepc
   mv a2, sp
   jal handle_trap
-  csrw epc, a0
-
-  LREG t0, 256(sp)
-  LREG t1, 264(sp)
-  csrw sup0, t0
-  csrw status, t1
+  csrw mepc, a0
 
   LREG x1, 8(sp)
   LREG x2, 16(sp)
@@ -204,7 +211,7 @@ trap_entry:
   LREG x31, 248(sp)
 
   addi sp, sp, 272
-  sret
+  mret
 
 .section ".tdata.begin"
 .globl _tdata_begin
