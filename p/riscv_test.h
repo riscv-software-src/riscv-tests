@@ -110,7 +110,7 @@
         .text;                                                          \
         .align  6;                                                      \
 tvec_user:                                                              \
-        la t5, mcall;                                                   \
+        la t5, hcall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
         li t5, 0xbadbad0;                                               \
@@ -131,7 +131,7 @@ tvec_hypervisor:                                                        \
         .align  6;                                                      \
 tvec_machine:                                                           \
         .weak mtvec;                                                    \
-        la t5, mcall;                                                   \
+        la t5, hcall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
         la t5, mtvec;                                                   \
@@ -157,8 +157,8 @@ _start:                                                                 \
 //-----------------------------------------------------------------------
 
 #define RVTEST_CODE_END                                                 \
-mcall:  mcall;                                                          \
-        j mcall
+hcall:  hcall;                                                          \
+        j hcall
 
 //-----------------------------------------------------------------------
 // Pass/Fail Macro
@@ -167,7 +167,7 @@ mcall:  mcall;                                                          \
 #define RVTEST_PASS                                                     \
         fence;                                                          \
         li TESTNUM, 1;                                                  \
-        j mcall
+        j hcall
 
 #define TESTNUM x28
 #define RVTEST_FAIL                                                     \
@@ -175,7 +175,7 @@ mcall:  mcall;                                                          \
 1:      beqz TESTNUM, 1b;                                               \
         sll TESTNUM, TESTNUM, 1;                                        \
         or TESTNUM, TESTNUM, 1;                                         \
-        j mcall
+        j hcall
 
 //-----------------------------------------------------------------------
 // Data Section Macro
