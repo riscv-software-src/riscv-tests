@@ -13,11 +13,6 @@
 
 OUTPUT_ARCH( "riscv" )
 
-/* The ENTRY command specifies the entry point (ie. first instruction
-   to execute). The symbol _start should be defined in each test. */
-
-ENTRY( _start )
-
 /*----------------------------------------------------------------------*/
 /* Sections                                                             */
 /*----------------------------------------------------------------------*/
@@ -26,7 +21,7 @@ SECTIONS
 {
 
   /* text: test code section */
-  . = 0x00002000;
+  . = 0;
   .text :
   {
     *(.text)

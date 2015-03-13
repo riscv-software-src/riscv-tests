@@ -12,13 +12,13 @@ void pop_tf(trapframe_t*);
 static void cputchar(int x)
 {
   while (swap_csr(tohost, 0x0101000000000000 | (unsigned char)x));
+  while (swap_csr(fromhost, 0) == 0);
 }
 
 static void cputstring(const char* s)
 {
   while(*s)
     cputchar(*s++);
-  cputchar('\n');
 }
 
 static void terminate(int code)
@@ -31,11 +31,9 @@ static void terminate(int code)
 #define stringify(x) stringify1(x)
 #define assert(x) do { \
   if (x) break; \
-  cputstring("Assertion failed: " stringify(x)); \
+  cputstring("Assertion failed: " stringify(x) "\n"); \
   terminate(3); \
 } while(0)
-
-#define RELOC(x) ((typeof(x))((char*)(x) + (PGSIZE*MAX_TEST_PAGES)))
 
 typedef struct { pte_t addr; void* next; } freelist_t;
 
@@ -61,13 +59,13 @@ void printhex(uint64_t x)
 
 void evict(unsigned long addr)
 {
-  assert(addr >= PGSIZE && addr < RELOC(0L));
+  assert(addr >= PGSIZE && addr < MAX_TEST_PAGES * PGSIZE);
   addr = addr/PGSIZE*PGSIZE;
 
   freelist_t* node = &user_mapping[addr/PGSIZE];
   if (node->addr)
   {
-    memcpy((void*)RELOC(addr), (void*)addr, PGSIZE);
+    memcpy((void*)addr, (void*)node->addr, PGSIZE);
     user_mapping[addr/PGSIZE].addr = 0;
 
     if (freelist_tail == 0)
@@ -82,7 +80,7 @@ void evict(unsigned long addr)
 
 void handle_fault(unsigned long addr)
 {
-  assert(addr >= PGSIZE && addr < RELOC(0L));
+  assert(addr >= PGSIZE && addr < MAX_TEST_PAGES * PGSIZE);
   addr = addr/PGSIZE*PGSIZE;
 
   freelist_t* node = freelist_head;
@@ -92,11 +90,11 @@ void handle_fault(unsigned long addr)
     freelist_tail = 0;
 
   l3pt[addr/PGSIZE] = node->addr | PTE_UW | PTE_UR | PTE_UX | PTE_SW | PTE_SR | PTE_SX | PTE_V;
-  write_csr(fatc, 0);
+  asm volatile ("sfence.vm");
 
   assert(user_mapping[addr/PGSIZE].addr == 0);
   user_mapping[addr/PGSIZE] = *node;
-  memcpy((void*)addr, (void*)RELOC(addr), PGSIZE);
+  memcpy((void*)node->addr, (void*)addr, PGSIZE);
 
   __builtin___clear_cache(0,0);
 }
@@ -151,15 +149,12 @@ static void do_vxcptrestore(long* where)
 
 static void restore_vector(trapframe_t* tf)
 {
-  if (read_csr(impl) == IMPL_ROCKET)
-    do_vxcptrestore(tf->hwacha_opaque);
-  else
-    vxcptrestore(tf->hwacha_opaque);
+  do_vxcptrestore(tf->hwacha_opaque);
 }
 
 void handle_trap(trapframe_t* tf)
 {
-  if (tf->cause == CAUSE_SYSCALL)
+  if (tf->cause == CAUSE_SCALL)
   {
     int n = tf->gpr[10];
 
@@ -201,10 +196,8 @@ void handle_trap(trapframe_t* tf)
     assert(!"unexpected exception");
 
 out:
-  if (!(tf->sr & SR_PS) && (tf->sr & SR_EA)) {
+  if (!(tf->sr & MSTATUS_PRV1) && (tf->sr & MSTATUS_XS))
     restore_vector(tf);
-    tf->sr |= SR_PEI;
-  }
   pop_tf(tf);
 }
 
@@ -214,34 +207,20 @@ void vm_boot(long test_addr, long seed)
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  assert(MAX_TEST_PAGES*2 < PTES_PER_PT);
   l1pt[0] = (pte_t)l2pt | PTE_V | PTE_T;
   l2pt[0] = (pte_t)l3pt | PTE_V | PTE_T;
-  for (long i = 0; i < MAX_TEST_PAGES; i++)
-    l3pt[i] = l3pt[i+MAX_TEST_PAGES] = (i*PGSIZE) | PTE_SW | PTE_SR | PTE_SX | PTE_V;
-
-  write_csr(ptbr, l1pt);
-  write_csr(status, read_csr(status) | SR_VM | SR_EF);
-
-  // relocate
-  long adjustment = RELOC(0L), tmp;
-  write_csr(evec, (char*)&trap_entry + adjustment);
-  asm volatile ("add sp, sp, %1\n"
-                "jal %0, 1f\n"
-                "1: add %0, %0, %1\n"
-                "jr %0, 8"
-                : "=&r"(tmp)
-                : "r"(adjustment));
-
-  memset(l3pt, 0, MAX_TEST_PAGES*sizeof(pte_t));
-  write_csr(fatc, 0);
+  write_csr(sptbr, l1pt);
+  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS /* | MSTATUS_XS */ | MSTATUS_MPRV);
+  clear_csr(mstatus, MSTATUS_VM | MSTATUS_UA | MSTATUS_PRV1);
+  set_csr(mstatus, (long)VM_SV43 << __builtin_ctzl(MSTATUS_VM));
+  set_csr(mstatus, (long)UA_RV64 << __builtin_ctzl(MSTATUS_UA));
 
   seed = 1 + (seed % MAX_TEST_PAGES);
   freelist_head = &freelist_nodes[0];
   freelist_tail = &freelist_nodes[MAX_TEST_PAGES-1];
   for (long i = 0; i < MAX_TEST_PAGES; i++)
   {
-    freelist_nodes[i].addr = (MAX_TEST_PAGES+i)*PGSIZE;
+    freelist_nodes[i].addr = (MAX_TEST_PAGES + seed)*PGSIZE;
     freelist_nodes[i].next = &freelist_nodes[i+1];
     seed = LFSR_NEXT(seed);
   }
@@ -249,8 +228,11 @@ void vm_boot(long test_addr, long seed)
 
   trapframe_t tf;
   memset(&tf, 0, sizeof(tf));
-  tf.sr = SR_PEI | ((1 << IRQ_COP) << SR_IM_SHIFT) | SR_EF | SR_EA | SR_S | SR_U64 | SR_S64 | SR_VM;
   tf.epc = test_addr;
-
   pop_tf(&tf);
+}
+
+void double_fault()
+{
+  assert(!"double fault!");
 }
