@@ -65,7 +65,13 @@ void evict(unsigned long addr)
   freelist_t* node = &user_mapping[addr/PGSIZE];
   if (node->addr)
   {
-    memcpy((void*)addr, (void*)node->addr, PGSIZE);
+    // check referenced and dirty bits
+    assert(l3pt[addr/PGSIZE] & PTE_R);
+    if (memcmp((void*)addr, (void*)node->addr, PGSIZE)) {
+      assert(l3pt[addr/PGSIZE] & PTE_D);
+      memcpy((void*)addr, (void*)node->addr, PGSIZE);
+    }
+
     user_mapping[addr/PGSIZE].addr = 0;
 
     if (freelist_tail == 0)
