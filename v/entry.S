@@ -145,7 +145,6 @@ trap_entry:
   # disable saving vector state for now
   addi  t0,sp,SIZEOF_TRAPFRAME_T_SCALAR
 
-  # rocket currently doesn't support vxcptsave/vxcptrestore natively
   vgetcfg x4
   STORE x4,0*REGBYTES(t0)
   vgetvl x4

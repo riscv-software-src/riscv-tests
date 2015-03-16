@@ -53,6 +53,12 @@
   RVTEST_ENABLE_SUPERVISOR;                                             \
   .endm
 
+#define RVTEST_RV64SV                                                   \
+  .macro init;                                                          \
+  RVTEST_ENABLE_SUPERVISOR;                                             \
+  RVTEST_VEC_ENABLE;                                                    \
+  .endm
+
 #define RVTEST_RV32M                                                    \
   .macro init;                                                          \
   RVTEST_ENABLE_MACHINE;                                                \
@@ -91,9 +97,9 @@
 2:fssr x0;                                                              \
 
 #define RVTEST_VEC_ENABLE                                               \
-  li a0, SSSTATUS_XS & (SSTATUS_XS >> 1);                               \
-  csrs status, a0;                                                      \
-  csrr a1, status;                                                      \
+  li a0, SSTATUS_XS & (SSTATUS_XS >> 1);                                \
+  csrs sstatus, a0;                                                     \
+  csrr a1, sstatus;                                                     \
   and a0, a0, a1;                                                       \
   bnez a0, 2f;                                                          \
   RVTEST_PASS;                                                          \
@@ -103,6 +109,10 @@
   csrr a0, hartid;                                                      \
   1: bnez a0, 1b
 
+#define EXTRA_TVEC_USER
+#define EXTRA_TVEC_SUPERVISOR
+#define EXTRA_TVEC_HYPERVISOR
+#define EXTRA_TVEC_MACHINE
 #define EXTRA_INIT
 #define EXTRA_INIT_TIMER
 
@@ -110,6 +120,7 @@
         .text;                                                          \
         .align  6;                                                      \
 tvec_user:                                                              \
+        EXTRA_TVEC_USER;                                                \
         la t5, hcall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
@@ -122,14 +133,17 @@ tvec_user:                                                              \
         2: mrts;                                                        \
         .align  6;                                                      \
 tvec_supervisor:                                                        \
+        EXTRA_TVEC_SUPERVISOR;                                          \
         csrr t5, mcause;                                                \
         bgez t5, tvec_user;                                             \
         mrts;                                                           \
         .align  6;                                                      \
 tvec_hypervisor:                                                        \
+        EXTRA_TVEC_HYPERVISOR;                                          \
         RVTEST_FAIL; /* no hypervisor */                                \
         .align  6;                                                      \
 tvec_machine:                                                           \
+        EXTRA_TVEC_MACHINE;                                             \
         .weak mtvec;                                                    \
         la t5, hcall;                                                   \
         csrr t6, mepc;                                                  \

@@ -110,7 +110,7 @@ static void do_vxcptrestore(long* where)
   vsetcfg(where[0]);
   vsetvl(where[1]);
 
-  vxcpthold();
+  vxcpthold(&where[2]);
 
   int idx = 2;
   long dword, cmd, pf;
@@ -216,7 +216,7 @@ void vm_boot(long test_addr, long seed)
   l1pt[0] = (pte_t)l2pt | PTE_V | PTE_T;
   l2pt[0] = (pte_t)l3pt | PTE_V | PTE_T;
   write_csr(sptbr, l1pt);
-  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS /* | MSTATUS_XS */ | MSTATUS_MPRV);
+  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
   clear_csr(mstatus, MSTATUS_VM | MSTATUS_UA | MSTATUS_PRV1);
   set_csr(mstatus, (long)VM_SV43 << __builtin_ctzl(MSTATUS_VM));
   set_csr(mstatus, (long)UA_RV64 << __builtin_ctzl(MSTATUS_UA));

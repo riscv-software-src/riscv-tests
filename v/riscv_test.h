@@ -14,7 +14,7 @@
 
 #undef RVTEST_RV64UV
 #define RVTEST_RV64UV                                                   \
-	RVTEST_RV64UF
+        RVTEST_RV64UF
 
 #undef RVTEST_CODE_BEGIN
 #define RVTEST_CODE_BEGIN                                               \
@@ -60,8 +60,8 @@ userstart:                                                              \
 #define vxcptkill() ({ \
           asm volatile ("vxcptkill"); })
 
-#define vxcpthold() ({ \
-          asm volatile ("vxcpthold"); })
+#define vxcpthold(addr) ({ \
+          asm volatile ("vxcpthold %0" : : "r"(addr)); })
 
 #define venqcmd(bits, pf) ({ \
           asm volatile ("venqcmd %0,%1" : : "r"(bits), "r"(pf)); })
