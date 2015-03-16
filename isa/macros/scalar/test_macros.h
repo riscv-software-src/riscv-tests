@@ -570,9 +570,8 @@ test_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_ILLEGAL_TVEC_REGID( testnum, nxreg, nfreg, inst, reg1, reg2) \
-  csrs status, SR_EI; \
   la a0, handler ## testnum; \
-  csrw evec, a0; \
+  csrw stvec, a0; \
   vsetcfg nxreg, nfreg; \
   li a0, 4; \
   vsetvl a0, a0; \
@@ -631,9 +630,8 @@ handler ## testnum: \
   bne a1,a2,fail; \
 
 #define TEST_ILLEGAL_VT_REGID( testnum, nxreg, nfreg, inst, reg1, reg2, reg3) \
-  csrs status, SR_EI; \
   la a0, handler ## testnum; \
-  csrw evec, a0; \
+  csrw stvec, a0; \
   vsetcfg nxreg, nfreg; \
   li a0, 4; \
   vsetvl a0, a0; \

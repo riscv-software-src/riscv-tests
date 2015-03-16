@@ -10,24 +10,18 @@
 #include "riscv_test.h"
 #include "test_macros.h"
 
-RVTEST_RV64S
+RVTEST_RV64SV
 RVTEST_CODE_BEGIN
 
-  li a0, SR_EA | SR_EI
-  csrs status, a0
-
   la a3,handler
-  csrw evec,a3 # set exception handler
+  csrw stvec,a3 # set exception handler
 
-  csrr a3,status
-  li a4,(1 << IRQ_COP)
-  slli a4,a4,SR_IM_SHIFT
-  or a3,a3,a4 # enable IM[COP]
-  csrw status,a3
-
-  la a0, SR_U64
-  csrs status, a0
-  csrc status, SR_S
+  li a3, SSTATUS_PS
+  csrc sstatus, a3
+  la t0, 1f
+  csrw sepc, t0
+  sret
+1:
 
 privileged_inst:
   vxcptcause a3 # privileged inst

@@ -6,9 +6,9 @@ isa_src_dir := .
 
 include $(isa_src_dir)/rv64ui/Makefrag
 include $(isa_src_dir)/rv64uf/Makefrag
-#include $(isa_src_dir)/rv64uv/Makefrag
+include $(isa_src_dir)/rv64uv/Makefrag
 include $(isa_src_dir)/rv64si/Makefrag
-#include $(isa_src_dir)/rv64sv/Makefrag
+include $(isa_src_dir)/rv64sv/Makefrag
 include $(isa_src_dir)/rv32ui/Makefrag
 include $(isa_src_dir)/rv32si/Makefrag
 
@@ -45,7 +45,7 @@ $$($(1)_p_tests): $(1)-p-%: $(1)/%.S
 $(1)_tests += $$($(1)_p_tests)
 
 $$($(1)_pt_tests): $(1)-pt-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(isa_src_dir)/../env/pt -I$(isa_src_dir)/macros/scalar -T$(isa_src_dir)/../env/p/link.ld $$< -o $$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(isa_src_dir)/../env/pt -I$(isa_src_dir)/macros/scalar -T$(isa_src_dir)/../env/pt/link.ld $$< -o $$@
 $(1)_tests += $$($(1)_pt_tests)
 
 $$($(1)_pm_tests): $(1)-pm-%: $(1)/%.S

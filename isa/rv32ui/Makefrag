@@ -3,7 +3,7 @@
 #-----------------------------------------------------------------------
 
 rv32ui_sc_tests = \
-   simple \
+	simple \
 	add addi \
 	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoswap_w \
 	and andi \
@@ -29,6 +29,7 @@ rv32ui_mc_tests = \
 	lrsc
 
 rv32ui_p_tests = $(addprefix rv32ui-p-, $(rv32ui_sc_tests))
+rv32ui_pt_tests = $(addprefix rv32ui-pt-, $(rv32ui_sc_tests))
 rv32ui_pm_tests = $(addprefix rv32ui-pm-, $(rv32ui_mc_tests))
 
-spike_tests += $(rv32ui_p_tests) $(rv32ui_pm_tests)
+spike_tests += $(rv32ui_p_tests) $(rv32ui_pt_tests) $(rv32ui_pm_tests)
