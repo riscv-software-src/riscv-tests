@@ -55,6 +55,8 @@ void thread_entry(int cid, int nc)
     }
   }
 
+  asm volatile("fence");
+
   printf("C%d: reg block %dx%dx%d, cache block %dx%dx%d\n",
          cid, RBM, RBN, RBK, CBM, CBN, CBK);
   printf("C%d: %d instructions\n", cid, (int)(instret));
