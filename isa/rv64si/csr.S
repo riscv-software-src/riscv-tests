@@ -78,7 +78,7 @@ privileged:
 syscall:
   # Make sure CAUSE indicates a syscall.
   csrr t0, scause
-  li t1, CAUSE_SCALL
+  li t1, CAUSE_ECALL
   bne t0, t1, fail
 
   # We're done.

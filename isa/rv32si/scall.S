@@ -25,7 +25,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
 stvec:
-  li t1, CAUSE_SCALL
+  li t1, CAUSE_ECALL
   csrr t0, scause
   bne t0, t1, fail
   csrr t0, sepc

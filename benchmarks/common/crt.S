@@ -135,7 +135,7 @@ _start:
 
   la t0, _init
   csrw mepc, t0
-  mret
+  eret
 
 trap_entry:
   addi sp, sp, -272
@@ -211,7 +211,7 @@ trap_entry:
   LREG x31, 248(sp)
 
   addi sp, sp, 272
-  mret
+  eret
 
 .section ".tdata.begin"
 .globl _tdata_begin

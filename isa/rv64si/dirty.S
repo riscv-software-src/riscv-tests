@@ -23,7 +23,7 @@ RVTEST_CODE_BEGIN
   csrs mstatus, a1
   la a1, 1f
   csrw mepc, a1
-  mret
+  eret
 1:
 
   # Try a faulting store to make sure dirty bit is not set
