@@ -121,7 +121,7 @@
         .align  6;                                                      \
 tvec_user:                                                              \
         EXTRA_TVEC_USER;                                                \
-        la t5, hcall;                                                   \
+        la t5, ecall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
         li t5, 0xbadbad0;                                               \
@@ -145,7 +145,7 @@ tvec_hypervisor:                                                        \
 tvec_machine:                                                           \
         EXTRA_TVEC_MACHINE;                                             \
         .weak mtvec;                                                    \
-        la t5, hcall;                                                   \
+        la t5, ecall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
         la t5, mtvec;                                                   \
@@ -163,7 +163,7 @@ _start:                                                                 \
         la t0, 1f;                                                      \
         csrw mepc, t0;                                                  \
         csrr a0, hartid;                                                \
-        mret;                                                           \
+        eret;                                                           \
 1:
 
 //-----------------------------------------------------------------------
@@ -171,8 +171,8 @@ _start:                                                                 \
 //-----------------------------------------------------------------------
 
 #define RVTEST_CODE_END                                                 \
-hcall:  hcall;                                                          \
-        j hcall
+ecall:  ecall;                                                          \
+        j ecall
 
 //-----------------------------------------------------------------------
 // Pass/Fail Macro
@@ -181,7 +181,7 @@ hcall:  hcall;                                                          \
 #define RVTEST_PASS                                                     \
         fence;                                                          \
         li TESTNUM, 1;                                                  \
-        j hcall
+        j ecall
 
 #define TESTNUM x28
 #define RVTEST_FAIL                                                     \
@@ -189,7 +189,7 @@ hcall:  hcall;                                                          \
 1:      beqz TESTNUM, 1b;                                               \
         sll TESTNUM, TESTNUM, 1;                                        \
         or TESTNUM, TESTNUM, 1;                                         \
-        j hcall
+        j ecall
 
 //-----------------------------------------------------------------------
 // Data Section Macro

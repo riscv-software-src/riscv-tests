@@ -46,7 +46,7 @@ _skip_vector_restore:                                                   \
         addi a0, a0, TIMER_INTERVAL;                                    \
         csrw stimecmp, a0;                                              \
         csrr a0, mscratch;                                              \
-        mret;                                                           \
+        eret;                                                           \
 
 #ifdef __riscv64
 

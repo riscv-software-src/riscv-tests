@@ -73,7 +73,7 @@ pop_tf:
   LOAD  x30,30*REGBYTES(a0)
   LOAD  x31,31*REGBYTES(a0)
   LOAD  a0,10*REGBYTES(a0)
-  mret
+  eret
 
   .global  trap_entry
 trap_entry:

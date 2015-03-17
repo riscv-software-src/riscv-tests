@@ -160,7 +160,7 @@ static void restore_vector(trapframe_t* tf)
 
 void handle_trap(trapframe_t* tf)
 {
-  if (tf->cause == CAUSE_SCALL)
+  if (tf->cause == CAUSE_ECALL)
   {
     int n = tf->gpr[10];
 
