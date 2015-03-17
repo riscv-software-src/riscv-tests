@@ -44,12 +44,12 @@ handler:
   li TESTNUM,2
 
   # check cause
-  vxcptcause a3
+  csrr a3, scause
   li a4,HWACHA_CAUSE_VF_ILLEGAL_INSTRUCTION
   bne a3,a4,fail
 
   # check badvaddr
-  vxcptaux a3
+  csrr a3, sbadaddr
   la a4,illegal
   bne a3,a4,fail
 

@@ -30,12 +30,12 @@ handler:
   li TESTNUM,2
 
   # check cause
-  vxcptcause a3
+  csrr a3, scause
   li a4,HWACHA_CAUSE_ILLEGAL_CFG
   bne a3,a4,fail
 
   # check vec irq aux
-  vxcptaux a3
+  csrr a3, sbadaddr
   li a4, 1
   bne a3,a4,fail
 

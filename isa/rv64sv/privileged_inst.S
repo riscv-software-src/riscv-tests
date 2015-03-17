@@ -36,12 +36,12 @@ handler:
   li TESTNUM,2
 
   # check cause
-  vxcptcause a3
+  csrr a3, scause
   li a4,HWACHA_CAUSE_PRIVILEGED_INSTRUCTION
   bne a3,a4,fail
 
   # check vec irq aux
-  vxcptaux a3
+  csrr a3, sbadaddr
   la a4, privileged_inst
   lw a5, 0(a4)
   bne a3,a5,fail

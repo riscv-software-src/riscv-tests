@@ -36,12 +36,12 @@ handler:
   li TESTNUM,2
 
   # check cause
-  vxcptcause a3
+  csrr a3, scause
   li a4,HWACHA_CAUSE_ILLEGAL_INSTRUCTION
   bne a3,a4,fail
 
   # check vec irq aux
-  vxcptaux a3
+  csrr a3, sbadaddr
   li a4, 0xff00002b
   bne a3,a4,fail
 

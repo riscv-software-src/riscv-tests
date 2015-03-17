@@ -596,10 +596,10 @@ vtcode2 ## testnum: \
 handler ## testnum: \
   vxcptkill; \
   li TESTNUM,2; \
-  vxcptcause a0; \
+  csrr a0, scause; \
   li a1,HWACHA_CAUSE_TVEC_ILLEGAL_REGID; \
   bne a0,a1,fail; \
-  vxcptaux a0; \
+  csrr a0, sbadaddr; \
   la a1, illegal ## testnum; \
   lw a2, 0(a1); \
   bne a0, a2, fail; \
@@ -655,10 +655,10 @@ vtcode2 ## testnum: \
 handler ## testnum: \
   vxcptkill; \
   li TESTNUM,2; \
-  vxcptcause a0; \
+  csrr a0, scause; \
   li a1,HWACHA_CAUSE_VF_ILLEGAL_REGID; \
   bne a0,a1,fail; \
-  vxcptaux a0; \
+  csrr a0, sbadaddr; \
   la a1,illegal ## testnum; \
   bne a0,a1,fail; \
   vsetcfg 32,0; \
