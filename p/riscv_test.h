@@ -130,12 +130,22 @@ tvec_user:                                                              \
         ori TESTNUM, TESTNUM, 1337; /* some other exception occurred */ \
         write_tohost: csrw tohost, TESTNUM;                             \
         j write_tohost;                                                 \
-        2: mrts;                                                        \
+        2: j mrts_routine;                                              \
         .align  6;                                                      \
 tvec_supervisor:                                                        \
         EXTRA_TVEC_SUPERVISOR;                                          \
         csrr t5, mcause;                                                \
         bgez t5, tvec_user;                                             \
+  mrts_routine:                                                         \
+        li t5, MSTATUS_XS;                                              \
+        csrr t6, mstatus;                                               \
+        and t5, t5, t6;                                                 \
+        beqz t5, skip_vector_cause_aux;                                 \
+        vxcptcause t5;                                                  \
+        csrw mcause, t5;                                                \
+        vxcptaux t5;                                                    \
+        csrw mbadaddr, t5;                                              \
+  skip_vector_cause_aux:                                                \
         mrts;                                                           \
         .align  6;                                                      \
 tvec_hypervisor:                                                        \
