@@ -119,18 +119,22 @@
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
         .align  6;                                                      \
+        .weak stvec_handler;                                            \
+        .weak mtvec_handler;                                            \
 tvec_user:                                                              \
         EXTRA_TVEC_USER;                                                \
+        /* test whether the test came from pass/fail */                 \
         la t5, ecall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
-        li t5, 0xbadbad0;                                               \
-        csrr t6, stvec;                                                 \
-        bne t5, t6, 2f;                                                 \
-        ori TESTNUM, TESTNUM, 1337; /* some other exception occurred */ \
-        write_tohost: csrw tohost, TESTNUM;                             \
-        j write_tohost;                                                 \
-        2: j mrts_routine;                                              \
+        /* test whether the stvec_handler target exists */              \
+        la t5, stvec_handler;                                           \
+        bnez t5, mrts_routine;                                          \
+        /* test whether the mtvec_handler target exists */              \
+        la t5, mtvec_handler;                                           \
+        bnez t5, mtvec_handler;                                         \
+        /* some other exception occurred */                             \
+        j other_exception;                                              \
         .align  6;                                                      \
 tvec_supervisor:                                                        \
         EXTRA_TVEC_SUPERVISOR;                                          \
@@ -151,22 +155,29 @@ tvec_supervisor:                                                        \
 tvec_hypervisor:                                                        \
         EXTRA_TVEC_HYPERVISOR;                                          \
         RVTEST_FAIL; /* no hypervisor */                                \
+        /* renting some space out here */                               \
+  other_exception:                                                      \
+        ori TESTNUM, TESTNUM, 1337; /* some other exception occurred */ \
+  write_tohost:                                                         \
+        csrw tohost, TESTNUM;                                           \
+        j write_tohost;                                                 \
         .align  6;                                                      \
 tvec_machine:                                                           \
         EXTRA_TVEC_MACHINE;                                             \
-        .weak mtvec;                                                    \
         la t5, ecall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
-        la t5, mtvec;                                                   \
+        la t5, mtvec_handler;                                           \
 1:      beqz t5, 1b;                                                    \
-        j mtvec;                                                        \
+        j mtvec_handler;                                                \
         .align  6;                                                      \
         .globl _start;                                                  \
 _start:                                                                 \
         RISCV_MULTICORE_DISABLE;                                        \
-        li t0, 0xbadbad0;                                               \
+        la t0, stvec_handler;                                           \
+        beqz t0, skip_set_stvec;                                        \
         csrw stvec, t0;                                                 \
+  skip_set_stvec:                                                       \
         li t0, MSTATUS_PRV1 | MSTATUS_PRV2 | MSTATUS_IE1 | MSTATUS_IE2; \
         csrc mstatus, t0;                                               \
         init;                                                           \
