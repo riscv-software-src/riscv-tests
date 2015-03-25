@@ -19,7 +19,7 @@ RVTEST_CODE_BEGIN
   la a1, page_table_1
   csrw sptbr, a1
   sfence.vm
-  li a1, (MSTATUS_VM & ~(MSTATUS_VM<<1)) * VM_SV43
+  li a1, ((MSTATUS_VM & ~(MSTATUS_VM<<1)) * VM_SV43) | ((MSTATUS_PRV1 & ~(MSTATUS_PRV1<<1)) * PRV_S)
   csrs mstatus, a1
   la a1, 1f
   csrw mepc, a1
