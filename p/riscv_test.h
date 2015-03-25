@@ -165,8 +165,10 @@ tvec_machine:                                                           \
         .globl _start;                                                  \
 _start:                                                                 \
         RISCV_MULTICORE_DISABLE;                                        \
-        li t0, 0xbadbad0; csrw stvec, t0;                               \
-        li t0, MSTATUS_PRV1; csrc mstatus, t0;                          \
+        li t0, 0xbadbad0;                                               \
+        csrw stvec, t0;                                                 \
+        li t0, MSTATUS_PRV1 | MSTATUS_PRV2 | MSTATUS_IE1 | MSTATUS_IE2; \
+        csrc mstatus, t0;                                               \
         init;                                                           \
         EXTRA_INIT;                                                     \
         EXTRA_INIT_TIMER;                                               \
