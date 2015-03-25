@@ -37,7 +37,7 @@ RVTEST_CODE_BEGIN
   csrw send_ipi, a0
   1: j 1b
 
-mtvec:
+mtvec_handler:
   csrr a0, hartid
   bnez a0, 2f
   RVTEST_PASS

@@ -14,8 +14,6 @@ RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
   # Turn on VM with superpage identity mapping
-  la a1, handler
-  csrw stvec, a1
   la a1, page_table_1
   csrw sptbr, a1
   sfence.vm
@@ -50,7 +48,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-handler:
+stvec_handler:
   csrr t0, scause
   li t1, 2
   bne TESTNUM, t1, 1f

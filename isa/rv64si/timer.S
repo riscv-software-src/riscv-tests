@@ -1,10 +1,10 @@
 # See LICENSE for license details.
 
 #*****************************************************************************
-# ipi.S
+# timer.S
 #-----------------------------------------------------------------------------
 #
-# Test interprocessor interrupts.
+# Test timer interrupts.
 #
 
 #include "riscv_test.h"
@@ -13,15 +13,34 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  # clear pending IPIs then enable interrupts
+#ifdef __MACHINE_MODE
+  #define sscratch mscratch
+  #define sstatus mstatus
+  #define scause mcause
+  #define sepc mepc
+  #define stvec_handler mtvec_handler
+  #undef SSTATUS_PS
+  #define SSTATUS_PS MSTATUS_PRV1
+  #undef SSTATUS_IE
+  #define SSTATUS_IE MSTATUS_IE
+  #undef SSTATUS_TIE
+  #define SSTATUS_TIE MSTATUS_STIE
+#endif
+
   li s8, 0         # number of taken timer interrupts
   li s9, 10        # how many interrupts to run for
-  la a0, handler
-  csrw stvec, a0
   csrw stimecmp, 1
   csrw stime, 0
   li a0, SSTATUS_IE | SSTATUS_TIE
   csrs sstatus, a0
+
+  # jump to user land
+  li t0, SSTATUS_PS
+  csrc sstatus, t0
+  la t0, 1f
+  csrw sepc, t0
+  sret
+  1:
 
   # advance an LFSR 1000 times
   li s0, 1023
@@ -35,8 +54,6 @@ RVTEST_CODE_BEGIN
   and s0, s0, 0x3FF
   add s4, s4, 1
   bltu s8, s9, 1b
-
-  csrc sstatus, SSTATUS_IE
 
   # make sure the LFSR was computed correctly
   li s1, 1023
@@ -52,7 +69,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-handler:
+stvec_handler:
   li TESTNUM, 3
   csrr t0, scause
   bgez t0, fail
@@ -66,7 +83,13 @@ handler:
   csrw stimecmp, t0
 
   add s8, s8, 1
+  bltu s8, s9, stvec_return
 
+  li t0, SSTATUS_PS
+  csrs sstatus, t0
+  csrc sstatus, SSTATUS_IE
+
+stvec_return:
   sret
 
 .data

@@ -13,9 +13,16 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  # Set up stvec in case we trap.
-  la t0, stvec
-  csrw stvec, t0
+#ifdef __MACHINE_MODE
+  #define sscratch mscratch
+  #define sstatus mstatus
+  #define scause mcause
+  #define sepc mepc
+  #define stvec_handler mtvec_handler
+  #undef SSTATUS_PS
+  #define SSTATUS_PS MSTATUS_PRV1
+#endif
+
   csrwi scycle, 0
 
   csrwi sscratch, 3
@@ -31,7 +38,7 @@ RVTEST_CODE_BEGIN
   # Make sure writing the cycle counter causes an exception.
   TEST_CASE(10, a0, 255, li a0, 255; csrrw a0, cycle, x0);
 
-  # Enter user mode
+  # jump to user land
   li t0, SSTATUS_PS
   csrc sstatus, t0
   la t0, 1f
@@ -51,7 +58,7 @@ RVTEST_CODE_BEGIN
   # We should only fall through to this if scall failed.
   TEST_PASSFAIL
 
-stvec:
+stvec_handler:
   # Trapping on tests 10, 11, and 13 is usually good news.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.
   li t0, 9
@@ -65,7 +72,7 @@ stvec:
   j fail
 
 privileged:
-  # Make sure CAUSE indicates a lack of privilege.
+  # Make sure scause indicates a lack of privilege.
   csrr t0, scause
   li t1, CAUSE_ILLEGAL_INSTRUCTION
   bne t0, t1, fail
@@ -76,7 +83,7 @@ privileged:
   sret
 
 syscall:
-  # Make sure CAUSE indicates a syscall.
+  # Make sure scause indicates a syscall.
   csrr t0, scause
   li t1, CAUSE_ECALL
   bne t0, t1, fail

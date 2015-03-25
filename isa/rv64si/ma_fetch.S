@@ -13,8 +13,13 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  la t0, stvec
-  csrw stvec, t0
+#ifdef __MACHINE_MODE
+  #define sscratch mscratch
+  #define sstatus mstatus
+  #define scause mcause
+  #define sepc mepc
+  #define stvec_handler mtvec_handler
+#endif
 
 #ifndef __rvc
   li TESTNUM, 2
@@ -47,7 +52,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-stvec:
+stvec_handler:
   # tests 2 and 4 should trap
   li a0, 2
   beq TESTNUM, a0, 1f

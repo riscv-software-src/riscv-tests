@@ -13,8 +13,13 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  la t0, stvec
-  csrw stvec, t0
+#ifdef __MACHINE_MODE
+  #define sscratch mscratch
+  #define sstatus mstatus
+  #define scause mcause
+  #define sepc mepc
+  #define stvec_handler mtvec_handler
+#endif
 
   li TESTNUM, 2
   .word 0
@@ -24,7 +29,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-stvec:
+stvec_handler:
   li t1, CAUSE_ILLEGAL_INSTRUCTION
   csrr t0, scause
   bne t0, t1, fail

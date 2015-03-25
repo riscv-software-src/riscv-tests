@@ -21,6 +21,10 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
+# the handler gets rewritten for every test, but need this for the framework
+stvec_handler:
+  j fail
+
 RVTEST_CODE_END
 
   .data

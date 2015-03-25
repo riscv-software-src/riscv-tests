@@ -1,8 +1,8 @@
 #=======================================================================
-# Makefrag for rv64si tests
+# Makefrag for rv32mi tests
 #-----------------------------------------------------------------------
 
-rv64si_sc_tests = \
+rv32mi_sc_tests = \
 	csr \
 	illegal \
 	ma_fetch \
@@ -11,6 +11,8 @@ rv64si_sc_tests = \
 	sbreak \
 	timer \
 
-rv64si_p_tests = $(addprefix rv64si-p-, $(rv64si_sc_tests))
+rv32mi_mc_tests = \
+	ipi \
 
-spike_tests += $(rv64si_p_tests)
+rv32mi_p_tests = $(addprefix rv32mi-p-, $(rv32mi_sc_tests))
+rv32mi_pm_tests = $(addprefix rv32mi-pm-, $(rv32mi_mc_tests))

@@ -13,10 +13,18 @@
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
 
-  la s0, stvec_load
+#ifdef __MACHINE_MODE
+  #define sscratch mscratch
+  #define sstatus mstatus
+  #define scause mcause
+  #define sepc mepc
+  #define stvec_handler mtvec_handler
+#endif
 
-  la t0, stvec_load
-  csrw stvec, t0
+  la s0, stvec_handler
+
+  # indicate it's a load test
+  li s1, 0
 
 #define MISALIGNED_LDST_TEST(testnum, insn, base, offset) \
   li TESTNUM, testnum; \
@@ -43,8 +51,8 @@ RVTEST_CODE_BEGIN
   MISALIGNED_LDST_TEST(16, ld, s0, 7)
 #endif
 
-  la t0, stvec_store
-  csrw stvec, t0
+  # indicate it's a store test
+  li s1, 1
 
   MISALIGNED_LDST_TEST(22,  sh,  s0, 1)
   MISALIGNED_LDST_TEST(23,  sw,  s0, 1)
@@ -64,7 +72,10 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 3
-stvec_load:
+stvec_handler:
+  bnez s1, test_store
+
+test_load:
   li t1, CAUSE_MISALIGNED_LOAD
   csrr t0, scause
   bne t0, t1, fail
@@ -73,7 +84,7 @@ stvec_load:
   csrw sepc, t0
   sret
 
-stvec_store:
+test_store:
   li t1, CAUSE_MISALIGNED_STORE
   csrr t0, scause
   bne t0, t1, fail
