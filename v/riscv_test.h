@@ -78,7 +78,7 @@ userstart:                                                              \
 #define MAX_TEST_PAGES 63 // this must be the period of the LFSR below
 #define LFSR_NEXT(x) (((((x)^((x)>>1)) & 1) << 5) | ((x) >> 1))
 
-#define PGSHIFT 13
+#define PGSHIFT 12
 #define PGSIZE (1 << PGSHIFT)
 
 #define SIZEOF_TRAPFRAME_T 20776

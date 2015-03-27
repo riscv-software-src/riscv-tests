@@ -95,7 +95,7 @@ void handle_fault(unsigned long addr)
   if (freelist_head == freelist_tail)
     freelist_tail = 0;
 
-  l3pt[addr/PGSIZE] = node->addr | PTE_UW | PTE_UR | PTE_UX | PTE_SW | PTE_SR | PTE_SX | PTE_V;
+  l3pt[addr/PGSIZE] = (node->addr >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE | PTE_PERM;
   asm volatile ("sfence.vm");
 
   assert(user_mapping[addr/PGSIZE].addr == 0);
@@ -213,8 +213,8 @@ void vm_boot(long test_addr, long seed)
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  l1pt[0] = (pte_t)l2pt | PTE_V | PTE_T;
-  l2pt[0] = (pte_t)l3pt | PTE_V | PTE_T;
+  l1pt[0] = ((pte_t)l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE_TABLE;
+  l2pt[0] = ((pte_t)l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE_TABLE;
   write_csr(sptbr, l1pt);
   set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
   clear_csr(mstatus, MSTATUS_VM | MSTATUS_UA | MSTATUS_PRV1);
