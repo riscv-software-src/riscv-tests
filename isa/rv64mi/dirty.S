@@ -73,10 +73,10 @@ die:
   RVTEST_FAIL
 
 .data
-.align 13
-page_table_1: .dword PTE_V | PTE_SX | PTE_SR
+.align 12
+page_table_1: .dword PTE_TYPE_US_SRX
 dummy: .dword 0
-.align 13
-page_table_2: .dword PTE_V | PTE_SX | PTE_SR | PTE_SW
+.align 12
+page_table_2: .dword PTE_TYPE_US_SRWX
 
 RVTEST_CODE_END
