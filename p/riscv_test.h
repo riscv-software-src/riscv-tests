@@ -90,11 +90,8 @@
 #define RVTEST_FP_ENABLE                                                \
   li a0, SSTATUS_FS & (SSTATUS_FS >> 1);                                \
   csrs sstatus, a0;                                                     \
-  csrr a1, sstatus;                                                     \
-  and a0, a0, a1;                                                       \
-  bnez a0, 2f;                                                          \
-  RVTEST_PASS;                                                          \
-2:fssr x0;                                                              \
+test_fpu_presence:                                                      \
+  fssr x0;                                                              \
 
 #define RVTEST_VEC_ENABLE                                               \
   li a0, SSTATUS_XS & (SSTATUS_XS >> 1);                                \
@@ -121,6 +118,7 @@
         .align  6;                                                      \
         .weak stvec_handler;                                            \
         .weak mtvec_handler;                                            \
+        .weak test_fpu_presence;                                        \
 tvec_user:                                                              \
         EXTRA_TVEC_USER;                                                \
         /* test whether the test came from pass/fail */                 \
@@ -154,10 +152,14 @@ tvec_supervisor:                                                        \
         .align  6;                                                      \
 tvec_hypervisor:                                                        \
         EXTRA_TVEC_HYPERVISOR;                                          \
-        RVTEST_FAIL; /* no hypervisor */                                \
         /* renting some space out here */                               \
   other_exception:                                                      \
-        ori TESTNUM, TESTNUM, 1337; /* some other exception occurred */ \
+        csrr t6, mepc;                                                  \
+        la t5, test_fpu_presence;                                       \
+        beqz t5, 1f;                                                    \
+        bne t5, t6, 1f;                                                 \
+        RVTEST_PASS;                                                    \
+  1:    ori TESTNUM, TESTNUM, 1337; /* some other exception occurred */ \
   write_tohost:                                                         \
         csrw tohost, TESTNUM;                                           \
         j write_tohost;                                                 \
@@ -168,8 +170,8 @@ tvec_machine:                                                           \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
         la t5, mtvec_handler;                                           \
-1:      beqz t5, 1b;                                                    \
-        j mtvec_handler;                                                \
+        bnez t5, mtvec_handler;                                         \
+        j other_exception;                                              \
         .align  6;                                                      \
         .globl _start;                                                  \
 _start:                                                                 \
