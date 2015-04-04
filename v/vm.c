@@ -218,7 +218,7 @@ void vm_boot(long test_addr, long seed)
   write_csr(sptbr, l1pt);
   set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
   clear_csr(mstatus, MSTATUS_VM | MSTATUS_UA | MSTATUS_PRV1);
-  set_csr(mstatus, (long)VM_SV43 << __builtin_ctzl(MSTATUS_VM));
+  set_csr(mstatus, (long)VM_SV39 << __builtin_ctzl(MSTATUS_VM));
   set_csr(mstatus, (long)UA_RV64 << __builtin_ctzl(MSTATUS_UA));
 
   seed = 1 + (seed % MAX_TEST_PAGES);
