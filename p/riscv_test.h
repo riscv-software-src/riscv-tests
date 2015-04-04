@@ -72,12 +72,21 @@
   .endm
 
 #define RVTEST_32_ENABLE                                                \
-  li a0, MSTATUS64_UA >> 31;                                            \
+  li a0, (MSTATUS64_UA | MSTATUS64_SA) >> 31;                           \
   slli a0, a0, 31;                                                      \
-  csrc mstatus, a0;                                                     \
-  li a0, MSTATUS64_SA >> 31;                                            \
-  slli a0, a0, 31;                                                      \
-  csrc mstatus, a0;                                                     \
+  csrc mstatus, a0
+
+#ifdef __riscv64
+# define RVTEST_64_ENABLE                                               \
+  RVTEST_32_ENABLE;                                                     \
+  li a0, UA_RV64 * (MSTATUS64_UA & ~(MSTATUS64_UA<<1));                 \
+  csrs mstatus, a0;                                                     \
+  li a0, UA_RV64 * (MSTATUS64_SA & ~(MSTATUS64_SA<<1));                 \
+  csrs mstatus, a0
+#else
+# define RVTEST_64_ENABLE
+#endif
+
 
 #define RVTEST_ENABLE_SUPERVISOR                                        \
   li a0, MSTATUS_PRV1 & (MSTATUS_PRV1 >> 1);                            \
@@ -176,6 +185,7 @@ tvec_machine:                                                           \
         .globl _start;                                                  \
 _start:                                                                 \
         RISCV_MULTICORE_DISABLE;                                        \
+        RVTEST_64_ENABLE;                                               \
         la t0, stvec_handler;                                           \
         beqz t0, skip_set_stvec;                                        \
         csrw stvec, t0;                                                 \
