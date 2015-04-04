@@ -40,6 +40,9 @@ vpath %.S $(isa_src_dir)
 %.out: %
 	$(RISCV_SIM) $< 2> $@
 
+%.out32: %
+	$(RISCV_SIM) --isa=RV32 $< 2> $@
+
 define compile_template
 
 $$($(1)_p_tests): $(1)-p-%: $(1)/%.S
@@ -94,12 +97,13 @@ $(eval $(call compile_template,rv64mi))
 tests_dump = $(addsuffix .dump, $(tests))
 tests_hex = $(addsuffix .hex, $(tests))
 tests_out = $(addsuffix .out, $(spike_tests))
+tests32_out = $(addsuffix .out32, $(spike32_tests))
 
-run: $(tests_out)
+run: $(tests_out) $(tests32_out)
 	echo; perl -ne 'print "  [$$1] $$ARGV \t$$2\n" if /\*{3}(.{8})\*{3}(.*)/' \
-	       $(tests_out); echo;
+	       $(tests_out) $(tests32_out); echo;
 
-junk += $(tests) $(tests_dump) $(tests_hex) $(tests_out)
+junk += $(tests) $(tests_dump) $(tests_hex) $(tests_out) $(tests32_out)
 
 #------------------------------------------------------------
 # Default

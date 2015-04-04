@@ -13,7 +13,7 @@
 RVTEST_RV32S
 RVTEST_CODE_BEGIN
 
-  la t0, stvec
+  la t0, stvec_handler
   csrw stvec, t0
 
   # Make sure slli with shamt[4] set is legal.
@@ -24,7 +24,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-stvec:
+stvec_handler:
   # Trapping on test 3 is good.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.
   li t0, 2
