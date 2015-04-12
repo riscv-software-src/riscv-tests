@@ -28,6 +28,12 @@ RVTEST_CODE_BEGIN
   TEST_RR_OP(30,  mulhu, 0x0001fefe, 0xaaaaaaab, 0x0002fe7d );
   TEST_RR_OP(31,  mulhu, 0x0001fefe, 0x0002fe7d, 0xaaaaaaab );
 
+  TEST_RR_OP(32,  mulhu, 0xfe010000, 0xff000000, 0xff000000 );
+
+  TEST_RR_OP(33,  mulhu, 0xfffffffe, 0xffffffff, 0xffffffff );
+  TEST_RR_OP(34,  mulhu, 0x00000000, 0xffffffff, 0x00000001 );
+  TEST_RR_OP(35,  mulhu, 0x00000000, 0x00000001, 0xffffffff );
+
   #-------------------------------------------------------------
   # Source/Destination tests
   #-------------------------------------------------------------
