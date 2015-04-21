@@ -60,7 +60,7 @@ static int handle_stats(int enable)
   return 0;
 }
 
-static void tohost_exit(int code)
+void tohost_exit(long code)
 {
   write_csr(tohost, (code << 1) | 1);
   while (1);

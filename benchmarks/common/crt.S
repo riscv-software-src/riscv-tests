@@ -67,8 +67,23 @@ _start:
   li t0, MSTATUS_FS;   csrs mstatus, t0    # enable FPU
   li t0, MSTATUS_XS;   csrs mstatus, t0    # enable accelerator
 
-#ifndef __riscv64
-  li t0, MSTATUS_UA;   csrc mstatus, t0    # disable RV64 for user mode
+  li t0, ((MSTATUS64_UA & ~(MSTATUS64_UA << 1)) * UA_RV64) >> 31
+  sll t0, t0, 31
+  li t1, ((MSTATUS64_SA & ~(MSTATUS64_SA << 1)) * UA_RV64) >> 31
+  sll t1, t1, 31
+#ifdef __riscv64
+  # make sure processor supports RV64 if this was compiled for RV64
+  bnez t0, 1f
+  li a0, 1234
+  j tohost_exit
+1:
+  # enable RV64 for user and supervisor
+  csrs mstatus, t0
+  csrs mstatus, t1
+#else
+  # disable RV64 for user and supervisor
+  csrc mstatus, t0
+  csrc mstatus, t1
 #endif
 
   csrr t0, mstatus
