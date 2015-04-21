@@ -55,7 +55,7 @@ RISCV_GCC = $(RISCV_PREFIX)gcc
 RISCV_GCC_OPTS = -static -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math
 RISCV_LINK = $(RISCV_GCC) -T $(bmarkdir)/common/test.ld $(incs)
 RISCV_LINK_MT = $(RISCV_GCC) -T $(bmarkdir)/common/test-mt.ld
-RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc
+RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc -lgcc
 RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike
 
