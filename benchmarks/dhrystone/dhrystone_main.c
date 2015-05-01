@@ -42,10 +42,7 @@
 #if HOST_DEBUG
 # define debug_printf printf
 #else
-void debug_printf(const char* str, ...)
-{
-  return 0;
-}
+void debug_printf(const char* str, ...);
 #endif
 
 #include "util.h"
@@ -161,8 +158,8 @@ int main (int argc, char** argv)
     /* Start timer */
     /***************/
 
-    Start_Timer();
     setStats(1);
+    Start_Timer();
 
     for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
     {
@@ -214,8 +211,8 @@ int main (int argc, char** argv)
     /* Stop timer */
     /**************/
 
-    setStats(0);
     Stop_Timer();
+    setStats(0);
 
     User_Time = End_Time - Begin_Time;
 

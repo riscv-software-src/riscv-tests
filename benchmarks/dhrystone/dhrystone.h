@@ -381,7 +381,7 @@ extern clock_t	clock();
 
 #elif defined(__riscv)
 
-#define HZ 976563
+#define HZ 1000000
 #define Too_Small_Time 1
 #define CLOCK_TYPE "rdcycle()"
 #define Start_Timer() Begin_Time = rdcycle()
