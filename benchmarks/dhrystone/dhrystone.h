@@ -382,10 +382,10 @@ extern clock_t	clock();
 #elif defined(__riscv)
 
 #define HZ 976563
-#define Too_Small_Time 50
+#define Too_Small_Time 1
 #define CLOCK_TYPE "rdcycle()"
-#define Start_Timer() Begin_Time = rdcycle()/1024
-#define Stop_Timer() End_Time = rdcycle()/1024
+#define Start_Timer() Begin_Time = rdcycle()
+#define Stop_Timer() End_Time = rdcycle()
 
 #else
                 /* Use times(2) time function unless    */
@@ -473,17 +473,5 @@ typedef struct record
                   } var_3;
           } variant;
       } Rec_Type, *Rec_Pointer;
-
-void Proc_1(Rec_Pointer Ptr_Val_Par);
-void Proc_2(int* Int_Par_Ref);
-void Proc_3(Rec_Pointer* Ptr_Ref_Par);
-void Proc_4();
-void Proc_5();
-void Proc_6(Enumeration Enum_Val_Par, Enumeration* Enum_Ref_Par);
-void Proc_7(int Int_1_Par_Val, int Int_2_Par_Val, int* Int_Par_Ref);
-void Proc_8(Arr_1_Dim Arr_1_Par_Ref, Arr_2_Dim Arr_2_Par_Ref, int Int_1_Par_Val, int Int_2_Par_Val);
-Enumeration Func_1 (char Ch_1_Par_Val, char Ch_2_Par_Val);
-Boolean Func_2(Str_30 Str_1_Par_Ref, Str_30 Str_2_Par_Ref);
-Boolean Func_3(Enumeration Enum_Par_Val);
 
 #endif

@@ -131,6 +131,9 @@ _start:
   fmv.s.x f31,x0
 1:
 
+  # initialize global pointer
+  la gp, _gp
+
   la  tp, _end + 63
   and tp, tp, -64
 

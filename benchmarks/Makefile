@@ -52,7 +52,7 @@ HOST_COMP = gcc $(HOST_OPTS)
 
 RISCV_PREFIX=riscv64-unknown-elf-
 RISCV_GCC = $(RISCV_PREFIX)gcc
-RISCV_GCC_OPTS = -static -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math
+RISCV_GCC_OPTS = -static -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
 RISCV_LINK = $(RISCV_GCC) -T $(bmarkdir)/common/test.ld $(incs)
 RISCV_LINK_MT = $(RISCV_GCC) -T $(bmarkdir)/common/test-mt.ld
 RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc -lgcc
