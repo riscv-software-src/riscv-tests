@@ -11,8 +11,8 @@ void pop_tf(trapframe_t*);
 
 static void cputchar(int x)
 {
-  while (swap_csr(tohost, 0x0101000000000000 | (unsigned char)x));
-  while (swap_csr(fromhost, 0) == 0);
+  while (swap_csr(mtohost, 0x0101000000000000 | (unsigned char)x));
+  while (swap_csr(mfromhost, 0) == 0);
 }
 
 static void cputstring(const char* s)
@@ -23,7 +23,7 @@ static void cputstring(const char* s)
 
 static void terminate(int code)
 {
-  while (swap_csr(tohost, code));
+  while (swap_csr(mtohost, code));
   while (1);
 }
 
@@ -95,7 +95,7 @@ void handle_fault(unsigned long addr)
   if (freelist_head == freelist_tail)
     freelist_tail = 0;
 
-  l3pt[addr/PGSIZE] = (node->addr >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE | PTE_PERM;
+  l3pt[addr/PGSIZE] = (node->addr >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URWX_SRW;
   asm volatile ("sfence.vm");
 
   assert(user_mapping[addr/PGSIZE].addr == 0);
@@ -160,7 +160,7 @@ static void restore_vector(trapframe_t* tf)
 
 void handle_trap(trapframe_t* tf)
 {
-  if (tf->cause == CAUSE_ECALL)
+  if (tf->cause == CAUSE_USER_ECALL)
   {
     int n = tf->gpr[10];
 
@@ -209,17 +209,16 @@ out:
 
 void vm_boot(long test_addr, long seed)
 {
-  while (read_csr(hartid) > 0); // only core 0 proceeds
+  while (read_csr(mhartid) > 0); // only core 0 proceeds
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  l1pt[0] = ((pte_t)l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE_TABLE;
-  l2pt[0] = ((pte_t)l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE_TABLE;
+  l1pt[0] = ((pte_t)l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
+  l2pt[0] = ((pte_t)l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
   write_csr(sptbr, l1pt);
-  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
-  clear_csr(mstatus, MSTATUS_VM | MSTATUS_UA | MSTATUS_PRV1);
+  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS);
+  clear_csr(mstatus, MSTATUS_VM | MSTATUS_PRV1);
   set_csr(mstatus, (long)VM_SV39 << __builtin_ctzl(MSTATUS_VM));
-  set_csr(mstatus, (long)UA_RV64 << __builtin_ctzl(MSTATUS_UA));
 
   seed = 1 + (seed % MAX_TEST_PAGES);
   freelist_head = &freelist_nodes[0];

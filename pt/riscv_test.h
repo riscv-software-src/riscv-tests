@@ -22,9 +22,9 @@ _skip:                                                                  \
 _jump_around_interrupt_handler:                                         \
 
 #define ENABLE_TIMER_INTERRUPT                                          \
-        li a0, MSTATUS_STIE;                                            \
-        csrs mstatus, a0;                                               \
-        csrr a0, scycle;                                                \
+        li a0, MIP_STIP;                                                \
+        csrs mie, a0;                                                   \
+        csrr a0, stime;                                                 \
         addi a0, a0, TIMER_INTERVAL;                                    \
         csrw stimecmp, a0;                                              \
 
@@ -42,7 +42,7 @@ _interrupt_handler:                                                     \
         VECTOR_RESTORE;                                                 \
 _skip_vector_restore:                                                   \
         csrr a1, sscratch;                                              \
-        csrr a0, scycle;                                                \
+        csrr a0, stime;                                                 \
         addi a0, a0, TIMER_INTERVAL;                                    \
         csrw stimecmp, a0;                                              \
         csrr a0, mscratch;                                              \

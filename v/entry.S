@@ -12,7 +12,7 @@
 
 #define STACK_TOP (_end + 131072)
 
-  .text
+  .section ".text.init"
   .align 6
 entry_from_user:
   j trap_entry
