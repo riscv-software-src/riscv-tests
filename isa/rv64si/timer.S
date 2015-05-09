@@ -16,23 +16,28 @@ RVTEST_CODE_BEGIN
 #ifdef __MACHINE_MODE
   #define sscratch mscratch
   #define sstatus mstatus
+  #define sie mie
   #define scause mcause
   #define sepc mepc
   #define stvec_handler mtvec_handler
   #undef SSTATUS_PS
   #define SSTATUS_PS MSTATUS_PRV1
-  #undef SSTATUS_IE
-  #define SSTATUS_IE MSTATUS_IE
-  #undef SSTATUS_TIE
-  #define SSTATUS_TIE MSTATUS_STIE
+  #undef SIP_STIP
+  #define SIP_STIP MIP_STIP
 #endif
+
+#define DELTA_T 999
 
   li s8, 0         # number of taken timer interrupts
   li s9, 10        # how many interrupts to run for
-  csrw stimecmp, 1
-  csrw stime, 0
-  li a0, SSTATUS_IE | SSTATUS_TIE
-  csrs sstatus, a0
+
+  .align 4
+  csrr a0, stime
+  add a0, a0, DELTA_T
+  csrw stimecmp, a0
+  li a0, SIP_STIP
+  csrs sie, a0
+  csrs sstatus, SSTATUS_IE
 
   # jump to user land
   li t0, SSTATUS_PS
@@ -79,7 +84,7 @@ stvec_handler:
   bnez t0, fail
 
   csrr t0, stime
-  addi t0, t0, 999
+  addi t0, t0, DELTA_T
   csrw stimecmp, t0
 
   add s8, s8, 1

@@ -5,6 +5,7 @@
 rv64mi_sc_tests = \
 	dirty \
 	csr \
+	mcsr \
 	illegal \
 	ma_fetch \
 	ma_addr \

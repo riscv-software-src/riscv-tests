@@ -15,6 +15,7 @@ RVTEST_CODE_BEGIN
 
   # enable interrupts
   csrs mstatus, MSTATUS_IE
+  csrs mie, MIP_MSIP
 
   # get a unique core id
   la a0, coreid
@@ -30,7 +31,7 @@ RVTEST_CODE_BEGIN
   bltu a1, a3, 1b
 
   # IPI dominoes
-  csrr a0, hartid
+  csrr a0, mhartid
   1: bnez a0, 1b
   add a0, a0, 1
   rem a0, a0, a3
@@ -38,7 +39,7 @@ RVTEST_CODE_BEGIN
   1: j 1b
 
 mtvec_handler:
-  csrr a0, hartid
+  csrr a0, mhartid
   bnez a0, 2f
   RVTEST_PASS
 

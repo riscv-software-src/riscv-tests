@@ -74,9 +74,9 @@ die:
 
 .data
 .align 12
-page_table_1: .dword PTE_TYPE_US_SRX
+page_table_1: .dword PTE_V | PTE_TYPE_URX_SRX
 dummy: .dword 0
 .align 12
-page_table_2: .dword PTE_TYPE_US_SRWX
+page_table_2: .dword PTE_V | PTE_TYPE_URWX_SRWX
 
 RVTEST_CODE_END

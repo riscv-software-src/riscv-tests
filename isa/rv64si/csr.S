@@ -23,7 +23,7 @@ RVTEST_CODE_BEGIN
   #define SSTATUS_PS MSTATUS_PRV1
 #endif
 
-  csrwi scycle, 0
+  csrwi cyclew, 0
 
   csrwi sscratch, 3
   TEST_CASE( 2, a0,         3, csrr a0, sscratch);
@@ -85,7 +85,7 @@ privileged:
 syscall:
   # Make sure scause indicates a syscall.
   csrr t0, scause
-  li t1, CAUSE_ECALL
+  li t1, CAUSE_USER_ECALL
   bne t0, t1, fail
 
   # We're done.

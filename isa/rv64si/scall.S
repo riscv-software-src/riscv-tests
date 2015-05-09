@@ -19,6 +19,8 @@ RVTEST_CODE_BEGIN
   #define scause mcause
   #define sepc mepc
   #define stvec_handler mtvec_handler
+  #undef CAUSE_SUPERVISOR_ECALL
+  #define CAUSE_SUPERVISOR_ECALL CAUSE_MACHINE_ECALL
 #endif
 
   li TESTNUM, 2
@@ -30,7 +32,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
 stvec_handler:
-  li t1, CAUSE_ECALL
+  li t1, CAUSE_SUPERVISOR_ECALL
   csrr t0, scause
   bne t0, t1, fail
   csrr t0, sepc
