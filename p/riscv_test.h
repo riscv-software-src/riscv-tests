@@ -87,7 +87,7 @@
   andi a0, a0, 1 << ('D' - 'A'); /* test for D extension */             \
   bnez a0, 1f;                                                          \
   RVTEST_PASS; /* "pass" the test if FPU not present */                 \
-1:
+1:csrwi fcsr, 0
 
 #define RVTEST_VEC_ENABLE                                               \
   li a0, SSTATUS_XS & (SSTATUS_XS >> 1);                                \
