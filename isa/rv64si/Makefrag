@@ -8,6 +8,7 @@ rv64si_sc_tests = \
 	ma_fetch \
 	ma_addr \
 	scall \
+	wfi \
 	sbreak \
 	timer \
 
