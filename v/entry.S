@@ -12,22 +12,28 @@
 
 #define STACK_TOP (_end + 131072)
 
-  .section ".text.init"
+  .section ".text.init","ax",@progbits
   .align 6
 entry_from_user:
-  j trap_entry
+  mrts
 
   .align 6
 entry_from_supervisor:
-  j double_fault
+  csrr t0, mcause
+  addi t0, t0, -CAUSE_SUPERVISOR_ECALL
+  beqz t0, handle_tohost
+  j wtf
 
   .align 6
 entry_from_hypervisor:
-  j double_fault
+  j wtf
 
   .align 6
 entry_from_machine:
-  j double_fault
+  csrr t0, mcause
+  addi t0, t0, -CAUSE_MACHINE_ECALL
+  beqz t0, handle_tohost
+  j wtf
 
   .align 6
 power_on_reset:
@@ -39,9 +45,9 @@ power_on_reset:
 
   .globl  pop_tf
 pop_tf:
-  csrc mstatus, MSTATUS_IE
+  csrc sstatus, SSTATUS_IE
   LOAD  t0,33*REGBYTES(a0)
-  csrw  mepc,t0
+  csrw  sepc,t0
   LOAD  x1,1*REGBYTES(a0)
   LOAD  x2,2*REGBYTES(a0)
   LOAD  x3,3*REGBYTES(a0)
@@ -77,7 +83,7 @@ pop_tf:
 
   .global  trap_entry
 trap_entry:
-  csrrw sp, mscratch, sp
+  csrrw sp, sscratch, sp
 
   # save gprs
   STORE  x1,1*REGBYTES(sp)
@@ -111,17 +117,17 @@ trap_entry:
   STORE  x30,30*REGBYTES(sp)
   STORE  x31,31*REGBYTES(sp)
 
-  csrrw  t0,mscratch,sp
+  csrrw  t0,sscratch,sp
   STORE  t0,2*REGBYTES(sp)
 
   # get sr, epc, badvaddr, cause
-  csrr   t0,mstatus
+  csrr   t0,sstatus
   STORE  t0,32*REGBYTES(sp)
-  csrr   t0,mepc
+  csrr   t0,sepc
   STORE  t0,33*REGBYTES(sp)
-  csrr   t0,mbadaddr
+  csrr   t0,sbadaddr
   STORE  t0,34*REGBYTES(sp)
-  csrr   t0,mcause
+  csrr   t0,scause
   STORE  t0,35*REGBYTES(sp)
 
   # get hwacha cause if IRQ_COP
@@ -136,11 +142,11 @@ trap_entry:
   STORE  t0,36*REGBYTES(sp)
 1:
 
-  move  a0,sp
-  csrr  t0,mstatus
-  li    t1, MSTATUS_XS
-  and   t0,t0,t1
-  beqz  t0,2f
+  move  a0, sp
+  csrr  t0, sstatus
+  li    t1, SSTATUS_XS
+  and   t0, t0, t1
+  beqz  t0, 2f
 
   # disable saving vector state for now
   addi  t0,sp,SIZEOF_TRAPFRAME_T_SCALAR
@@ -152,3 +158,25 @@ trap_entry:
   addi  t0,t0,2*REGBYTES
   vxcptevac t0
 2:j handle_trap
+
+  .global do_tohost
+do_tohost:
+  ecall
+  ret
+
+handle_tohost:
+1:csrrw t0, mtohost, a0
+  bnez t0, 1b
+
+1:csrrw t0, mfromhost, x0
+  bnez t0, 1b
+
+  csrr t0, mepc
+  addi t0, t0, 4
+  csrw mepc, t0
+  eret
+
+wtf:
+  li a0, 841
+1:csrw mtohost, a0
+  j 1b

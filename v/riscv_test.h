@@ -79,7 +79,7 @@ userstart:                                                              \
 #define LFSR_NEXT(x) (((((x)^((x)>>1)) & 1) << 5) | ((x) >> 1))
 
 #define PGSHIFT 12
-#define PGSIZE (1 << PGSHIFT)
+#define PGSIZE (1UL << PGSHIFT)
 
 #define SIZEOF_TRAPFRAME_T 20776
 #define SIZEOF_TRAPFRAME_T_SCALAR 296
@@ -139,7 +139,8 @@ typedef unsigned long pte_t;
 #define PTIDXBITS (PGSHIFT - (sizeof(pte_t) == 8 ? 3 : 2))
 #define VPN_BITS (PTIDXBITS * LEVELS)
 #define VA_BITS (VPN_BITS + PGSHIFT)
-#define PTES_PER_PT (PGSIZE/sizeof(pte_t))
+#define PTES_PER_PT (1UL << RISCV_PGLEVEL_BITS)
+#define MEGAPAGE_SIZE (PTES_PER_PT * PGSIZE)
 
 typedef struct
 {

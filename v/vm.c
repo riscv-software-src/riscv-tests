@@ -8,22 +8,24 @@
 
 void trap_entry();
 void pop_tf(trapframe_t*);
+void do_tohost(long tohost_value);
+
+#define pa2kva(pa) ((void*)(pa) - MEGAPAGE_SIZE)
 
 static void cputchar(int x)
 {
-  while (swap_csr(mtohost, 0x0101000000000000 | (unsigned char)x));
-  while (swap_csr(mfromhost, 0) == 0);
+  do_tohost(0x0101000000000000 | (unsigned char)x);
 }
 
 static void cputstring(const char* s)
 {
-  while(*s)
+  while (*s)
     cputchar(*s++);
 }
 
 static void terminate(int code)
 {
-  while (swap_csr(mtohost, code));
+  do_tohost(code);
   while (1);
 }
 
@@ -38,8 +40,10 @@ static void terminate(int code)
 typedef struct { pte_t addr; void* next; } freelist_t;
 
 pte_t l1pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_t l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_t l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+pte_t user_l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+pte_t user_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+pte_t kernel_l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+pte_t kernel_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 freelist_t user_mapping[MAX_TEST_PAGES];
 freelist_t freelist_nodes[MAX_TEST_PAGES];
 freelist_t *freelist_head, *freelist_tail;
@@ -66,10 +70,10 @@ void evict(unsigned long addr)
   if (node->addr)
   {
     // check referenced and dirty bits
-    assert(l3pt[addr/PGSIZE] & PTE_R);
-    if (memcmp((void*)addr, (void*)node->addr, PGSIZE)) {
-      assert(l3pt[addr/PGSIZE] & PTE_D);
-      memcpy((void*)addr, (void*)node->addr, PGSIZE);
+    assert(user_l3pt[addr/PGSIZE] & PTE_R);
+    if (memcmp((void*)addr, pa2kva(addr), PGSIZE)) {
+      assert(user_l3pt[addr/PGSIZE] & PTE_D);
+      memcpy((void*)addr, pa2kva(addr), PGSIZE);
     }
 
     user_mapping[addr/PGSIZE].addr = 0;
@@ -95,12 +99,12 @@ void handle_fault(unsigned long addr)
   if (freelist_head == freelist_tail)
     freelist_tail = 0;
 
-  l3pt[addr/PGSIZE] = (node->addr >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URWX_SRW;
+  user_l3pt[addr/PGSIZE] = (node->addr >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URWX_SRW;
   asm volatile ("sfence.vm");
 
   assert(user_mapping[addr/PGSIZE].addr == 0);
   user_mapping[addr/PGSIZE] = *node;
-  memcpy((void*)node->addr, (void*)addr, PGSIZE);
+  memcpy((void*)addr, pa2kva(addr), PGSIZE);
 
   __builtin___clear_cache(0,0);
 }
@@ -202,7 +206,7 @@ void handle_trap(trapframe_t* tf)
     assert(!"unexpected exception");
 
 out:
-  if (!(tf->sr & MSTATUS_PRV1) && (tf->sr & MSTATUS_XS))
+  if (!(tf->sr & SSTATUS_PS) && (tf->sr & SSTATUS_XS))
     restore_vector(tf);
   pop_tf(tf);
 }
@@ -213,31 +217,43 @@ void vm_boot(long test_addr, long seed)
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  l1pt[0] = ((pte_t)l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
-  l2pt[0] = ((pte_t)l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
+#if MAX_TEST_PAGES > PTES_PER_PT
+# error
+#endif
+  // map kernel to uppermost megapage
+  l1pt[PTES_PER_PT-1] = ((pte_t)kernel_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
+  kernel_l2pt[PTES_PER_PT-1] = ((pte_t)kernel_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
+
+  // map user to lowermost megapage
+  l1pt[0] = ((pte_t)user_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
+  user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
   write_csr(sptbr, l1pt);
+
+  // set up supervisor trap handling
+  write_csr(stvec, pa2kva(trap_entry));
+  write_csr(sscratch, pa2kva(read_csr(mscratch)));
+  // interrupts on; FPU on; accelerator on
   set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS);
+  // virtual memory off; set user mode upon eret
   clear_csr(mstatus, MSTATUS_VM | MSTATUS_PRV1);
+  // virtual memory to Sv39
   set_csr(mstatus, (long)VM_SV39 << __builtin_ctzl(MSTATUS_VM));
 
   seed = 1 + (seed % MAX_TEST_PAGES);
-  freelist_head = &freelist_nodes[0];
-  freelist_tail = &freelist_nodes[MAX_TEST_PAGES-1];
+  freelist_head = pa2kva((void*)&freelist_nodes[0]);
+  freelist_tail = pa2kva(&freelist_nodes[MAX_TEST_PAGES-1]);
   for (long i = 0; i < MAX_TEST_PAGES; i++)
   {
     freelist_nodes[i].addr = (MAX_TEST_PAGES + seed)*PGSIZE;
-    freelist_nodes[i].next = &freelist_nodes[i+1];
+    freelist_nodes[i].next = pa2kva(&freelist_nodes[i+1]);
     seed = LFSR_NEXT(seed);
+
+    kernel_l3pt[i] = (i << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_SRWX;
   }
   freelist_nodes[MAX_TEST_PAGES-1].next = 0;
 
   trapframe_t tf;
   memset(&tf, 0, sizeof(tf));
-  tf.epc = test_addr;
+  write_csr(mepc, test_addr);
   pop_tf(&tf);
-}
-
-void double_fault()
-{
-  assert(!"double fault!");
 }
