@@ -168,8 +168,9 @@ _start:                                                                 \
         RISCV_MULTICORE_DISABLE;                                        \
         CHECK_XLEN;                                                     \
         la t0, stvec_handler;                                           \
+        beqz t0, 1f;                                                    \
         csrw stvec, t0;                                                 \
-        li t0, MSTATUS_PRV1 | MSTATUS_PRV2 | MSTATUS_IE1 | MSTATUS_IE2; \
+1:      li t0, MSTATUS_PRV1 | MSTATUS_PRV2 | MSTATUS_IE1 | MSTATUS_IE2; \
         csrc mstatus, t0;                                               \
         init;                                                           \
         EXTRA_INIT;                                                     \
