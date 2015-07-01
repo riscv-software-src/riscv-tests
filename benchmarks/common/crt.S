@@ -86,6 +86,7 @@ _start:
   and t1, t0, t1
   beqz t1, 1f
 
+#ifdef __riscv_hard_float
   fssr    x0
   fmv.s.x f0, x0
   fmv.s.x f1, x0
@@ -119,6 +120,8 @@ _start:
   fmv.s.x f29,x0
   fmv.s.x f30,x0
   fmv.s.x f31,x0
+#endif
+
 1:
 
   # initialize global pointer
