@@ -66,7 +66,7 @@ void tohost_exit(long code)
   while (1);
 }
 
-long handle_trap(long cause, long epc, long long regs[32])
+long handle_trap(long cause, long epc, long regs[32])
 {
   int* csr_insn;
   asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));
