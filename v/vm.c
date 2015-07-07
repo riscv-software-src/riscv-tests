@@ -12,6 +12,12 @@ void do_tohost(long tohost_value);
 
 #define pa2kva(pa) ((void*)(pa) - MEGAPAGE_SIZE)
 
+static uint64_t lfsr63(uint64_t x)
+{
+  uint64_t bit = (x ^ (x >> 1)) & 1;
+  return (x >> 1) | (bit << 62);
+}
+
 static void cputchar(int x)
 {
   do_tohost(0x0101000000000000 | (unsigned char)x);
@@ -211,9 +217,26 @@ out:
   pop_tf(tf);
 }
 
+static void coherence_torture()
+{
+  // cause coherence misses without affecting program semantics
+  uint64_t random = ENTROPY;
+  while (1) {
+    uintptr_t paddr = (random % (2 * (MAX_TEST_PAGES + 1) * PGSIZE)) & -4;
+#ifdef __riscv_atomic
+    if (random & 1) // perform a no-op write
+      asm volatile ("amoadd.w zero, zero, (%0)" :: "r"(paddr));
+    else // perform a read
+#endif
+      asm volatile ("lw zero, (%0)" :: "r"(paddr));
+    random = lfsr63(random);
+  }
+}
+
 void vm_boot(long test_addr, long seed)
 {
-  while (read_csr(mhartid) > 0); // only core 0 proceeds
+  if (read_csr(mhartid) > 0)
+    coherence_torture();
 
   assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
