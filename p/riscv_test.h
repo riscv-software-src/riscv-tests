@@ -83,20 +83,11 @@
 #define RVTEST_FP_ENABLE                                                \
   li a0, MSTATUS_FS & (MSTATUS_FS >> 1);                                \
   csrs mstatus, a0;                                                     \
-  csrr a0, mcpuid;                                                      \
-  andi a0, a0, 1 << ('D' - 'A'); /* test for D extension */             \
-  bnez a0, 1f;                                                          \
-  RVTEST_PASS; /* "pass" the test if FPU not present */                 \
-1:csrwi fcsr, 0
+  csrwi fcsr, 0
 
 #define RVTEST_VEC_ENABLE                                               \
   li a0, SSTATUS_XS & (SSTATUS_XS >> 1);                                \
   csrs sstatus, a0;                                                     \
-  csrr a1, sstatus;                                                     \
-  and a0, a0, a1;                                                       \
-  bnez a0, 2f;                                                          \
-  RVTEST_PASS;                                                          \
-2:                                                                      \
 
 #define RISCV_MULTICORE_DISABLE                                         \
   csrr a0, mhartid;                                                     \
