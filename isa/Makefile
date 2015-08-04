@@ -23,7 +23,7 @@ default: all
 RISCV_PREFIX=riscv64-unknown-elf-
 RISCV_GCC = $(RISCV_PREFIX)gcc
 ENTROPY = -DENTROPY=$(shell echo $$$$)
-RISCV_GCC_OPTS = $(ENTROPY) -static -fpic -fvisibility=hidden -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
+RISCV_GCC_OPTS = $(ENTROPY) -static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles -Wa,-march=RVIMAFDXhwacha
 RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data
 RISCV_SIM = spike --extension=hwacha
 
