@@ -15,4 +15,9 @@ benchmarks:
 isa:
 	$(MAKE) -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir)
 
-.PHONY: benchmarks isa
+clean:
+	$(MAKE) -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir) clean
+	$(MAKE) -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir) clean
+
+.PHONY: benchmarks isa clean
+
