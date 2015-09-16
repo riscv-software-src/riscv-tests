@@ -4,7 +4,7 @@
 
 rv64uf_sc_tests = \
 	fadd fdiv fclass fcmp fcvt fcvt_w fmadd fmin fsgnj \
-	ldst move structural \
+	ldst move structural recoding \
 
 rv64uf_sc_vec_tests = \
 	fadd fcmp fcvt fcvt_w fmadd fmin fsgnj \
