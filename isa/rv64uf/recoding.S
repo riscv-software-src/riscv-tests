@@ -34,6 +34,14 @@ RVTEST_CODE_BEGIN
   lw a1, small
   TEST_CASE(10, a0, 0, sub a0, a0, a1)
 
+  # Make sure FSD+FLD correctly saves and restores a single-precision value.
+  flw f0, three, a0
+  fadd.s f1, f0, f0
+  fadd.s f0, f0, f0
+  fsd f0, tiny, a0
+  fld f0, tiny, a0
+  TEST_CASE(20, a0, 1, feq.s a0, f0, f1)
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
