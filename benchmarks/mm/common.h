@@ -19,7 +19,6 @@ typedef double t;
 #define alloca_aligned(s, a) ((void*)(((uintptr_t)alloca((s)+(a)-1)+(a)-1)&~((a)-1)))
 
 #include "rb.h"
-#include "hwacha.h"
 
 #ifdef __cplusplus
 extern "C" {

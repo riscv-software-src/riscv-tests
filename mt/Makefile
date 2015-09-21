@@ -77,7 +77,7 @@ bmarks = $(bmarks_vvadd) $(bmarks_matmul)
 
 RISCV_PREFIX=riscv64-unknown-elf-
 RISCV_GCC = $(RISCV_PREFIX)gcc
-RISCV_GCC_OPTS = -Wa,-march=RVIMAFDXhwacha -std=gnu99 -O2 -ffast-math
+RISCV_GCC_OPTS = -std=gnu99 -O2 -ffast-math
 RISCV_LINK = $(RISCV_GCC) -T $(common)/test.ld $(incs)
 RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc
 RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data

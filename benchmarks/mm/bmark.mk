@@ -14,7 +14,6 @@ mm_c_src = \
 	syscalls.c \
 
 mm_riscv_src = \
-	hwacha.S \
 	crt.S \
 
 mm_c_objs     = $(patsubst %.c, %.o, $(mm_c_src))

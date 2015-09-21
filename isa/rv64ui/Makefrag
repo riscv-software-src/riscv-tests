@@ -29,25 +29,9 @@ rv64ui_sc_tests = \
 rv64ui_mc_tests = \
 	lrsc
 
-rv64ui_sc_vec_tests = \
-	add addi addiw addw \
-	and andi \
-	lui \
-	mul mulh mulhsu mulhu mulw \
-	or ori \
-	sll slli slliw sllw \
-	slt slti sltiu sltu \
-	sra srai sraiw sraw \
-	srl srli srliw srlw \
-	sub subw \
-	xor xori \
-
 rv64ui_p_tests = $(addprefix rv64ui-p-, $(rv64ui_sc_tests))
 rv64ui_pt_tests = $(addprefix rv64ui-pt-, $(rv64ui_sc_tests))
 rv64ui_pm_tests = $(addprefix rv64ui-pm-, $(rv64ui_mc_tests))
 rv64ui_v_tests = $(addprefix rv64ui-v-, $(rv64ui_sc_tests))
-rv64ui_p_vec_tests = $(addprefix rv64ui-p-vec-, $(rv64ui_sc_vec_tests))
-rv64ui_pt_vec_tests = $(addprefix rv64ui-pt-vec-, $(rv64ui_sc_vec_tests))
-rv64ui_v_vec_tests = $(addprefix rv64ui-v-vec-, $(rv64ui_sc_vec_tests))
 
-spike_tests += $(rv64ui_p_tests) $(rv64ui_pm_tests) $(rv64ui_pt_tests) $(rv64ui_v_tests) $(rv64ui_p_vec_tests) $(rv64ui_pt_vec_tests) $(rv64ui_v_vec_tests)
+spike_tests += $(rv64ui_p_tests) $(rv64ui_pm_tests) $(rv64ui_pt_tests) $(rv64ui_v_tests)

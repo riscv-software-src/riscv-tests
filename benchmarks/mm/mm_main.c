@@ -12,15 +12,9 @@ void thread_entry(int cid, int nc)
   int m, n, p;
   uint64_t s = 0xdeadbeefU;
   
-  if (have_vec) {
-    m = HCBM;
-    n = HCBN;
-    p = HCBK;
-  } else {
-    m = CBM;
-    n = CBN;
-    p = CBK;
-  }
+  m = CBM;
+  n = CBN;
+  p = CBK;
 
   t a[m*p];
   t b[p*n];
@@ -35,24 +29,13 @@ void thread_entry(int cid, int nc)
   memset(c, 0, m*n*sizeof(c[0]));
 
   size_t instret, cycles;
-  if (have_vec) {
-    for (int i = 0; i < R; i++)
-    {
-      instret = -rdinstret();
-      cycles = -rdcycle();
-      mm_rb_hwacha(m, n, p, a, p, b, n, c, n);
-      instret += rdinstret();
-      cycles += rdcycle();
-    }
-  } else {
-    for (int i = 0; i < R; i++)
-    {
-      instret = -rdinstret();
-      cycles = -rdcycle();
-      mm(m, n, p, a, p, b, n, c, n);
-      instret += rdinstret();
-      cycles += rdcycle();
-    }
+  for (int i = 0; i < R; i++)
+  {
+    instret = -rdinstret();
+    cycles = -rdcycle();
+    mm(m, n, p, a, p, b, n, c, n);
+    instret += rdinstret();
+    cycles += rdcycle();
   }
 
   asm volatile("fence");
