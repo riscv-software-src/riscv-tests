@@ -130,34 +130,8 @@ trap_entry:
   csrr   t0,scause
   STORE  t0,35*REGBYTES(sp)
 
-  # get hwacha cause if IRQ_COP
-  # vxcptcause clears hwacha interrupt bit
-
-  bgez  t0,1f
-  slli  t0,t0,1 # clearing MSB of cause
-  srli  t0,t0,1 # clearing MSB of cause
-  li    t1,IRQ_COP
-  bne   t0,t1,1f
-  vxcptcause t0
-  STORE  t0,36*REGBYTES(sp)
-1:
-
   move  a0, sp
-  csrr  t0, sstatus
-  li    t1, SSTATUS_XS
-  and   t0, t0, t1
-  beqz  t0, 2f
-
-  # disable saving vector state for now
-  addi  t0,sp,SIZEOF_TRAPFRAME_T_SCALAR
-
-  vgetcfg x4
-  STORE x4,0*REGBYTES(t0)
-  vgetvl x4
-  STORE x4,1*REGBYTES(t0)
-  addi  t0,t0,2*REGBYTES
-  vxcptevac t0
-2:j handle_trap
+  j handle_trap
 
   .global do_tohost
 do_tohost:

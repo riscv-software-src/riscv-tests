@@ -4,7 +4,6 @@
 #define _ENV_PHYSICAL_SINGLE_CORE_H
 
 #include "../encoding.h"
-#include "../hwacha_xcpt.h"
 
 //-----------------------------------------------------------------------
 // Begin Macro
@@ -19,12 +18,6 @@
   RVTEST_FP_ENABLE;                                                     \
   .endm
 
-#define RVTEST_RV64UV                                                   \
-  .macro init;                                                          \
-  RVTEST_FP_ENABLE;                                                     \
-  RVTEST_VEC_ENABLE;                                                    \
-  .endm
-
 #define RVTEST_RV32U                                                    \
   .macro init;                                                          \
   .endm
@@ -32,12 +25,6 @@
 #define RVTEST_RV32UF                                                   \
   .macro init;                                                          \
   RVTEST_FP_ENABLE;                                                     \
-  .endm
-
-#define RVTEST_RV32UV                                                   \
-  .macro init;                                                          \
-  RVTEST_FP_ENABLE;                                                     \
-  RVTEST_VEC_ENABLE;                                                    \
   .endm
 
 #define RVTEST_RV64M                                                    \
@@ -53,7 +40,6 @@
 #define RVTEST_RV64SV                                                   \
   .macro init;                                                          \
   RVTEST_ENABLE_SUPERVISOR;                                             \
-  RVTEST_VEC_ENABLE;                                                    \
   .endm
 
 #define RVTEST_RV32M                                                    \
@@ -84,10 +70,6 @@
   li a0, MSTATUS_FS & (MSTATUS_FS >> 1);                                \
   csrs mstatus, a0;                                                     \
   csrwi fcsr, 0
-
-#define RVTEST_VEC_ENABLE                                               \
-  li a0, SSTATUS_XS & (SSTATUS_XS >> 1);                                \
-  csrs sstatus, a0;                                                     \
 
 #define RISCV_MULTICORE_DISABLE                                         \
   csrr a0, mhartid;                                                     \
@@ -125,15 +107,6 @@ tvec_supervisor:                                                        \
         csrr t5, mcause;                                                \
         bgez t5, tvec_user;                                             \
   mrts_routine:                                                         \
-        li t5, MSTATUS_XS;                                              \
-        csrr t6, mstatus;                                               \
-        and t5, t5, t6;                                                 \
-        beqz t5, skip_vector_cause_aux;                                 \
-        vxcptcause t5;                                                  \
-        csrw mcause, t5;                                                \
-        vxcptaux t5;                                                    \
-        csrw mbadaddr, t5;                                              \
-  skip_vector_cause_aux:                                                \
         mrts;                                                           \
         .align  6;                                                      \
 tvec_hypervisor:                                                        \

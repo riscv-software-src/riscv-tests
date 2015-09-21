@@ -115,59 +115,6 @@ void handle_fault(unsigned long addr)
   __builtin___clear_cache(0,0);
 }
 
-static void do_vxcptrestore(long* where)
-{
-  vsetcfg(where[0]);
-  vsetvl(where[1]);
-
-  vxcpthold(&where[2]);
-
-  int idx = 2;
-  long dword, cmd, pf;
-  int first = 1;
-
-  while (1)
-  {
-    dword = where[idx++];
-
-    if (dword < 0) break;
-
-    if (dword_bit_cnt(dword))
-    {
-      venqcnt(dword, pf | (dword_bit_cmd(where[idx]) << 1));
-    }
-    else
-    {
-      if (!first)
-      {
-        venqcmd(cmd, pf);
-      }
-
-      first = 0;
-      cmd = dword;
-      pf = dword_bit_pf(cmd);
-
-      if (dword_bit_imm1(cmd))
-      {
-        venqimm1(where[idx++], pf);
-      }
-      if (dword_bit_imm2(cmd))
-      {
-        venqimm2(where[idx++], pf);
-      }
-    }
-  }
-  if (!first)
-  {
-    venqcmd(cmd, pf);
-  }
-}
-
-static void restore_vector(trapframe_t* tf)
-{
-  do_vxcptrestore(tf->hwacha_opaque);
-}
-
 void handle_trap(trapframe_t* tf)
 {
   if (tf->cause == CAUSE_USER_ECALL)
@@ -196,24 +143,9 @@ void handle_trap(trapframe_t* tf)
   }
   else if (tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE)
     handle_fault(tf->badvaddr);
-  else if ((long)tf->cause < 0 && (uint8_t)tf->cause == IRQ_COP)
-  {
-    if (tf->hwacha_cause == HWACHA_CAUSE_VF_FAULT_FETCH ||
-        tf->hwacha_cause == HWACHA_CAUSE_FAULT_LOAD ||
-        tf->hwacha_cause == HWACHA_CAUSE_FAULT_STORE)
-    {
-      long badvaddr = vxcptaux();
-      handle_fault(badvaddr);
-    }
-    else
-      assert(!"unexpected interrupt");
-  }
   else
     assert(!"unexpected exception");
 
-out:
-  if (!(tf->sr & SSTATUS_PS) && (tf->sr & SSTATUS_XS))
-    restore_vector(tf);
   pop_tf(tf);
 }
 
