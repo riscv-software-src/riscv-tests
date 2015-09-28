@@ -131,6 +131,7 @@ tvec_machine:                                                           \
 _start:                                                                 \
         RISCV_MULTICORE_DISABLE;                                        \
         CHECK_XLEN;                                                     \
+        li TESTNUM, 0;                                                  \
         la t0, stvec_handler;                                           \
         beqz t0, 1f;                                                    \
         csrw stvec, t0;                                                 \
