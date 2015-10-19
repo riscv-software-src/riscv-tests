@@ -39,9 +39,14 @@ RVTEST_CODE_BEGIN
   add s4, s4, 1
   bltu s8, s9, 1b
 
-  # make sure the LFSR was computed correctly
+  # compute iteration count % 1023 without using REMU
   li s1, 1023
-  remu s4, s4, s1
+  bltu s4, s1, 2f
+1:sub s4, s4, s1
+  bgeu s4, s1, 1b
+2:
+
+  # make sure the LFSR was computed correctly
   la s1, lfsr
   sll s4, s4, 2
   add s1, s1, s4
