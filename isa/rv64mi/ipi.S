@@ -26,29 +26,15 @@ RVTEST_CODE_BEGIN
   1:li a3, 1
   bgeu a2, a3, 1b
   
-  # wait for all cores to boot
-  1: lw a1, (a0)
-  bltu a1, a3, 1b
-
-  # IPI dominoes
-  csrr a0, mhartid
-  1: bnez a0, 1b
-  add a0, a0, 1
-  rem a0, a0, a3
-  csrw send_ipi, a0
+  # send a self-IPI
+  csrwi mipi, 0
   1: j 1b
 
 mtvec_handler:
-  csrr a0, mhartid
-  bnez a0, 2f
+  bnez a2, fail
   RVTEST_PASS
 
   TEST_PASSFAIL
-
-  2: add a0, a0, 1
-  rem a0, a0, a3
-  csrw send_ipi, a0
-  1: j 1b
 
 RVTEST_CODE_END
 
