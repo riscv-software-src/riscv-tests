@@ -286,7 +286,7 @@ test_ ## testnum: \
 test_ ## testnum: \
     li  TESTNUM, testnum; \
     li  x4, 0; \
-1:  la  x1, result; \
+1:  li  x1, result; \
     TEST_INSERT_NOPS_ ## src1_nops \
     la  x2, base; \
     TEST_INSERT_NOPS_ ## src2_nops \
@@ -304,7 +304,7 @@ test_ ## testnum: \
     li  x4, 0; \
 1:  la  x2, base; \
     TEST_INSERT_NOPS_ ## src1_nops \
-    la  x1, result; \
+    li  x1, result; \
     TEST_INSERT_NOPS_ ## src2_nops \
     store_inst x1, offset(x2); \
     load_inst x3, offset(x2); \
