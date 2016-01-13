@@ -27,7 +27,7 @@ RVTEST_CODE_BEGIN
   bgeu a2, a3, 1b
   
   # send a self-IPI
-  csrwi mipi, 0
+  csrwi mipi, 1
   1: j 1b
 
 mtvec_handler:
