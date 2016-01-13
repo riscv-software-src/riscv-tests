@@ -89,13 +89,13 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_D(79, fcvt.lu.d, 0x00, 3000000000,  3e9, rtz);
 
   # test negative NaN, negative infinity conversion
-  TEST_CASE( 80, x1, 0xffffffff80000000, la x1, tdat  ; flw f1,  0(x1); fcvt.w.s x1, f1)
-  TEST_CASE( 81, x1, 0x8000000000000000, la x1, tdat  ; flw f1,  0(x1); fcvt.l.s x1, f1)
+  TEST_CASE( 80, x1, 0x000000007fffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.w.s x1, f1)
+  TEST_CASE( 81, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.l.s x1, f1)
   TEST_CASE( 82, x1, 0xffffffff80000000, la x1, tdat  ; flw f1,  8(x1); fcvt.w.s x1, f1)
   TEST_CASE( 83, x1, 0x8000000000000000, la x1, tdat  ; flw f1,  8(x1); fcvt.l.s x1, f1)
 
-  TEST_CASE( 84, x1, 0xffffffff80000000, la x1, tdat_d; fld f1,  0(x1); fcvt.w.d x1, f1)
-  TEST_CASE( 85, x1, 0x8000000000000000, la x1, tdat_d; fld f1,  0(x1); fcvt.l.d x1, f1)
+  TEST_CASE( 84, x1, 0x000000007fffffff, la x1, tdat_d; fld f1,  0(x1); fcvt.w.d x1, f1)
+  TEST_CASE( 85, x1, 0x7fffffffffffffff, la x1, tdat_d; fld f1,  0(x1); fcvt.l.d x1, f1)
   TEST_CASE( 86, x1, 0xffffffff80000000, la x1, tdat_d; fld f1, 16(x1); fcvt.w.d x1, f1)
   TEST_CASE( 87, x1, 0x8000000000000000, la x1, tdat_d; fld f1, 16(x1); fcvt.l.d x1, f1)
 
