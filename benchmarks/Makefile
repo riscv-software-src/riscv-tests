@@ -55,13 +55,13 @@ RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc -lgcc
 RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM = spike
 
-VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
+VPATH += $(patsubst %,$(bmarkdir)/%.d, $(bmarks))
 VPATH += $(bmarkdir)/common
 
-incs  += -I$(bmarkdir)/../env -I$(bmarkdir)/common $(addprefix -I$(bmarkdir)/, $(bmarks))
+incs  += -I$(bmarkdir)/../env -I$(bmarkdir)/common $(patsubst %,-I$(bmarkdir)/%.d, $(bmarks))
 objs  :=
 
-include $(patsubst %, $(bmarkdir)/%/bmark.mk, $(bmarks))
+include $(patsubst %, $(bmarkdir)/%.d/bmark.mk, $(bmarks))
 
 #------------------------------------------------------------
 # Build and run benchmarks on riscv simulator
