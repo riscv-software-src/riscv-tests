@@ -31,6 +31,9 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP1_D(13,  fsqrt.d, 1, 1.7724538498928541, 3.14159265 );
   TEST_FP_OP1_D(14,  fsqrt.d, 0,                100,      10000 );
 
+  TEST_FP_OP1_S_DWORD_RESULT(15,  fsqrt.s, 0x10,              0x7FC00000,      -1.0 );
+  TEST_FP_OP1_D_DWORD_RESULT(16,  fsqrt.d, 0x10,      0x7FF8000000000000,      -1.0 );
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
