@@ -44,6 +44,15 @@ RVTEST_CODE_BEGIN
   TEST_FCVT_S_D(20, -1.5, -1.5)
   TEST_FCVT_D_S(21, -1.5, -1.5)
 
+  TEST_CASE(22, a0, 0x7ff8000000000000,
+    la a1, test_data_22;
+    ld a2, 0(a1);
+    fmv.d.x f2, a2;
+    fcvt.s.d f2, f2;
+    fcvt.d.s f2, f2;
+    fmv.x.d a0, f2;
+  )
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
@@ -52,5 +61,8 @@ RVTEST_CODE_END
 RVTEST_DATA_BEGIN
 
   TEST_DATA
+
+test_data_22:
+  .dword 0x7ffcffffffff8004
 
 RVTEST_DATA_END
