@@ -7,6 +7,7 @@ isa_src_dir     := $(abs_top_src_dir)/isa
 all: benchmarks isa
 
 install: all
+	install -d $(instbasedir)/share/riscv-tests
 	install -p -m 644 *.hex $(instbasedir)/share/riscv-tests
 
 benchmarks:
