@@ -7,14 +7,18 @@ isa_src_dir     := $(abs_top_src_dir)/isa
 all: benchmarks isa
 
 install: all
-	install -d $(instbasedir)/share/riscv-tests
-	install -p -m 644 *.hex $(instbasedir)/share/riscv-tests
+	install -d $(instbasedir)/share/riscv-tests/isa
+	install -d $(instbasedir)/share/riscv-tests/benchmarks
+	install -p -m 644 isa/* $(instbasedir)/share/riscv-tests/isa
+	install -p -m 644 benchmarks/* $(instbasedir)/share/riscv-tests/benchmarks
 
 benchmarks:
-	$(MAKE) -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir)
+	mkdir -p benchmarks
+	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir)
 
 isa:
-	$(MAKE) -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir)
+	mkdir -p isa
+	$(MAKE) -C isa -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir)
 
 clean:
 	$(MAKE) -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir) clean
