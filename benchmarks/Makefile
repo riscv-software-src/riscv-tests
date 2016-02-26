@@ -46,14 +46,14 @@ bmarks_host = \
 HOST_OPTS = -std=gnu99 -DPREALLOCATE=0 -DHOST_DEBUG=1
 HOST_COMP = gcc $(HOST_OPTS)
 
-RISCV_PREFIX=riscv64-unknown-elf-
-RISCV_GCC = $(RISCV_PREFIX)gcc
-RISCV_GCC_OPTS = -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
-RISCV_LINK = $(RISCV_GCC) -T $(bmarkdir)/common/test.ld $(incs)
-RISCV_LINK_MT = $(RISCV_GCC) -T $(bmarkdir)/common/test-mt.ld
-RISCV_LINK_OPTS = -nostdlib -nostartfiles -ffast-math -lc -lgcc
-RISCV_OBJDUMP = $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
-RISCV_SIM = spike
+RISCV_PREFIX ?= riscv64-unknown-elf-
+RISCV_GCC ?= $(RISCV_PREFIX)gcc
+RISCV_GCC_OPTS ?= -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
+RISCV_LINK ?= $(RISCV_GCC) -T $(bmarkdir)/common/test.ld $(incs)
+RISCV_LINK_MT ?= $(RISCV_GCC) -T $(bmarkdir)/common/test-mt.ld
+RISCV_LINK_OPTS ?= -nostdlib -nostartfiles -ffast-math -lc -lgcc
+RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
+RISCV_SIM ?= spike
 
 VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
 VPATH += $(bmarkdir)/common
