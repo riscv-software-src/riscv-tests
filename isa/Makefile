@@ -24,6 +24,7 @@ ENTROPY ?= -DENTROPY=$(shell echo $$$$)
 RISCV_GCC_OPTS ?= $(ENTROPY) -static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles
 RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data
 RISCV_SIM ?= spike
+XLEN ?= 64
 
 vpath %.S $(isa_src_dir)
 
@@ -74,10 +75,12 @@ endef
 $(eval $(call compile_template,rv32ui,-m32))
 $(eval $(call compile_template,rv32si,-m32))
 $(eval $(call compile_template,rv32mi,-m32))
+ifeq ($(xlen),64)
 $(eval $(call compile_template,rv64ui))
 $(eval $(call compile_template,rv64uf))
 $(eval $(call compile_template,rv64si))
 $(eval $(call compile_template,rv64mi))
+endif
 
 tests_dump = $(addsuffix .dump, $(tests))
 tests_hex = $(addsuffix .hex, $(tests))
