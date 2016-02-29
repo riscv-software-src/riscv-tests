@@ -19,10 +19,12 @@ RVTEST_CODE_BEGIN
   #define sip mip
   #undef MIP_SSIP
   #define MIP_SSIP MIP_MSIP
+  #undef SSTATUS_SIE
+  #define SSTATUS_SIE MSTATUS_MIE
 #endif
 
   # Make sure wfi doesn't stall if an interrupt is pending
-  csrc sstatus, SSTATUS_IE
+  csrc sstatus, SSTATUS_SIE
   csrs sie, MIP_SSIP
   csrs sip, MIP_SSIP
   wfi

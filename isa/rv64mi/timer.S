@@ -24,7 +24,7 @@ RVTEST_CODE_BEGIN
   csrw mtimecmp, a0
   li a0, MIP_MTIP
   csrs mie, a0
-  csrs mstatus, MSTATUS_IE
+  csrs mstatus, MSTATUS_MIE
 
   # advance an LFSR until the timer has fired enough times
   li s0, 1023
@@ -64,7 +64,7 @@ mtvec_handler:
   bgez t0, fail
 
   sll t0, t0, 1
-  addi t0, t0, -2*IRQ_TIMER
+  addi t0, t0, -2*IRQ_M_TIMER
   bnez t0, fail
 
   csrr t0, mtime
