@@ -75,7 +75,7 @@ endef
 $(eval $(call compile_template,rv32ui,-m32))
 $(eval $(call compile_template,rv32si,-m32))
 $(eval $(call compile_template,rv32mi,-m32))
-ifeq ($(xlen),64)
+ifeq ($(XLEN),64)
 $(eval $(call compile_template,rv64ui))
 $(eval $(call compile_template,rv64uf))
 $(eval $(call compile_template,rv64si))
