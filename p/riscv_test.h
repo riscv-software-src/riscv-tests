@@ -53,17 +53,17 @@
   .endm
 
 #ifdef __riscv64
-# define CHECK_XLEN csrr a0, mcpuid; bltz a0, 1f; RVTEST_PASS; 1:
+# define CHECK_XLEN csrr a0, misa; bltz a0, 1f; RVTEST_PASS; 1:
 #else
-# define CHECK_XLEN csrr a0, mcpuid; bgez a0, 1f; RVTEST_PASS; 1:
+# define CHECK_XLEN csrr a0, misa; bgez a0, 1f; RVTEST_PASS; 1:
 #endif
 
 #define RVTEST_ENABLE_SUPERVISOR                                        \
-  li a0, MSTATUS_PRV1 & (MSTATUS_PRV1 >> 1);                            \
+  li a0, MSTATUS_MPP & (MSTATUS_MPP >> 1);                              \
   csrs mstatus, a0;                                                     \
 
 #define RVTEST_ENABLE_MACHINE                                           \
-  li a0, MSTATUS_PRV1;                                                  \
+  li a0, MSTATUS_MPP;                                                   \
   csrs mstatus, a0;                                                     \
 
 #define RVTEST_FP_ENABLE                                                \
@@ -76,67 +76,62 @@
   1: bnez a0, 1b
 
 #define EXTRA_TVEC_USER
-#define EXTRA_TVEC_SUPERVISOR
-#define EXTRA_TVEC_HYPERVISOR
 #define EXTRA_TVEC_MACHINE
 #define EXTRA_INIT
 #define EXTRA_INIT_TIMER
+
+#define INTERRUPT_HANDLER j other_exception /* No interrupts should occur */
 
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
         .align  6;                                                      \
         .weak stvec_handler;                                            \
         .weak mtvec_handler;                                            \
-tvec_user:                                                              \
-        EXTRA_TVEC_USER;                                                \
+        .globl _start;                                                  \
+_start:                                                                 \
+        /* reset vector */                                              \
+        j reset_vector;                                                 \
+        /* NMI vector */                                                \
+        j other_exception;                                              \
+        /* trap vector */                                               \
         /* test whether the test came from pass/fail */                 \
         la t5, ecall;                                                   \
         csrr t6, mepc;                                                  \
         beq t5, t6, write_tohost;                                       \
-        /* test whether the stvec_handler target exists */              \
-        la t5, stvec_handler;                                           \
-        bnez t5, mrts_routine;                                          \
-        /* test whether the mtvec_handler target exists */              \
+        /* if an mtvec_handler is defined, jump to it */                \
         la t5, mtvec_handler;                                           \
         bnez t5, mtvec_handler;                                         \
-        /* some other exception occurred */                             \
-        j other_exception;                                              \
-        .align  6;                                                      \
-tvec_supervisor:                                                        \
-        EXTRA_TVEC_SUPERVISOR;                                          \
+        /* was it an interrupt or an exception? */                      \
         csrr t5, mcause;                                                \
-        bgez t5, tvec_user;                                             \
-  mrts_routine:                                                         \
-        mrts;                                                           \
-        .align  6;                                                      \
-tvec_hypervisor:                                                        \
-        EXTRA_TVEC_HYPERVISOR;                                          \
-        /* renting some space out here */                               \
+        bgez t5, handle_exception;                                      \
+        INTERRUPT_HANDLER;                                              \
+handle_exception:                                                       \
+        /* we don't know how to handle whatever the exception was */    \
   other_exception:                                                      \
-  1:    ori TESTNUM, TESTNUM, 1337; /* some other exception occurred */ \
+        /* some unhandlable exception occurred */                       \
+  1:    ori TESTNUM, TESTNUM, 1337;                                     \
   write_tohost:                                                         \
         csrw mtohost, TESTNUM;                                          \
         j write_tohost;                                                 \
-        .align  6;                                                      \
-tvec_machine:                                                           \
-        EXTRA_TVEC_MACHINE;                                             \
-        la t5, ecall;                                                   \
-        csrr t6, mepc;                                                  \
-        beq t5, t6, write_tohost;                                       \
-        la t5, mtvec_handler;                                           \
-        bnez t5, mtvec_handler;                                         \
-        j other_exception;                                              \
-        .align  6;                                                      \
-        .globl _start;                                                  \
-_start:                                                                 \
+reset_vector:                                                           \
         RISCV_MULTICORE_DISABLE;                                        \
         CHECK_XLEN;                                                     \
         li TESTNUM, 0;                                                  \
+        /* if an stvec_handler is defined, delegate exceptions to it */ \
         la t0, stvec_handler;                                           \
         beqz t0, 1f;                                                    \
         csrw stvec, t0;                                                 \
-1:      li t0, MSTATUS_PRV1 | MSTATUS_PRV2 | MSTATUS_IE1 | MSTATUS_IE2; \
-        csrc mstatus, t0;                                               \
+        li t0, (1 << CAUSE_MISALIGNED_LOAD) |                           \
+               (1 << CAUSE_MISALIGNED_STORE) |                          \
+               (1 << CAUSE_MISALIGNED_FETCH) |                          \
+               (1 << CAUSE_FAULT_LOAD) |                                \
+               (1 << CAUSE_FAULT_STORE) |                               \
+               (1 << CAUSE_FAULT_FETCH) |                               \
+               (1 << CAUSE_ILLEGAL_INSTRUCTION) |                       \
+               (1 << CAUSE_USER_ECALL) |                                \
+               (1 << CAUSE_BREAKPOINT);                                 \
+        csrw medeleg, t0;                                               \
+1:      csrwi mstatus, 0;                                               \
         init;                                                           \
         EXTRA_INIT;                                                     \
         EXTRA_INIT_TIMER;                                               \

@@ -182,17 +182,19 @@ void vm_boot(long test_addr, long seed)
   // map user to lowermost megapage
   l1pt[0] = ((pte_t)user_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
   user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
-  write_csr(sptbr, l1pt);
+  write_csr(sptbr, (uintptr_t)l1pt >> PGSHIFT);
 
   // set up supervisor trap handling
   write_csr(stvec, pa2kva(trap_entry));
   write_csr(sscratch, pa2kva(read_csr(mscratch)));
-  // interrupts on; FPU on; accelerator on
-  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS);
-  // virtual memory off; set user mode upon eret
-  clear_csr(mstatus, MSTATUS_VM | MSTATUS_PRV1);
-  // virtual memory to Sv39
-  set_csr(mstatus, (long)VM_SV39 << __builtin_ctzl(MSTATUS_VM));
+  write_csr(medeleg,
+    (1 << CAUSE_USER_ECALL) |
+    (1 << CAUSE_FAULT_FETCH) |
+    (1 << CAUSE_FAULT_LOAD) |
+    (1 << CAUSE_FAULT_STORE));
+  // on ERET, user mode w/interrupts on; FPU on; accelerator on; VM on
+  write_csr(mstatus, MSTATUS_UIE | MSTATUS_FS | MSTATUS_XS |
+                     (VM_SV39 * (MSTATUS_VM & ~(MSTATUS_VM<<1))));
 
   seed = 1 + (seed % MAX_TEST_PAGES);
   freelist_head = pa2kva((void*)&freelist_nodes[0]);

@@ -7,42 +7,28 @@
 
 #define TIMER_INTERVAL 2
 
-#undef EXTRA_TVEC_USER
-#define EXTRA_TVEC_USER                                                 \
-        csrw mscratch, a0;                                              \
-        csrr a0, mcause;                                                \
-        bltz a0, _interrupt_handler;                                    \
-_skip:                                                                  \
-
 #undef EXTRA_INIT_TIMER
 #define EXTRA_INIT_TIMER                                                \
-        ENABLE_TIMER_INTERRUPT;                                         \
-        j _jump_around_interrupt_handler;                               \
-        INTERRUPT_HANDLER;                                              \
-_jump_around_interrupt_handler:                                         \
-
-#define ENABLE_TIMER_INTERRUPT                                          \
         li a0, MIP_MTIP;                                                \
         csrs mie, a0;                                                   \
         csrr a0, mtime;                                                 \
         addi a0, a0, TIMER_INTERVAL;                                    \
         csrw mtimecmp, a0;                                              \
 
-#if SSTATUS_XS != 0xc000
+#if SSTATUS_XS != 0x18000
 # error
 #endif
-#define XS_SHIFT 14
+#define XS_SHIFT 15
 
+#undef INTERRUPT_HANDLER
 #define INTERRUPT_HANDLER                                               \
-_interrupt_handler:                                                     \
-        slli a0, a0, 1;                                                 \
-        srli a0, a0, 1;                                                 \
-        add a0, a0, -IRQ_TIMER;                                         \
-        bnez a0, _skip;                                                 \
-        csrr a0, mtime;                                                 \
-        addi a0, a0, TIMER_INTERVAL;                                    \
-        csrw mtimecmp, a0;                                              \
-        csrr a0, mscratch;                                              \
+        slli t5, t5, 1;                                                 \
+        srli t5, t5, 1;                                                 \
+        add t5, t5, -IRQ_M_TIMER;                                       \
+        bnez t5, other_exception; /* other interrups shouldn't happen */\
+        csrr t5, mtime;                                                 \
+        addi t5, t5, TIMER_INTERVAL;                                    \
+        csrw mtimecmp, t5;                                              \
         eret;                                                           \
 
 //-----------------------------------------------------------------------

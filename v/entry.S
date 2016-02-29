@@ -13,30 +13,25 @@
 #define STACK_TOP (_end + 131072)
 
   .section ".text.init","ax",@progbits
-  .align 6
-entry_from_user:
-  mrts
 
-  .align 6
-entry_from_supervisor:
+reset_vector:
+  j handle_reset
+
+  /* NMI vector */
+nmi_vector:
+  j wtf
+
+trap_vector:
+  # we can safely clobber caller-saved registers here, because we were
+  # either invoked via do_tohost or we are about to bail out
   csrr t0, mcause
-  addi t0, t0, -CAUSE_SUPERVISOR_ECALL
-  beqz t0, handle_tohost
+  li t1, CAUSE_SUPERVISOR_ECALL
+  beq t0, t1, handle_tohost
+  li t1, CAUSE_MACHINE_ECALL
+  beq t0, t1, handle_tohost
   j wtf
 
-  .align 6
-entry_from_hypervisor:
-  j wtf
-
-  .align 6
-entry_from_machine:
-  csrr t0, mcause
-  addi t0, t0, -CAUSE_MACHINE_ECALL
-  beqz t0, handle_tohost
-  j wtf
-
-  .align 6
-power_on_reset:
+handle_reset:
   la sp, STACK_TOP - SIZEOF_TRAPFRAME_T
   csrw mscratch, sp
   li a1, 1337
@@ -45,7 +40,6 @@ power_on_reset:
 
   .globl  pop_tf
 pop_tf:
-  csrc sstatus, SSTATUS_IE
   LOAD  t0,33*REGBYTES(a0)
   csrw  sepc,t0
   LOAD  x1,1*REGBYTES(a0)
