@@ -18,6 +18,8 @@ rv64mi_mc_tests = \
 	ipi \
 
 rv64mi_p_tests = $(addprefix rv64mi-p-, $(rv64mi_sc_tests))
+ifdef $(TEST_ENABLE_A)
 rv64mi_pm_tests = $(addprefix rv64mi-pm-, $(rv64mi_mc_tests))
+endif
 
 spike_tests += $(rv64mi_p_tests) $(rv64mi_pm_tests)

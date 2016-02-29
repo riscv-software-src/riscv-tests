@@ -583,6 +583,9 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+enable_F
+enable_A
+enable_M
 OBJEXT
 EXEEXT
 ac_ct_CC
@@ -631,6 +634,9 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_M
+enable_A
+enable_F
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1244,6 +1250,14 @@ if test -n "$ac_init_help"; then
      short | recursive ) echo "Configuration of riscv-tests 1.0:";;
    esac
   cat <<\_ACEOF
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-M             Do no build M tests
+  --disable-A             Do no build A tests
+  --disable-F             Do not build F tests
 
 Some influential environment variables:
   CC          C compiler command
@@ -2514,6 +2528,42 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+
+# Check whether --enable-M was given.
+if test "${enable_M+set}" = set; then :
+  enableval=$enable_M;
+fi
+
+if test "x$enable_M" != "xno"; then :
+
+  enable_M=yes
+
+
+fi
+
+# Check whether --enable-A was given.
+if test "${enable_A+set}" = set; then :
+  enableval=$enable_A;
+fi
+
+if test "x$enable_A" != "xno"; then :
+
+  enable_A=yes
+
+
+fi
+
+# Check whether --enable-F was given.
+if test "${enable_F+set}" = set; then :
+  enableval=$enable_F;
+fi
+
+if test "x$enable_F" != "xno"; then :
+
+  enable_F=yes
+
+
+fi
 
 ac_config_files="$ac_config_files Makefile"
 

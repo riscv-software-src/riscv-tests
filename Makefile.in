@@ -4,6 +4,10 @@ instbasedir     := $(DESTDIR)$(prefix)
 bmarkdir        := $(abs_top_src_dir)/benchmarks
 isa_src_dir     := $(abs_top_src_dir)/isa
 
+TEST_ENABLE_M :=@enable_M@
+TEST_ENABLE_A :=@enable_A@
+TEST_ENABLE_F :=@enable_F@
+
 all: benchmarks isa
 
 install: all
@@ -14,11 +18,11 @@ install: all
 
 benchmarks:
 	mkdir -p benchmarks
-	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir)
+	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir) TEST_ENABLE_F=$(TEST_ENABLE_F)
 
 isa:
 	mkdir -p isa
-	$(MAKE) -C isa -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir)
+	$(MAKE) -C isa -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir) TEST_ENABLE_M=$(TEST_ENABLE_M) TEST_ENABLE_A=$(TEST_ENABLE_A) TEST_ENABLE_F=$(TEST_ENABLE_F)
 
 clean:
 	$(MAKE) -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir) clean

@@ -23,6 +23,10 @@ mm_host_bin = mm.host
 $(mm_host_bin) : $(mm_c_src)
 	$(HOST_COMP) $^ -o $(mm_host_bin)
 
+ifeq ($(TEST_ENABLE_F),no)
+RISCV_LINK_OPTS += -lm
+endif
+
 mm_riscv_bin = mm.riscv
 $(mm_riscv_bin) : $(mm_c_objs) $(mm_riscv_objs)
 	$(RISCV_LINK) $(mm_c_objs) $(mm_riscv_objs) -o $(mm_riscv_bin) $(RISCV_LINK_OPTS)
