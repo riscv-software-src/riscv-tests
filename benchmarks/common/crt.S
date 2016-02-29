@@ -64,13 +64,13 @@ _start:
   li  x30,0
   li  x31,0
 
-  li t0, MSTATUS_PRV1; csrc mstatus, t0    # run tests in user mode
-  li t0, MSTATUS_IE1;  csrs mstatus, t0    # enable interrupts in user mode
+  li t0, MSTATUS_MPP;  csrc mstatus, t0    # run tests in user mode
+  li t0, MSTATUS_MPIE; csrs mstatus, t0    # enable interrupts in user mode
   li t0, MSTATUS_FS;   csrs mstatus, t0    # enable FPU
   li t0, MSTATUS_XS;   csrs mstatus, t0    # enable accelerator
 
 #ifdef __riscv64
-  csrr t0, mcpuid
+  csrr t0, misa
   # make sure processor supports RV64 if this was compiled for RV64
   bltz t0, 1f
   li a0, 1234
