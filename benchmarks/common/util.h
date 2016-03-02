@@ -33,6 +33,18 @@ static void setStats(int enable) {}
 extern void setStats(int enable);
 #endif
 
+// Emulate atomics - code is similar to pk emulation but we are baremetal so
+// we don't need to disable interrupts
+#ifdef __riscv_atomic
+# define atomic_add(ptr, inc) __sync_fetch_and_add(ptr, inc)
+#else
+# define atomic_add(ptr, inc) ({ \
+  typeof(*(ptr)) res = *(volatile typeof(*(ptr)) *)(ptr); \
+  *(volatile typeof(ptr))(ptr) = res + (inc); \
+  res; })
+#endif
+
+
 #include <stdint.h>
 
 extern int have_vec;
@@ -102,7 +114,7 @@ static void __attribute__((noinline)) barrier(int ncores)
   __sync_synchronize();
 
   threadsense = !threadsense;
-  if (__sync_fetch_and_add(&count, 1) == ncores-1)
+  if (atomic_add(&count, 1) == ncores-1)
   {
     count = 0;
     sense = threadsense;

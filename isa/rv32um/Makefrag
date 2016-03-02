@@ -1,0 +1,14 @@
+#=======================================================================
+# Makefrag for rv32um tests
+#-----------------------------------------------------------------------
+
+rv32um_sc_tests = \
+	div divu \
+	mul mulh mulhu mulhsu \
+	rem remu \
+
+rv32um_p_tests = $(addprefix rv32um-p-, $(rv32um_sc_tests))
+rv32um_pt_tests = $(addprefix rv32um-pt-, $(rv32um_sc_tests))
+rv32um_pm_tests = $(addprefix rv32um-pm-, $(rv32um_mc_tests))
+
+spike_tests += $(rv32um_p_tests) $(rv32um_pt_tests) $(rv32um_pm_tests)

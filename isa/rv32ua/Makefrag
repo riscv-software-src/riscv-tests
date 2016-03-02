@@ -1,0 +1,15 @@
+#=======================================================================
+# Makefrag for rv32ua tests
+#-----------------------------------------------------------------------
+
+rv32ua_sc_tests = \
+	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoswap_w \
+
+rv32ua_mc_tests = \
+	lrsc
+
+rv32ua_p_tests = $(addprefix rv32ua-p-, $(rv32ua_sc_tests))
+rv32ua_pt_tests = $(addprefix rv32ua-pt-, $(rv32ua_sc_tests))
+rv32ua_pm_tests = $(addprefix rv32ua-pm-, $(rv32ua_mc_tests))
+
+spike_tests += $(rv32ua_p_tests) $(rv32ua_pt_tests) $(rv32ua_pm_tests)

@@ -15,6 +15,8 @@ rv32mi_mc_tests = \
 	ipi \
 
 rv32mi_p_tests = $(addprefix rv32mi-p-, $(rv32mi_sc_tests))
+ifdef $(TEST_ENABLE_A)
 rv32mi_pm_tests = $(addprefix rv32mi-pm-, $(rv32mi_mc_tests))
+endif
 
 spike32_tests += $(rv32mi_p_tests) $(rv32mi_pm_tests)
