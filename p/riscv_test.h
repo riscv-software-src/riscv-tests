@@ -121,16 +121,15 @@ reset_vector:                                                           \
         la t0, stvec_handler;                                           \
         beqz t0, 1f;                                                    \
         csrw stvec, t0;                                                 \
-        li t0, (1 << CAUSE_MISALIGNED_LOAD) |                           \
-               (1 << CAUSE_MISALIGNED_STORE) |                          \
-               (1 << CAUSE_MISALIGNED_FETCH) |                          \
-               (1 << CAUSE_FAULT_LOAD) |                                \
+        li t0, (1 << CAUSE_FAULT_LOAD) |                                \
                (1 << CAUSE_FAULT_STORE) |                               \
                (1 << CAUSE_FAULT_FETCH) |                               \
-               (1 << CAUSE_ILLEGAL_INSTRUCTION) |                       \
+               (1 << CAUSE_MISALIGNED_FETCH) |                          \
                (1 << CAUSE_USER_ECALL) |                                \
                (1 << CAUSE_BREAKPOINT);                                 \
         csrw medeleg, t0;                                               \
+        csrr t1, medeleg;                                               \
+        bne t0, t1, other_exception;                                    \
 1:      csrwi mstatus, 0;                                               \
         init;                                                           \
         EXTRA_INIT;                                                     \
