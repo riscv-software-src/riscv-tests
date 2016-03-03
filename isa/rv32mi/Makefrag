@@ -9,6 +9,7 @@ rv32mi_sc_tests = \
 	ma_addr \
 	scall \
 	sbreak \
+	shamt \
 	timer \
 
 rv32mi_mc_tests = \
