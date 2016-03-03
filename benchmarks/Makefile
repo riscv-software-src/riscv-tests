@@ -6,7 +6,7 @@
 
 default: all
 
-bmarkdir = .
+src_dir = .
 
 instname = riscv-bmarks
 instbasedir = $(UCB_VLSI_HOME)/install
@@ -49,19 +49,19 @@ HOST_COMP = gcc $(HOST_OPTS)
 RISCV_PREFIX ?= riscv64-unknown-elf-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
 RISCV_GCC_OPTS ?= -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
-RISCV_LINK ?= $(RISCV_GCC) -T $(bmarkdir)/common/test.ld $(incs)
-RISCV_LINK_MT ?= $(RISCV_GCC) -T $(bmarkdir)/common/test-mt.ld
+RISCV_LINK ?= $(RISCV_GCC) -T $(src_dir)/common/test.ld $(incs)
+RISCV_LINK_MT ?= $(RISCV_GCC) -T $(src_dir)/common/test-mt.ld
 RISCV_LINK_OPTS ?= -nostdlib -nostartfiles -ffast-math -lc -lgcc
 RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM ?= spike
 
-VPATH += $(addprefix $(bmarkdir)/, $(bmarks))
-VPATH += $(bmarkdir)/common
+VPATH += $(addprefix $(src_dir)/, $(bmarks))
+VPATH += $(src_dir)/common
 
-incs  += -I$(bmarkdir)/../env -I$(bmarkdir)/common $(addprefix -I$(bmarkdir)/, $(bmarks))
+incs  += -I$(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(bmarks))
 objs  :=
 
-include $(patsubst %, $(bmarkdir)/%/bmark.mk, $(bmarks))
+include $(patsubst %, $(src_dir)/%/bmark.mk, $(bmarks))
 
 #------------------------------------------------------------
 # Build and run benchmarks on riscv simulator

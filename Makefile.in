@@ -9,20 +9,20 @@ all: benchmarks isa
 install: all
 	install -d $(instbasedir)/share/riscv-tests/isa
 	install -d $(instbasedir)/share/riscv-tests/benchmarks
-	install -p -m 644 isa/* $(instbasedir)/share/riscv-tests/isa
-	install -p -m 644 benchmarks/* $(instbasedir)/share/riscv-tests/benchmarks
+	install -p -m 644 `find $(isa_src_dir) -maxdepth 1 -type f` $(instbasedir)/share/riscv-tests/isa
+	install -p -m 644 `find $(bmarkdir) -maxdepth 1 -type f` $(instbasedir)/share/riscv-tests/benchmarks
 
 benchmarks:
 	mkdir -p benchmarks
-	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir)
+	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile src_dir=$(bmarkdir)
 
 isa:
 	mkdir -p isa
-	$(MAKE) -C isa -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir)
+	$(MAKE) -C isa -f $(isa_src_dir)/Makefile src_dir=$(isa_src_dir)
 
 clean:
-	$(MAKE) -f $(isa_src_dir)/Makefile isa_src_dir=$(isa_src_dir) clean
-	$(MAKE) -f $(bmarkdir)/Makefile bmarkdir=$(bmarkdir) clean
+	$(MAKE) -C isa -f $(isa_src_dir)/Makefile src_dir=$(isa_src_dir) clean
+	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile src_dir=$(bmarkdir) clean
 
 .PHONY: benchmarks isa clean
 

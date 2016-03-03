@@ -6,4 +6,7 @@
 *.out
 *.hex
 .*.swp
-autom4te.cache
+/autom4te.cache
+/Makefile
+/config.log
+/config.status
