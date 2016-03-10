@@ -13,8 +13,12 @@
 RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
-  # Check that mcpuid reports RV64
+  # Check that mcpuid reports the correct XLEN
+#ifdef __riscv64
   TEST_CASE(2, a0, 0x2, csrr a0, misa; srl a0, a0, 62)
+#else
+  TEST_CASE(2, a0, 0x0, csrr a0, misa; srl a0, a0, 30)
+#endif
 
   # Check that mhartid reports 0
   TEST_CASE(3, a0, 0x0, csrr a0, mhartid)

@@ -28,7 +28,7 @@ RVTEST_CODE_BEGIN
   # Try a faulting store to make sure dirty bit is not set
   li TESTNUM, 2
   li t0, 1
-  sd t0, dummy, t1
+  sw t0, dummy, t1
 
   # Load new page table
   li TESTNUM, 3
@@ -38,7 +38,7 @@ RVTEST_CODE_BEGIN
   sfence.vm
 
   # Try a non-faulting store to make sure dirty bit is set
-  sd t0, dummy, t1
+  sw t0, dummy, t1
 
   # Make sure R and D bits are set
   lw t0, page_table_2
