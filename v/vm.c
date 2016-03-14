@@ -47,9 +47,14 @@ typedef struct { pte_t addr; void* next; } freelist_t;
 
 pte_t l1pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 pte_t user_l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_t user_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 pte_t kernel_l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+#ifdef __riscv64
+pte_t user_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 pte_t kernel_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+#else
+# define user_l3pt user_l2pt
+# define kernel_l3pt kernel_l2pt
+#endif
 freelist_t user_mapping[MAX_TEST_PAGES];
 freelist_t freelist_nodes[MAX_TEST_PAGES];
 freelist_t *freelist_head, *freelist_tail;
@@ -170,19 +175,20 @@ void vm_boot(long test_addr, long seed)
   if (read_csr(mhartid) > 0)
     coherence_torture();
 
-  assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
+  _Static_assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t), "???");
 
 #if MAX_TEST_PAGES > PTES_PER_PT
 # error
 #endif
+  write_csr(sptbr, (uintptr_t)l1pt >> PGSHIFT);
   // map kernel to uppermost megapage
   l1pt[PTES_PER_PT-1] = ((pte_t)kernel_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
-  kernel_l2pt[PTES_PER_PT-1] = ((pte_t)kernel_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
-
   // map user to lowermost megapage
   l1pt[0] = ((pte_t)user_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
+#ifdef __riscv64
+  kernel_l2pt[PTES_PER_PT-1] = ((pte_t)kernel_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
   user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_TABLE;
-  write_csr(sptbr, (uintptr_t)l1pt >> PGSHIFT);
+#endif
 
   // set up supervisor trap handling
   write_csr(stvec, pa2kva(trap_entry));
@@ -193,8 +199,9 @@ void vm_boot(long test_addr, long seed)
     (1 << CAUSE_FAULT_LOAD) |
     (1 << CAUSE_FAULT_STORE));
   // on ERET, user mode w/interrupts on; FPU on; accelerator on; VM on
+  int vm_choice = sizeof(long) == 8 ? VM_SV39 : VM_SV32;
   write_csr(mstatus, MSTATUS_UIE | MSTATUS_FS | MSTATUS_XS |
-                     (VM_SV39 * (MSTATUS_VM & ~(MSTATUS_VM<<1))));
+                     (vm_choice * (MSTATUS_VM & ~(MSTATUS_VM<<1))));
 
   seed = 1 + (seed % MAX_TEST_PAGES);
   freelist_head = pa2kva((void*)&freelist_nodes[0]);
