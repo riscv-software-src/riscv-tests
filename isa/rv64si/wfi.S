@@ -15,15 +15,15 @@ RVTEST_CODE_BEGIN
 
 #ifdef __MACHINE_MODE
   #define sstatus mstatus
-  #define sie mie
   #define sip mip
   #undef MIP_SSIP
   #define MIP_SSIP MIP_MSIP
+  #undef SSTATUS_SIE
+  #define SSTATUS_SIE MSTATUS_MIE
 #endif
 
-  # Make sure wfi doesn't stall if an interrupt is pending
-  csrc sstatus, SSTATUS_IE
-  csrs sie, MIP_SSIP
+  # Make sure wfi doesn't stall if an interrupt is pending, even if masked
+  csrc sstatus, SSTATUS_SIE
   csrs sip, MIP_SSIP
   wfi
 

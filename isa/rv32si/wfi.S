@@ -4,4 +4,4 @@
 #undef RVTEST_RV64S
 #define RVTEST_RV64S RVTEST_RV32S
 
-#include "../rv64si/ma_addr.S"
+#include "../rv64si/wfi.S"

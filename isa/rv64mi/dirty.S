@@ -15,9 +15,10 @@ RVTEST_CODE_BEGIN
 
   # Turn on VM with superpage identity mapping
   la a1, page_table_1
+  srl a1, a1, RISCV_PGSHIFT
   csrw sptbr, a1
   sfence.vm
-  li a1, ((MSTATUS_VM & ~(MSTATUS_VM<<1)) * VM_SV39) | ((MSTATUS_PRV1 & ~(MSTATUS_PRV1<<1)) * PRV_S)
+  li a1, ((MSTATUS_VM & ~(MSTATUS_VM<<1)) * VM_SV39) | ((MSTATUS_MPP & ~(MSTATUS_MPP<<1)) * PRV_S)
   csrs mstatus, a1
   la a1, 1f
   csrw mepc, a1
@@ -27,16 +28,17 @@ RVTEST_CODE_BEGIN
   # Try a faulting store to make sure dirty bit is not set
   li TESTNUM, 2
   li t0, 1
-  sd t0, dummy, t1
+  sw t0, dummy, t1
 
   # Load new page table
   li TESTNUM, 3
   la t0, page_table_2
+  srl t0, t0, RISCV_PGSHIFT
   csrw sptbr, t0
   sfence.vm
 
   # Try a non-faulting store to make sure dirty bit is set
-  sd t0, dummy, t1
+  sw t0, dummy, t1
 
   # Make sure R and D bits are set
   lw t0, page_table_2

@@ -4,12 +4,16 @@
 
 rv32mi_sc_tests = \
 	csr \
+	dirty \
 	illegal \
 	ma_fetch \
 	ma_addr \
+	mcsr \
 	scall \
 	sbreak \
+	shamt \
 	timer \
+	wfi \
 
 rv32mi_mc_tests = \
 	ipi \

@@ -9,8 +9,8 @@ all: benchmarks isa
 install: all
 	install -d $(instbasedir)/share/riscv-tests/isa
 	install -d $(instbasedir)/share/riscv-tests/benchmarks
-	install -p -m 644 isa/* $(instbasedir)/share/riscv-tests/isa
-	install -p -m 644 benchmarks/* $(instbasedir)/share/riscv-tests/benchmarks
+	install -p -m 644 `find isa -maxdepth 1 -type f` $(instbasedir)/share/riscv-tests/isa
+	install -p -m 644 `find benchmarks -maxdepth 1 -type f` $(instbasedir)/share/riscv-tests/benchmarks
 
 benchmarks:
 	mkdir -p benchmarks

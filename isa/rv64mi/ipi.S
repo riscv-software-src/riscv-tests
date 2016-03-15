@@ -14,7 +14,7 @@ RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
   # enable interrupts
-  csrs mstatus, MSTATUS_IE
+  csrs mstatus, MSTATUS_MIE
   csrs mie, MIP_MSIP
 
   # get a unique core id

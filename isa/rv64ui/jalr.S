@@ -19,38 +19,16 @@ RVTEST_CODE_BEGIN
 
 test_2:
   li  TESTNUM, 2
-  li  x31, 0
-  la  x2, target_2
+  li  t0, 0
+  la  t1, target_2
 
+  jalr t0, t1, 0
 linkaddr_2:
-  jalr x19, x2, 0
-  nop
-  nop
-
   j fail
 
 target_2:
-  la  x1, linkaddr_2
-  addi x1, x1, 4
-  bne x1, x19, fail
-
-  #-------------------------------------------------------------
-  # Test 3: Check r0 target and that r31 is not modified
-  #-------------------------------------------------------------
-
-test_3:
-  li  TESTNUM, 3
-  li  x31, 0
-  la  x3, target_3
-
-linkaddr_3:
-  jalr x0, x3, 0
-  nop
-
-  j fail
-
-target_3:
-  bne x31, x0, fail
+  la  t1, linkaddr_2
+  bne t0, t1, fail
 
   #-------------------------------------------------------------
   # Bypassing tests
@@ -64,16 +42,16 @@ target_3:
   # Test delay slot instructions not executed nor bypassed
   #-------------------------------------------------------------
 
-  TEST_CASE( 7, x1, 4, \
-    li  x1, 1; \
-    la  x2, 1f;
-    jalr x19, x2, -4; \
-    addi x1, x1, 1; \
-    addi x1, x1, 1; \
-    addi x1, x1, 1; \
-    addi x1, x1, 1; \
-1:  addi x1, x1, 1; \
-    addi x1, x1, 1; \
+  TEST_CASE( 7, t0, 4, \
+    li  t0, 1; \
+    la  t1, 1f; \
+    jr  t1, -4; \
+    addi t0, t0, 1; \
+    addi t0, t0, 1; \
+    addi t0, t0, 1; \
+    addi t0, t0, 1; \
+1:  addi t0, t0, 1; \
+    addi t0, t0, 1; \
   )
 
   TEST_PASSFAIL

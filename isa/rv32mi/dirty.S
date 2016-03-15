@@ -4,4 +4,7 @@
 #undef RVTEST_RV64M
 #define RVTEST_RV64M RVTEST_RV32M
 
-#include "../rv64mi/ma_addr.S"
+#undef VM_SV39
+#define VM_SV39 VM_SV32
+
+#include "../rv64mi/dirty.S"

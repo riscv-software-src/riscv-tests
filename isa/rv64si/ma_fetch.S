@@ -21,14 +21,21 @@ RVTEST_CODE_BEGIN
   #define stvec_handler mtvec_handler
 #endif
 
-#ifndef __rvc
+  .option norvc
+
+  # Without RVC, the jalr should trap, and the handler will skip ahead.
+  # With RVC, the jalr should not trap, and "j fail" should get skipped.
   li TESTNUM, 2
   li t1, 0
   la t0, 1f
   jalr t1, t0, 2
 1:
+  .option rvc
+  c.j fail
+  c.j 2f
+  .option norvc
   j fail
-#endif
+2:
 
   // This test should pass, since JALR ignores the target LSB
   li TESTNUM, 3
@@ -39,14 +46,17 @@ RVTEST_CODE_BEGIN
   j fail
 1:
 
-#ifndef __rvc
   li TESTNUM, 4
   li t1, 0
-  la t0, 3f
-  jr t0, 3
-3:
+  la t0, 1f
+  jalr t1, t0, 3
+1:
+  .option rvc
+  c.j fail
+  c.j 2f
+  .option norvc
   j fail
-#endif
+2:
 
   j pass
 
@@ -74,7 +84,7 @@ stvec_handler:
   addi t0, t0, -4
   bne t0, a1, fail
 
-  addi a1, a1, 8
+  addi a1, a1, 12
   csrw sepc, a1
   sret
 

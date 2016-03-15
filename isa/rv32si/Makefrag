@@ -4,12 +4,10 @@
 
 rv32si_sc_tests = \
 	csr \
-	shamt \
 	ma_fetch \
-	illegal \
 	scall \
 	sbreak \
-	ma_addr \
+	wfi \
 
 rv32si_p_tests = $(addprefix rv32si-p-, $(rv32si_sc_tests))
 
