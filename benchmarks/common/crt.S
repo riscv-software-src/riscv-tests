@@ -13,25 +13,17 @@
 #endif
 
   .text
-  .align 6
-user_trap_entry:
-  j trap_entry
-
-  .align 6
-supervisor_trap_entry:
-  j supervisor_trap_entry
-
-  .align 6
-hypervisor_trap_entry:
-  j hypervisor_trap_entry
-
-  .align 6
-machine_trap_entry:
-  j trap_entry
-
-  .align 6
   .globl _start
 _start:
+  j handle_reset
+
+nmi_vector:
+  j nmi_vector
+
+trap_vector:
+  j trap_entry
+
+handle_reset:
   li  x1, 0
   li  x2, 0
   li  x3, 0
@@ -64,8 +56,6 @@ _start:
   li  x30,0
   li  x31,0
 
-  li t0, MSTATUS_MPP;  csrc mstatus, t0    # run tests in user mode
-  li t0, MSTATUS_MPIE; csrs mstatus, t0    # enable interrupts in user mode
   li t0, MSTATUS_FS;   csrs mstatus, t0    # enable FPU
   li t0, MSTATUS_XS;   csrs mstatus, t0    # enable accelerator
 
@@ -146,9 +136,7 @@ _start:
   sll sp, sp, STKSHIFT
   add sp, sp, tp
 
-  la t0, _init
-  csrw mepc, t0
-  eret
+  j _init
 
 trap_entry:
   addi sp, sp, -272
@@ -190,6 +178,10 @@ trap_entry:
   mv a2, sp
   jal handle_trap
   csrw mepc, a0
+
+  # Remain in M-mode after eret
+  li t0, MSTATUS_MPP
+  csrs mstatus, t0
 
   LREG x1, 1*REGBYTES(sp)
   LREG x2, 2*REGBYTES(sp)

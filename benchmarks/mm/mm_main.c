@@ -31,11 +31,11 @@ void thread_entry(int cid, int nc)
   size_t instret, cycles;
   for (int i = 0; i < R; i++)
   {
-    instret = -rdinstret();
-    cycles = -rdcycle();
+    instret = -read_csr(minstret);
+    cycles = -read_csr(mcycle);
     mm(m, n, p, a, p, b, n, c, n);
-    instret += rdinstret();
-    cycles += rdcycle();
+    instret += read_csr(minstret);
+    cycles += read_csr(mcycle);
   }
 
   asm volatile("fence");

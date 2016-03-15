@@ -126,9 +126,9 @@ static uint64_t lfsr(uint64_t x)
 #define stringify_1(s) #s
 #define stringify(s) stringify_1(s)
 #define stats(code, iter) do { \
-    unsigned long _c = -rdcycle(), _i = -rdinstret(); \
+    unsigned long _c = -read_csr(mcycle), _i = -read_csr(minstret); \
     code; \
-    _c += rdcycle(), _i += rdinstret(); \
+    _c += read_csr(mcycle), _i += read_csr(minstret); \
     if (cid == 0) \
       printf("\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n", \
              stringify(code), _c, _c/iter, 10*_c/iter%10, _c/_i, 10*_c/_i%10); \

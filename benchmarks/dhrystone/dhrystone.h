@@ -384,8 +384,8 @@ extern clock_t	clock();
 #define HZ 1000000
 #define Too_Small_Time 1
 #define CLOCK_TYPE "rdcycle()"
-#define Start_Timer() Begin_Time = rdcycle()
-#define Stop_Timer() End_Time = rdcycle()
+#define Start_Timer() Begin_Time = read_csr(mcycle)
+#define Stop_Timer() End_Time = read_csr(mcycle)
 
 #else
                 /* Use times(2) time function unless    */

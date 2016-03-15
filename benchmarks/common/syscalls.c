@@ -49,7 +49,7 @@ static int handle_stats(int enable)
     if (!enable) { csr -= counters[i]; counter_names[i] = #name; } \
     counters[i++] = csr; \
   } while (0)
-  READ_CTR(cycle);   READ_CTR(instret);
+  READ_CTR(mcycle);  READ_CTR(minstret);
   READ_CTR(uarch0);  READ_CTR(uarch1);  READ_CTR(uarch2);  READ_CTR(uarch3);
   READ_CTR(uarch4);  READ_CTR(uarch5);  READ_CTR(uarch6);  READ_CTR(uarch7);
   READ_CTR(uarch8);  READ_CTR(uarch9);  READ_CTR(uarch10); READ_CTR(uarch11);
@@ -69,13 +69,13 @@ void tohost_exit(long code)
 long handle_trap(long cause, long epc, long regs[32])
 {
   int* csr_insn;
-  asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));
+  asm ("jal %0, 1f; csrr a0, 0x0; 1:" : "=r"(csr_insn));
   long sys_ret = 0;
 
   if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
       (*(int*)epc & *csr_insn) == *csr_insn)
     ;
-  else if (cause != CAUSE_USER_ECALL)
+  else if (cause != CAUSE_MACHINE_ECALL)
     tohost_exit(1337);
   else if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);
