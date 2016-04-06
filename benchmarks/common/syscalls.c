@@ -39,9 +39,6 @@ static long counters[NUM_COUNTERS];
 static char* counter_names[NUM_COUNTERS];
 static int handle_stats(int enable)
 {
-  //use csrs to set stats register
-  if (enable)
-    asm volatile ("csrrs a0, stats, 1" ::: "a0");
   int i = 0;
 #define READ_CTR(name) do { \
     while (i >= NUM_COUNTERS) ; \
@@ -50,13 +47,11 @@ static int handle_stats(int enable)
     counters[i++] = csr; \
   } while (0)
   READ_CTR(mcycle);  READ_CTR(minstret);
-  READ_CTR(uarch0);  READ_CTR(uarch1);  READ_CTR(uarch2);  READ_CTR(uarch3);
-  READ_CTR(uarch4);  READ_CTR(uarch5);  READ_CTR(uarch6);  READ_CTR(uarch7);
-  READ_CTR(uarch8);  READ_CTR(uarch9);  READ_CTR(uarch10); READ_CTR(uarch11);
-  READ_CTR(uarch12); READ_CTR(uarch13); READ_CTR(uarch14); READ_CTR(uarch15);
+  READ_CTR(0xcc0); READ_CTR(0xcc1); READ_CTR(0xcc2); READ_CTR(0xcc3);
+  READ_CTR(0xcc4); READ_CTR(0xcc5); READ_CTR(0xcc6); READ_CTR(0xcc7);
+  READ_CTR(0xcc8); READ_CTR(0xcc9); READ_CTR(0xcca); READ_CTR(0xccb);
+  READ_CTR(0xccc); READ_CTR(0xccd); READ_CTR(0xcce); READ_CTR(0xccf);
 #undef READ_CTR
-  if (!enable)
-    asm volatile ("csrrc a0, stats, 1" ::: "a0");
   return 0;
 }
 
@@ -69,7 +64,7 @@ void tohost_exit(long code)
 long handle_trap(long cause, long epc, long regs[32])
 {
   int* csr_insn;
-  asm ("jal %0, 1f; csrr a0, 0x0; 1:" : "=r"(csr_insn));
+  asm ("jal %0, 1f; csrr a0, 0xcc0; 1:" : "=r"(csr_insn));
   long sys_ret = 0;
 
   if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
