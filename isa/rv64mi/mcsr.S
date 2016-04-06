@@ -17,7 +17,7 @@ RVTEST_CODE_BEGIN
 #ifdef __riscv64
   TEST_CASE(2, a0, 0x2, csrr a0, misa; srl a0, a0, 62)
 #else
-  TEST_CASE(2, a0, 0x0, csrr a0, misa; srl a0, a0, 30)
+  TEST_CASE(2, a0, 0x1, csrr a0, misa; srl a0, a0, 30)
 #endif
 
   # Check that mhartid reports 0
