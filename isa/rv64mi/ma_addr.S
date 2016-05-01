@@ -72,7 +72,7 @@ mtvec_handler:
   csrr t0, mepc
   addi t0, t0, 8
   csrw mepc, t0
-  sret
+  mret
 
 RVTEST_CODE_END
 

@@ -29,8 +29,6 @@ rv32ui_mc_tests = \
 	lrsc
 
 rv32ui_p_tests = $(addprefix rv32ui-p-, $(rv32ui_sc_tests))
-rv32ui_pt_tests = $(addprefix rv32ui-pt-, $(rv32ui_sc_tests))
-rv32ui_pm_tests = $(addprefix rv32ui-pm-, $(rv32ui_mc_tests))
 rv32ui_v_tests = $(addprefix rv32ui-v-, $(rv32ui_sc_tests))
 
-spike32_tests += $(rv32ui_p_tests) $(rv32ui_pt_tests) $(rv32ui_pm_tests) $(rv32ui_v_tests)
+spike32_tests += $(rv32ui_p_tests) $(rv32ui_v_tests)

@@ -31,9 +31,6 @@ vpath %.S $(src_dir)
 #------------------------------------------------------------
 # Build assembly tests
 
-%.hex: %
-	(elf2hex 16 8192 $< 2> /dev/null || elf2hex 16 16384 $<) > $@
-
 %.dump: %
 	$(RISCV_OBJDUMP) $< > $@
 
@@ -49,22 +46,13 @@ $$($(1)_p_tests): $(1)-p-%: $(1)/%.S
 	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/p -I$(src_dir)/macros/scalar -T$(src_dir)/../env/p/link.ld $$< -o $$@
 $(1)_tests += $$($(1)_p_tests)
 
-$$($(1)_pt_tests): $(1)-pt-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/pt -I$(src_dir)/macros/scalar -T$(src_dir)/../env/pt/link.ld $$< -o $$@
-$(1)_tests += $$($(1)_pt_tests)
-
-$$($(1)_pm_tests): $(1)-pm-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/pm -I$(src_dir)/macros/scalar -T$(src_dir)/../env/pm/link.ld $$< -o $$@
-$(1)_tests += $$($(1)_pm_tests)
-
 $$($(1)_v_tests): $(1)-v-%: $(1)/%.S
 	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -std=gnu99 -O2 -I$(src_dir)/../env/v -I$(src_dir)/macros/scalar -T$(src_dir)/../env/v/link.ld $(src_dir)/../env/v/entry.S $(src_dir)/../env/v/*.c $$< -lc -o $$@
 $(1)_tests += $$($(1)_v_tests)
 
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
-$(1)_tests_hex = $$(addsuffix .hex, $$($(1)_tests))
 
-$(1): $$($(1)_tests_dump) $$($(1)_tests_hex)
+$(1): $$($(1)_tests_dump)
 
 .PHONY: $(1)
 
@@ -96,7 +84,7 @@ junk += $(tests) $(tests_dump) $(tests_hex) $(tests_out) $(tests32_out)
 #------------------------------------------------------------
 # Default
 
-all: $(tests_dump) $(tests_hex)
+all: $(tests_dump)
 
 #------------------------------------------------------------
 # Clean up

@@ -30,8 +30,6 @@ rv64ui_mc_tests = \
 	lrsc
 
 rv64ui_p_tests = $(addprefix rv64ui-p-, $(rv64ui_sc_tests))
-rv64ui_pt_tests = $(addprefix rv64ui-pt-, $(rv64ui_sc_tests))
-rv64ui_pm_tests = $(addprefix rv64ui-pm-, $(rv64ui_mc_tests))
 rv64ui_v_tests = $(addprefix rv64ui-v-, $(rv64ui_sc_tests))
 
-spike_tests += $(rv64ui_p_tests) $(rv64ui_pm_tests) $(rv64ui_pt_tests) $(rv64ui_v_tests)
+spike_tests += $(rv64ui_p_tests) $(rv64ui_v_tests)

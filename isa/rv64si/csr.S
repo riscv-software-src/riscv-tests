@@ -18,6 +18,7 @@ RVTEST_CODE_BEGIN
   #define sstatus mstatus
   #define scause mcause
   #define sepc mepc
+  #define sret mret
   #define stvec_handler mtvec_handler
   #undef SSTATUS_SPP
   #define SSTATUS_SPP MSTATUS_MPP
@@ -55,24 +56,24 @@ RVTEST_CODE_BEGIN
   TEST_CASE(11, x0, 0, nop)
 #endif
 
-  # Exit by doing a syscall.
-  TEST_CASE(12, x0, 1, scall)
+  RVTEST_PASS
 
   # We should only fall through to this if scall failed.
   TEST_PASSFAIL
 
 stvec_handler:
-  # Trapping on tests 11 and 12 is usually good news.
+  # Trapping on tests 10 and 11 is good news.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.
   li t0, 9
   beq TESTNUM, t0, privileged
   li t0, 10
   beq TESTNUM, t0, privileged
-  li t0, 11
-  beq TESTNUM, t0, syscall
 
-  # Trapping on other tests is bad news.
-  j fail
+  # catch RVTEST_PASS and kick it up to M-mode
+  csrr t0, scause
+  li t1, CAUSE_USER_ECALL
+  bne t0, t1, fail
+  RVTEST_PASS
 
 privileged:
   # Make sure scause indicates a lack of privilege.
@@ -84,15 +85,6 @@ privileged:
   addi t0, t0, 4
   csrw sepc, t0
   sret
-
-syscall:
-  # Make sure scause indicates a syscall.
-  csrr t0, scause
-  li t1, CAUSE_USER_ECALL
-  bne t0, t1, fail
-
-  # We're done.
-  j pass
 
 RVTEST_CODE_END
 

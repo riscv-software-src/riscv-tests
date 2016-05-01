@@ -15,15 +15,9 @@
   .text
   .globl _start
 _start:
-  j handle_reset
+  la t0, trap_entry
+  csrw mtvec, t0
 
-nmi_vector:
-  j nmi_vector
-
-trap_vector:
-  j trap_entry
-
-handle_reset:
   li  x1, 0
   li  x2, 0
   li  x3, 0
@@ -216,7 +210,7 @@ trap_entry:
   LREG x31, 31*REGBYTES(sp)
 
   addi sp, sp, 272
-  eret
+  mret
 
 .section ".tdata.begin"
 .globl _tdata_begin

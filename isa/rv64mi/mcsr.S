@@ -23,13 +23,15 @@ RVTEST_CODE_BEGIN
   # Check that mhartid reports 0
   TEST_CASE(3, a0, 0x0, csrr a0, mhartid)
 
-  # Check that reading mimpid, marchid, and mvendorid doesn't cause exceptions
+  # Check that reading the following CSRs doesn't cause an exception
   csrr a0, mimpid
   csrr a0, marchid
   csrr a0, mvendorid
 
-  # Check that mtvec reports DEFAULT_MTVEC
-  TEST_CASE(5, a0, DEFAULT_MTVEC, csrr a0, mtvec)
+  # Check that writing hte following CSRs doesn't cause an exception
+  li t0, 0
+  csrs mtvec, t0
+  csrs mepc, t0
 
   TEST_PASSFAIL
 

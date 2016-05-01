@@ -16,13 +16,17 @@ RVTEST_CODE_BEGIN
   # Turn on VM with superpage identity mapping
   la a1, page_table_1
   srl a1, a1, RISCV_PGSHIFT
+  la a2, page_table_2
+  srl a2, a2, RISCV_PGSHIFT
   csrw sptbr, a1
   sfence.vm
   li a1, ((MSTATUS_VM & ~(MSTATUS_VM<<1)) * VM_SV39) | ((MSTATUS_MPP & ~(MSTATUS_MPP<<1)) * PRV_S)
   csrs mstatus, a1
-  la a1, 1f
+  la a1, 1f - DRAM_BASE
   csrw mepc, a1
-  eret
+  la a1, stvec_handler - DRAM_BASE
+  csrw stvec, a1
+  mret
 1:
 
   # Try a faulting store to make sure dirty bit is not set
@@ -32,9 +36,7 @@ RVTEST_CODE_BEGIN
 
   # Load new page table
   li TESTNUM, 3
-  la t0, page_table_2
-  srl t0, t0, RISCV_PGSHIFT
-  csrw sptbr, t0
+  csrw sptbr, a2
   sfence.vm
 
   # Try a non-faulting store to make sure dirty bit is set
@@ -76,9 +78,9 @@ die:
 
 .data
 .align 12
-page_table_1: .dword PTE_V | PTE_TYPE_URX_SRX
+page_table_1: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URX_SRX
 dummy: .dword 0
 .align 12
-page_table_2: .dword PTE_V | PTE_TYPE_URWX_SRWX
+page_table_2: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URWX_SRWX
 
 RVTEST_CODE_END

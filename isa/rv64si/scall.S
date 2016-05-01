@@ -18,6 +18,7 @@ RVTEST_CODE_BEGIN
   #define sstatus mstatus
   #define scause mcause
   #define sepc mepc
+  #define sret mret
   #define stvec_handler mtvec_handler
   #undef SSTATUS_SPP
   #define SSTATUS_SPP MSTATUS_MPP
@@ -29,9 +30,10 @@ RVTEST_CODE_BEGIN
   csrc sstatus, t0
   la t0, 1f
   csrw sepc, t0
-  eret
+  sret
 1:
 
+  li TESTNUM, 1
   scall
   j fail
 

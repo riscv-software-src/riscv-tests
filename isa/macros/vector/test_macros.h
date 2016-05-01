@@ -20,8 +20,8 @@ test_ ## testnum: \
   vsetcfg nxreg,nfreg; \
   li a3,2048; \
   vsetvl a3,a3; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
+1:auipc a0,%pcrel_hi(vtcode ## testnum); \
+  vf %pcrel_lo(1b)(a0); \
   la a4,dst; \
   vsd v ## testreg, a4; \
   fence; \
@@ -233,8 +233,8 @@ test_ ## testnum: \
   addi a5,a5,4; \
   vflstw vf2, a5, x0; \
   addi a5,a5,4; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
+1:auipc a0,%pcrel_hi(vtcode ## testnum); \
+  vf %pcrel_lo(1b)(a0); \
   la a4,dst; \
   vsw vx1, a4; \
   fence; \
@@ -273,8 +273,8 @@ test_ ## testnum: \
   addi a5,a5,8; \
   vflstd vf2, a5, x0; \
   addi a5,a5,8; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
+1:auipc a0,%pcrel_hi(vtcode ## testnum); \
+  vf %pcrel_lo(1b)(a0); \
   la a4,dst; \
   vsd vx1, a4; \
   fence; \
@@ -346,8 +346,8 @@ test_ ## testnum: \
   vsetcfg 2,1; \
   li a3,2048; \
   vsetvl a3,a3; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
+1:auipc a0,%pcrel_hi(vtcode ## testnum); \
+  vf %pcrel_lo(1b)(a0); \
   la a4,dst; \
   vsw vx1, a4; \
   fence; \
@@ -379,8 +379,8 @@ test_ ## testnum: \
   vsetcfg 2,1; \
   li a3,2048; \
   vsetvl a3,a3; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
+1:auipc a0,%pcrel_hi(vtcode ## testnum); \
+  vf %pcrel_lo(1b)(a0); \
   la a4,dst; \
   vsd vx1, a4; \
   fence; \
@@ -529,8 +529,8 @@ test_ ## testnum: \
   vsetcfg nxreg,nfreg; \
   li a3,2048; \
   vsetvl a3,a3; \
-  lui a0,%hi(vtcode ## testnum ); \
-  vf %lo(vtcode ## testnum )(a0); \
+1:auipc a0,%pcrel_hi(vtcode ## testnum); \
+  vf %pcrel_lo(1b)(a0); \
   la a4,dst; \
   fence; \
   li a1,correctval; \
