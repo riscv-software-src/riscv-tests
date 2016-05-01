@@ -32,6 +32,8 @@ trap_vector:
   j wtf
 
 handle_reset:
+  la t0, trap_vector
+  csrw mtvec, t0
   la sp, STACK_TOP - SIZEOF_TRAPFRAME_T
   csrw mscratch, sp
   li a1, 1337
@@ -73,7 +75,7 @@ pop_tf:
   LOAD  x30,30*REGBYTES(a0)
   LOAD  x31,31*REGBYTES(a0)
   LOAD  a0,10*REGBYTES(a0)
-  eret
+  sret
 
   .global  trap_entry
 trap_entry:
@@ -142,7 +144,7 @@ handle_tohost:
   csrr t0, mepc
   addi t0, t0, 4
   csrw mepc, t0
-  eret
+  mret
 
 wtf:
   li a0, 841

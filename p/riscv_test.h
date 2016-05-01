@@ -91,18 +91,21 @@
 _start:                                                                 \
         /* reset vector */                                              \
         j reset_vector;                                                 \
-        /* NMI vector */                                                \
-        j other_exception;                                              \
-        /* trap vector */                                               \
+trap_vector:                                                            \
         /* test whether the test came from pass/fail */                 \
-        la t5, ecall;                                                   \
-        csrr t6, mepc;                                                  \
+        csrr t5, mcause;                                                \
+        li t6, CAUSE_USER_ECALL;                                        \
+        beq t5, t6, write_tohost;                                       \
+        li t6, CAUSE_SUPERVISOR_ECALL;                                  \
+        beq t5, t6, write_tohost;                                       \
+        li t6, CAUSE_MACHINE_ECALL;                                     \
         beq t5, t6, write_tohost;                                       \
         /* if an mtvec_handler is defined, jump to it */                \
         la t5, mtvec_handler;                                           \
-        bnez t5, mtvec_handler;                                         \
+        beqz t5, 1f;                                                    \
+        jr t5;                                                          \
         /* was it an interrupt or an exception? */                      \
-        csrr t5, mcause;                                                \
+  1:    csrr t5, mcause;                                                \
         bgez t5, handle_exception;                                      \
         INTERRUPT_HANDLER;                                              \
 handle_exception:                                                       \
@@ -117,6 +120,8 @@ reset_vector:                                                           \
         RISCV_MULTICORE_DISABLE;                                        \
         CHECK_XLEN;                                                     \
         li TESTNUM, 0;                                                  \
+        la t0, trap_vector;                                             \
+        csrw mtvec, t0;                                                 \
         /* if an stvec_handler is defined, delegate exceptions to it */ \
         la t0, stvec_handler;                                           \
         beqz t0, 1f;                                                    \
@@ -137,7 +142,7 @@ reset_vector:                                                           \
         la t0, 1f;                                                      \
         csrw mepc, t0;                                                  \
         csrr a0, mhartid;                                               \
-        eret;                                                           \
+        mret;                                                           \
 1:
 
 //-----------------------------------------------------------------------
@@ -145,8 +150,7 @@ reset_vector:                                                           \
 //-----------------------------------------------------------------------
 
 #define RVTEST_CODE_END                                                 \
-ecall:  ecall;                                                          \
-        j ecall
+        unimp
 
 //-----------------------------------------------------------------------
 // Pass/Fail Macro
@@ -155,7 +159,7 @@ ecall:  ecall;                                                          \
 #define RVTEST_PASS                                                     \
         fence;                                                          \
         li TESTNUM, 1;                                                  \
-        j ecall
+        ecall
 
 #define TESTNUM x28
 #define RVTEST_FAIL                                                     \
@@ -163,7 +167,7 @@ ecall:  ecall;                                                          \
 1:      beqz TESTNUM, 1b;                                               \
         sll TESTNUM, TESTNUM, 1;                                        \
         or TESTNUM, TESTNUM, 1;                                         \
-        j ecall
+        ecall
 
 //-----------------------------------------------------------------------
 // Data Section Macro

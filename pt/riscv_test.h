@@ -29,7 +29,7 @@
         csrr t5, mtime;                                                 \
         addi t5, t5, TIMER_INTERVAL;                                    \
         csrw mtimecmp, t5;                                              \
-        eret;                                                           \
+        mret;                                                           \
 
 //-----------------------------------------------------------------------
 // Data Section Macro
