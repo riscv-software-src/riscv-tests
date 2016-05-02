@@ -14,6 +14,9 @@
 // initialized in crt.S
 int have_vec;
 
+volatile uint64_t tohost __attribute__((aligned(64)));
+volatile uint64_t fromhost __attribute__((aligned(64)));
+
 static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {
   volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
@@ -22,8 +25,13 @@ static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
   magic_mem[2] = arg1;
   magic_mem[3] = arg2;
   __sync_synchronize();
-  write_csr(mtohost, (long)magic_mem);
-  while (swap_csr(mfromhost, 0) == 0);
+
+  tohost = (uintptr_t)magic_mem;
+  while (fromhost == 0)
+    ;
+  fromhost = 0;
+
+  __sync_synchronize();
   return magic_mem[0];
 }
 
@@ -57,7 +65,7 @@ static int handle_stats(int enable)
 
 void tohost_exit(long code)
 {
-  write_csr(mtohost, (code << 1) | 1);
+  tohost = (code << 1) | 1;
   while (1);
 }
 

@@ -76,11 +76,17 @@ stvec_handler:
 die:
   RVTEST_FAIL
 
-.data
+RVTEST_CODE_END
+
+  .data
+RVTEST_DATA_BEGIN
+
+  TEST_DATA
+
 .align 12
 page_table_1: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URX_SRX
 dummy: .dword 0
 .align 12
 page_table_2: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URWX_SRWX
 
-RVTEST_CODE_END
+RVTEST_DATA_END
