@@ -10,7 +10,6 @@ rv64mi_sc_tests = \
 	ma_fetch \
 	ma_addr \
 	scall \
-	wfi \
 	sbreak \
 
 rv64mi_mc_tests = \
