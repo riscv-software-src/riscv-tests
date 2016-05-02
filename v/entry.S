@@ -22,13 +22,6 @@ nmi_vector:
   j wtf
 
 trap_vector:
-  # we can safely clobber caller-saved registers here, because we were
-  # either invoked via do_tohost or we are about to bail out
-  csrr t0, mcause
-  li t1, CAUSE_SUPERVISOR_ECALL
-  beq t0, t1, handle_tohost
-  li t1, CAUSE_MACHINE_ECALL
-  beq t0, t1, handle_tohost
   j wtf
 
 handle_reset:
@@ -128,25 +121,3 @@ trap_entry:
 
   move  a0, sp
   j handle_trap
-
-  .global do_tohost
-do_tohost:
-  ecall
-  ret
-
-handle_tohost:
-1:csrrw t0, mtohost, a0
-  bnez t0, 1b
-
-1:csrrw t0, mfromhost, x0
-  bnez t0, 1b
-
-  csrr t0, mepc
-  addi t0, t0, 4
-  csrw mepc, t0
-  mret
-
-wtf:
-  li a0, 841
-1:csrw mtohost, a0
-  j 1b

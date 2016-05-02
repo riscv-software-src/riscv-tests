@@ -8,7 +8,17 @@
 
 void trap_entry();
 void pop_tf(trapframe_t*);
-void do_tohost(long tohost_value);
+
+volatile uint64_t tohost __attribute__((aligned(64)));
+volatile uint64_t fromhost __attribute__((aligned(64)));
+
+static void do_tohost(uint64_t tohost_value)
+{
+  tohost = tohost_value;
+  while (fromhost == 0)
+    ;
+  fromhost = 0;
+}
 
 #define pa2kva(pa) ((void*)(pa) - DRAM_BASE - MEGAPAGE_SIZE)
 #define uva2kva(pa) ((void*)(pa) - MEGAPAGE_SIZE)
@@ -34,6 +44,11 @@ static void terminate(int code)
 {
   do_tohost(code);
   while (1);
+}
+
+void wtf()
+{
+  terminate(841);
 }
 
 #define stringify1(x) #x
