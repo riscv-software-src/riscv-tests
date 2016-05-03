@@ -1,0 +1,5 @@
+rvall_sc_tests = empty
+
+rvall_p_tests = $(addprefix rvall-p-, $(rvall_sc_tests))
+
+spike_tests += $(rvall_p_tests)
