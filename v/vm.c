@@ -175,7 +175,7 @@ static void coherence_torture()
   // cause coherence misses without affecting program semantics
   uint64_t random = ENTROPY;
   while (1) {
-    uintptr_t paddr = (random % (2 * (MAX_TEST_PAGES + 1) * PGSIZE)) & -4;
+    uintptr_t paddr = DRAM_BASE + ((random % (2 * (MAX_TEST_PAGES + 1) * PGSIZE)) & -4);
 #ifdef __riscv_atomic
     if (random & 1) // perform a no-op write
       asm volatile ("amoadd.w zero, zero, (%0)" :: "r"(paddr));

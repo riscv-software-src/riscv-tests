@@ -10,7 +10,7 @@
 # define REGBYTES 4
 #endif
 
-#define STACK_TOP (_end + 131072)
+#define STACK_TOP (_end + 4096)
 
   .section ".text.init","ax",@progbits
 
@@ -28,6 +28,9 @@ handle_reset:
   la t0, trap_vector
   csrw mtvec, t0
   la sp, STACK_TOP - SIZEOF_TRAPFRAME_T
+  csrr t0, mhartid
+  slli t0, t0, 12
+  add sp, sp, t0
   csrw mscratch, sp
   li a1, 1337
   la a0, userstart
