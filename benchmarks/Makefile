@@ -27,6 +27,7 @@ bmarks = \
 	spmv \
 	mt-vvadd \
 	mt-matmul \
+	empty \
 
 bmarks_host = \
 	median \
