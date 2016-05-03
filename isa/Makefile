@@ -11,7 +11,6 @@ include $(src_dir)/rv64mi/Makefrag
 include $(src_dir)/rv32ui/Makefrag
 include $(src_dir)/rv32si/Makefrag
 include $(src_dir)/rv32mi/Makefrag
-include $(src_dir)/rvall/Makefrag
 
 default: all
 
@@ -61,7 +60,6 @@ tests += $$($(1)_tests)
 
 endef
 
-$(eval $(call compile_template,rvall))
 $(eval $(call compile_template,rv32ui,-m32))
 $(eval $(call compile_template,rv32si,-m32))
 $(eval $(call compile_template,rv32mi,-m32))
