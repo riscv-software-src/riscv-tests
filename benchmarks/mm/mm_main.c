@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include "util.h"
 
+#pragma GCC optimize ("unroll-loops")
+
 void thread_entry(int cid, int nc)
 {
   const int R = 8;

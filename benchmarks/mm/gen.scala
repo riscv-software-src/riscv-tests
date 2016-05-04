@@ -74,7 +74,7 @@ object MMGen {
     ("cp a.out " + Seq("b", m, n, p, m1, n1, p1, "run").reduce(_+"."+_))!
   }
   def main(args: Array[String]): Unit = {
-    test1(4, 5, 6, 36, 35, 36)
+    test1(4, 5, 6, 24, 25, 24)
     //for (i <- 4 to 6; j <- 4 to 6; k <- 4 to 6)
     //  test1(i, j, k, if (i == 5) 35 else 36, if (j == 5) 35 else 36, if (k == 5) 35 else 36)
   }
