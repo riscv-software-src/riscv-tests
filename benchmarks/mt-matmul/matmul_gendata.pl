@@ -191,7 +191,7 @@ sub main()
   print "\n#define __DATASET_H";
   print "\n\#define ARRAY_SIZE ".($opts{"size"}*$opts{"size"})." \n\n";
   print "\n\#define DIM_SIZE ".$opts{"size"}." \n\n";
-  print "\ntypedef double data_t;";
+  print "\ntypedef int data_t;";
    
   printArray( "input1_data", \@values1 );
   printArray( "input2_data", \@values2 );

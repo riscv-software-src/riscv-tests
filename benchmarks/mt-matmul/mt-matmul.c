@@ -55,7 +55,7 @@ void thread_entry(int cid, int nc)
 
    stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE);
  
-   int res = verifyDouble(ARRAY_SIZE, results_data, verify_data);
+   int res = verify(ARRAY_SIZE, results_data, verify_data);
 
 #ifdef DEBUG
    printArray("results:", ARRAY_SIZE, results_data);

@@ -1,7 +1,7 @@
 // See LICENSE for license details.
 
 //**************************************************************************
-// Double-precision general matrix multiplication benchmark
+// Double-precision sparse matrix-vector multiplication benchmark
 //--------------------------------------------------------------------------
 
 #include "util.h"
