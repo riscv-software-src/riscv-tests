@@ -6,6 +6,7 @@ rv32ui_sc_tests = \
 	simple \
 	add addi \
 	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoxor_w amoswap_w \
+	lrsc \
 	and andi \
 	auipc \
 	beq bge bgeu blt bltu bne \
@@ -24,9 +25,6 @@ rv32ui_sc_tests = \
 	srl srli \
 	sub \
 	xor xori \
-
-rv32ui_mc_tests = \
-	lrsc
 
 rv32ui_p_tests = $(addprefix rv32ui-p-, $(rv32ui_sc_tests))
 rv32ui_v_tests = $(addprefix rv32ui-v-, $(rv32ui_sc_tests))

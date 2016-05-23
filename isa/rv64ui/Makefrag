@@ -6,6 +6,7 @@ rv64ui_sc_tests = \
 	add addi addiw addw \
 	amoadd_d amoand_d amomax_d amomaxu_d amomin_d amominu_d amoor_d amoxor_d amoswap_d \
 	amoadd_w amoand_w amomax_w amomaxu_w amomin_w amominu_w amoor_w amoxor_w amoswap_w \
+	lrsc \
 	and andi \
 	auipc \
 	beq bge bgeu blt bltu bne \
@@ -25,9 +26,6 @@ rv64ui_sc_tests = \
 	srl srli srliw srlw \
 	sub subw \
 	xor xori \
-
-rv64ui_mc_tests = \
-	lrsc
 
 rv64ui_p_tests = $(addprefix rv64ui-p-, $(rv64ui_sc_tests))
 rv64ui_v_tests = $(addprefix rv64ui-v-, $(rv64ui_sc_tests))

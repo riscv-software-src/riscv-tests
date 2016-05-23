@@ -32,6 +32,7 @@ TEST_CASE( 2, a4, 1, \
 )
 
 # make sure that sc with the wrong reservation fails.
+# TODO is this actually mandatory behavior?
 TEST_CASE( 3, a4, 1, \
   la a0, foo; \
   add a1, a0, 1024; \
