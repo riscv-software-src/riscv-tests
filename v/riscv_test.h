@@ -34,9 +34,6 @@ userstart:                                                              \
 // Data Section Macro
 //-----------------------------------------------------------------------
 
-#undef RVTEST_DATA_BEGIN
-#define RVTEST_DATA_BEGIN
-
 #undef RVTEST_DATA_END
 #define RVTEST_DATA_END
 

@@ -83,7 +83,7 @@
 #define INTERRUPT_HANDLER j other_exception /* No interrupts should occur */
 
 #define RVTEST_CODE_BEGIN                                               \
-        .text;                                                          \
+        .section .text.init;                                            \
         .align  6;                                                      \
         .weak stvec_handler;                                            \
         .weak mtvec_handler;                                            \
@@ -177,8 +177,10 @@ reset_vector:                                                           \
 
 #define RVTEST_DATA_BEGIN                                               \
         EXTRA_DATA                                                      \
+        .pushsection .tohost,"aw",@progbits;                            \
         .align 6; .global tohost; tohost: .dword 0;                     \
         .align 6; .global fromhost; fromhost: .dword 0;                 \
+        .popsection;                                                    \
         .align 4; .global begin_signature; begin_signature:
 
 #define RVTEST_DATA_END .align 4; .global end_signature; end_signature:
