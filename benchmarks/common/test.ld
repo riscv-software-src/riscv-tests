@@ -22,11 +22,11 @@ SECTIONS
 
   /* text: test code section */
   . = 0x80000000;
-  .text : 
-  {
-    crt.o(.text)
-    *(.text)
-  }
+  .text.init : { crt.o(.text) }
+
+  .tohost ALIGN(0x1000) : { *(.tohost) }
+
+  .text : { *(.text) }
 
   /* data segment */
   .data : { *(.data) }

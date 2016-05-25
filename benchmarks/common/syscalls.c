@@ -14,8 +14,8 @@
 // initialized in crt.S
 int have_vec;
 
-volatile uint64_t tohost __attribute__((aligned(64)));
-volatile uint64_t fromhost __attribute__((aligned(64)));
+extern volatile uint64_t tohost;
+extern volatile uint64_t fromhost;
 
 static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {
