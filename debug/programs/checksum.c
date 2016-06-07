@@ -36,12 +36,3 @@ unsigned int crc32a(uint8_t *message, unsigned int size) {
    }
    return reverse(~crc);
 }
-
-extern uint8_t *data;
-extern uint32_t length;
-
-uint32_t main()
-{
-  /* Compute a simple checksum. */
-  return crc32a(data, length);
-}

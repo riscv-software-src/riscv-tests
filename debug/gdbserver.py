@@ -14,9 +14,21 @@ class DeleteServer(unittest.TestCase):
     def tearDown(self):
         del self.server
 
+class MemoryTest(DeleteServer):
+    def setUp(self):
+        self.server = target.server()
+        self.gdb = testlib.Gdb()
+        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+
+    def test_32(self):
+        self.gdb.p("*((int*)0x%x) = 0x8675309" % target.ram)
+        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (target.ram + 4))
+        self.assertEqual(self.gdb.p("*((int*)0x%x)" % target.ram), 0x8675309)
+        self.assertEqual(self.gdb.p("*((int*)0x%x)" % (target.ram + 4)), 0xdeadbeef)
+
 class InstantHaltTest(DeleteServer):
     def setUp(self):
-        self.binary = target.compile("debug.c")
+        self.binary = target.compile("programs/debug.c")
         self.server = target.server(self.binary, halted=True)
         self.gdb = testlib.Gdb()
         self.gdb.command("file %s" % self.binary)
@@ -43,11 +55,19 @@ class InstantHaltTest(DeleteServer):
 
 class DebugTest(DeleteServer):
     def setUp(self):
-        self.binary = target.compile("debug.c")
-        self.server = target.server(self.binary, halted=False)
+        self.binary = target.compile("programs/debug.c", "programs/checksum.c")
+        self.server = target.server()
         self.gdb = testlib.Gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb.load(self.binary)
+        self.gdb.b("_exit")
+
+    def exit(self):
+        output = self.gdb.c()
+        self.assertIn("Breakpoint", output)
+        self.assertIn("_exit", output)
+        self.assertEqual(self.gdb.p("status"), 0xc86455d4)
 
     def test_turbostep(self):
         """Single step a bunch of times."""
@@ -60,26 +80,19 @@ class DebugTest(DeleteServer):
             last_pc = pc
 
     def test_exit(self):
-        self.gdb.command("p i=0");
-        output = self.gdb.command("c")
-        self.assertIn("Continuing", output)
-        self.assertIn("Remote connection closed", output)
+        self.exit()
 
     def test_breakpoint(self):
-        self.gdb.command("p i=0");
-        self.gdb.command("b print_row")
-        # The breakpoint should be hit exactly 10 times.
-        for i in range(10):
-            output = self.gdb.command("c")
-            self.assertIn("Continuing", output)
-            self.assertIn("length=%d" % i, output)
-            self.assertIn("Breakpoint 1", output)
-        output = self.gdb.command("c")
-        self.assertIn("Continuing", output)
-        self.assertIn("Remote connection closed", output)
+        self.gdb.b("rot13")
+        # The breakpoint should be hit exactly 2 times.
+        for i in range(2):
+            output = self.gdb.c()
+            self.assertIn("Breakpoint ", output)
+        self.exit()
 
     def test_registers(self):
-        self.gdb.command("p i=0");
+        self.gdb.b("rot13")
+        self.gdb.c()
         # Try both forms to test gdb.
         for cmd in ("info all-registers", "info registers all"):
             output = self.gdb.command(cmd)
@@ -100,19 +113,20 @@ class DebugTest(DeleteServer):
             last_instret = instret
             self.gdb.command("stepi")
 
+        self.exit()
+
     def test_interrupt(self):
         """Sending gdb ^C while the program is running should cause it to halt."""
-        self.gdb.c(wait=False)
-        time.sleep(0.1)
-        self.gdb.interrupt()
+        self.gdb.b("main:start")
+        self.gdb.c()
         self.gdb.command("p i=123");
         self.gdb.c(wait=False)
         time.sleep(0.1)
-        self.gdb.interrupt()
-        self.gdb.command("p i=0");
-        output = self.gdb.c()
-        self.assertIn("Continuing", output)
-        self.assertIn("Remote connection closed", output)
+        output = self.gdb.interrupt()
+        assert "main" in output
+        self.assertGreater(self.gdb.p("j"), 10)
+        self.gdb.p("i=0");
+        self.exit()
 
 class RegsTest(DeleteServer):
     def setUp(self):
@@ -169,6 +183,14 @@ class DownloadTest(DeleteServer):
     def setUp(self):
         length = 2**20
         fd = file("data.c", "w")
+# extern uint8_t *data;
+# extern uint32_t length;
+# 
+# uint32_t main()
+#{
+#  /* Compute a simple checksum. */
+#  return crc32a(data, length);
+#}
         fd.write("#include <stdint.h>\n")
         fd.write("uint32_t length = %d;\n" % length)
         fd.write("uint8_t d[%d] = {\n" % length)
@@ -225,20 +247,28 @@ class Target(object):
         raise NotImplementedError
 
     def compile(self, *sources):
-        return testlib.compile(*(sources +
+        return testlib.compile(sources +
                 ("targets/%s/entry.S" % self.name, "programs/init.c",
                     "-I", "../env",
                     "-T", "targets/%s/link.lds" % self.name,
-                    "-nostartfiles")))
+                    "-nostartfiles",
+                    "-mcmodel=medany"), xlen=self.xlen)
 
 class SpikeTarget(Target):
     name = "spike"
+    xlen = 64
+    ram = 0x80010000
+
+    def server(self):
+        return testlib.Spike(parsed.cmd, halted=True)
 
 class MicroSemiTarget(Target):
     name = "m2gl_m2s"
+    xlen = 32
+    ram = 0x80000000
 
     def server(self):
-        return testlib.Openocd(cmd=parsed.openocd,
+        return testlib.Openocd(cmd=parsed.cmd,
                 config="targets/%s/openocd.cfg" % self.name)
 
 targets = [
@@ -252,8 +282,8 @@ def main():
     for t in targets:
         group.add_argument("--%s" % t.name, action="store_const", const=t,
                 dest="target")
-    parser.add_argument("--openocd", help="The OpenOCD command to use.",
-            default="openocd")
+    parser.add_argument("--cmd",
+            help="The command to use to start the debug server.")
     parser.add_argument("unittest", nargs="*")
     global parsed
     parsed = parser.parse_args()

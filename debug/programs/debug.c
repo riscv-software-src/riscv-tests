@@ -1,27 +1,46 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdint.h>
 
-char c = 'x';
+unsigned int crc32a(uint8_t *message, unsigned int size);
 
-void print_row(int length)
+void rot13(char *buf)
 {
-    for (int x=0; x<length; x++) {
-        printf("%c", c);
+    while (*buf) {
+        if ((*buf >= 'a' && *buf <= 'm') ||
+                (*buf >= 'A' && *buf <= 'M')) {
+            *buf += 13;
+        } else if ((*buf >= 'n' && *buf <= 'z') ||
+                (*buf >= 'N' && *buf <= 'Z')) {
+            *buf -= 13;
+        }
+        buf++;
     }
-    printf("\n");
+}
+
+size_t strlen(const char *buf)
+{
+    int len = 0;
+    while (buf[len])
+        len++;
+    return len;
 }
 
 int main()
 {
-    volatile int i = 42;
-    const char *text = "constant\n";
-    int threshold = 7;
+    volatile int i = 0;
+    int j = 0;
+    char *fox = "The quick brown fox jumps of the lazy dog.";
+    unsigned int checksum = 0;
 
-    // Wait for the debugger to get us out of this loop.
+start:
     while (i)
-        ;
+        j++;
 
-    printf("%s", text);
-    for (int y=0; y < 10; y++) {
-        print_row(y);
-    }
+    rot13(fox);
+    checksum ^= crc32a(fox, strlen(fox));
+    rot13(fox);
+    checksum ^= crc32a(fox, strlen(fox));
+
+    return checksum;
 }

@@ -16,11 +16,11 @@ def find_file(path):
             return fullpath
     return None
 
-def compile(*args):
+def compile(args, xlen=32):
     """Compile a single .c file into a binary."""
     dst = os.path.splitext(args[0])[0]
-    cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
-    cmd = [cc, "-g", "-O", "-o", dst]
+    cc = os.path.expandvars("$RISCV/bin/riscv%d-unknown-elf-gcc" % xlen)
+    cmd = [cc, "-g", "-o", dst]
     for arg in args:
         found = find_file(arg)
         if found:
@@ -42,13 +42,16 @@ def unused_port():
     return port
 
 class Spike(object):
-    def __init__(self, binary, halted=False, with_gdb=True, timeout=None):
+    def __init__(self, cmd, binary=None, halted=False, with_gdb=True, timeout=None):
         """Launch spike. Return tuple of its process and the port it's running on."""
-        cmd = []
-        if timeout:
-            cmd += ["timeout", str(timeout)]
+        if cmd:
+            cmd = shlex.split(cmd)
+        else:
+            cmd = ["spike"]
 
-        cmd += [find_file("spike")]
+        if timeout:
+            cmd = ["timeout", str(timeout)] + cmd
+
         if halted:
             cmd.append('-H')
         if with_gdb:
@@ -117,7 +120,9 @@ class Gdb(object):
 
     def c(self, wait=True):
         if wait:
-            return self.command("c")
+            output = self.command("c")
+            assert "Continuing" in output
+            return output
         else:
             self.child.sendline("c")
             self.child.expect("Continuing")
@@ -125,6 +130,7 @@ class Gdb(object):
     def interrupt(self):
         self.child.send("\003");
         self.child.expect("\(gdb\)")
+        return self.child.before.strip()
 
     def x(self, address, size='w'):
         output = self.command("x/%s %s" % (size, address))
@@ -132,9 +138,18 @@ class Gdb(object):
         return value
 
     def p(self, obj):
-        output = self.command("p %s" % obj)
-        value = int(output.split('=')[-1].strip())
+        output = self.command("p/x %s" % obj)
+        value = int(output.split('=')[-1].strip(), 0)
         return value
 
     def stepi(self):
         return self.command("stepi")
+
+    def load(self, binary):
+        return self.command("load %s" % binary)
+
+    def b(self, location):
+        output = self.command("b %s" % location)
+        assert "not defined" not in output
+        assert "Breakpoint" in output
+        return output
