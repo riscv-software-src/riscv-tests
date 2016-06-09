@@ -20,11 +20,25 @@ class MemoryTest(DeleteServer):
         self.gdb = testlib.Gdb()
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
+    def access_test(self, size, data_type):
+        a = 0x86753095555aaaa & ((1<<(size*8))-1)
+        b = 0xdeadbeef12345678 & ((1<<(size*8))-1)
+        self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, target.ram, a))
+        self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, target.ram + size, b))
+        self.assertEqual(self.gdb.p("*((%s*)0x%x)" % (data_type, target.ram)), a)
+        self.assertEqual(self.gdb.p("*((%s*)0x%x)" % (data_type, target.ram + size)), b)
+
+    def test_8(self):
+        self.access_test(1, 'char')
+
+    def test_16(self):
+        self.access_test(2, 'short')
+
     def test_32(self):
-        self.gdb.p("*((int*)0x%x) = 0x8675309" % target.ram)
-        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (target.ram + 4))
-        self.assertEqual(self.gdb.p("*((int*)0x%x)" % target.ram), 0x8675309)
-        self.assertEqual(self.gdb.p("*((int*)0x%x)" % (target.ram + 4)), 0xdeadbeef)
+        self.access_test(4, 'long')
+
+    def test_64(self):
+        self.access_test(8, 'long long')
 
 class InstantHaltTest(DeleteServer):
     def setUp(self):
@@ -32,26 +46,24 @@ class InstantHaltTest(DeleteServer):
         self.gdb = testlib.Gdb()
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
-# TODO: make work
-#    def test_instant_halt(self):
-#        self.assertEqual(0x1000, self.gdb.p("$pc"))
-#        # For some reason instret resets to 0.
-#        self.assertLess(self.gdb.p("$instret"), 8)
-#        self.gdb.command("stepi")
-#        self.assertNotEqual(0x1000, self.gdb.p("$pc"))
+    def test_instant_halt(self):
+        self.assertEqual(0x1000, self.gdb.p("$pc"))
+        # For some reason instret resets to 0.
+        self.assertLess(self.gdb.p("$instret"), 8)
+        self.gdb.command("stepi")
+        self.assertNotEqual(0x1000, self.gdb.p("$pc"))
 
-# TODO: make work
-#    def test_change_pc(self):
-#        """Change the PC right as we come out of reset."""
-#        # 0x13 is nop
-#        self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
-#        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
-#        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 8))
-#        self.gdb.p("$pc=0x%x" % target.ram)
-#        self.gdb.command("stepi")
-#        self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
-#        self.gdb.command("stepi")
-#        self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
+    def test_change_pc(self):
+        """Change the PC right as we come out of reset."""
+        # 0x13 is nop
+        self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 8))
+        self.gdb.p("$pc=0x%x" % target.ram)
+        self.gdb.command("stepi")
+        self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
+        self.gdb.command("stepi")
+        self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
 
 class DebugTest(DeleteServer):
     def setUp(self):
