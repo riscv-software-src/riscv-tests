@@ -16,20 +16,20 @@ RVTEST_CODE_BEGIN
   # Set up breakpoint to trap on M-mode fetches.
   li TESTNUM, 2
   csrw tdrselect, x0
+  la t2, 1f
+  csrw tdrdata2, t2
   li t0, (BPCONTROL_MATCHCOND & (BPCONTROL_MATCHCOND>>1)) | BPCONTROL_M | BPCONTROL_X
   csrw tdrdata1, t0
   # Skip if breakpoint type is unsupported.
   csrr t1, tdrdata1
   bne t0, t1, 2f
-  la t0, 1f
-  csrw tdrdata2, t0
 1:
   # Trap handler should skip this instruction.
   j fail
 
   # Make sure reads don't trap.
   li TESTNUM, 3
-  lw t0, (t0)
+  lw t0, (t2)
 
 2:
   # Set up breakpoint to trap on M-mode reads.
@@ -39,16 +39,16 @@ RVTEST_CODE_BEGIN
   # Skip if breakpoint type is unsupported.
   csrr t1, tdrdata1
   bne t0, t1, 2f
-  la t0, write_data
-  csrw tdrdata2, t0
+  la t2, write_data
+  csrw tdrdata2, t2
 
   # Trap handler should skip this instruction.
-  lw t0, (t0)
-  beqz t0, fail
+  lw t2, (t2)
+  beqz t2, fail
 
   # Make sure writes don't trap.
   li TESTNUM, 5
-  sw x0, (t0)
+  sw x0, (t2)
 
 2:
   # Set up breakpoint to trap on M-mode stores.
@@ -60,13 +60,12 @@ RVTEST_CODE_BEGIN
   bne t0, t1, 2f
 
   # Trap handler should skip this instruction.
-  la t0, write_data
-  sw t0, (t0)
+  sw t2, (t2)
 
   # Make sure store didn't succeed.
   li TESTNUM, 7
-  lw t0, (t0)
-  bnez t0, fail
+  lw t2, (t2)
+  bnez t2, fail
 
 2:
   TEST_PASSFAIL
