@@ -8,6 +8,8 @@
 # define REGBYTES 4
 #endif
 
+#include "../../env/encoding.h"
+
         .global main
 main:
         j       main
@@ -44,10 +46,11 @@ write_regs:
         SREG    x30, 224(a0)
         SREG    x31, 232(a0)
 
-        csrr    x1, 1   # fflags
+        csrr    x1, CSR_MSCRATCH
 
 all_done:
         j       all_done
 
+        .align  16
 data:
         .fill   64, 8, 0

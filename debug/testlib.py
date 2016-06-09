@@ -48,6 +48,7 @@ class Spike(object):
             cmd = shlex.split(cmd)
         else:
             cmd = ["spike"]
+        #cmd.append("-l")    #<<<
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
@@ -61,6 +62,7 @@ class Spike(object):
         if binary:
             cmd.append(binary)
         logfile = open("spike.log", "w")
+        logfile.write("+ %s\n" % " ".join(cmd))
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
                 stderr=logfile)
 
@@ -145,8 +147,10 @@ class Gdb(object):
     def stepi(self):
         return self.command("stepi")
 
-    def load(self, binary):
-        return self.command("load %s" % binary)
+    def load(self):
+        output = self.command("load")
+        assert "failed" not in  output
+        assert "Transfer rate" in output
 
     def b(self, location):
         output = self.command("b %s" % location)

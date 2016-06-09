@@ -43,6 +43,7 @@ handle_reset:
   # perform the rest of initialization in C
   j _init
 
+
 trap_entry:
   addi sp, sp, -32*REGBYTES
 
