@@ -145,10 +145,12 @@ class Gdb(object):
         return value
 
     def stepi(self):
-        return self.command("stepi")
+        output = self.command("stepi")
+        assert "Cannot" not in output
+        return output
 
     def load(self):
-        output = self.command("load")
+        output = self.command("load", timeout=120)
         assert "failed" not in  output
         assert "Transfer rate" in output
 

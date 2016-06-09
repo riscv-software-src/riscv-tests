@@ -10,6 +10,31 @@ import time
 import random
 import binascii
 
+def ihex_line(address, record_type, data):
+    assert len(data) < 128
+    line = ":%02X%04X%02X" % (len(data), address, record_type)
+    check = len(data)
+    check += address % 256
+    check += address >> 8
+    check += record_type
+    for char in data:
+        value = ord(char)
+        check += value
+        line += "%02X" % value
+    line += "%02X\n" % ((256-check)%256)
+    return line
+
+def ihex_parse(line):
+    assert line.startswith(":")
+    line = line[1:]
+    data_len = int(line[:2], 16)
+    address = int(line[2:6], 16)
+    record_type = int(line[6:8], 16)
+    data = ""
+    for i in range(data_len):
+        data += "%c" % int(line[8+2*i:10+2*i], 16)
+    return record_type, address, data
+
 class DeleteServer(unittest.TestCase):
     def tearDown(self):
         del self.server
@@ -40,6 +65,33 @@ class MemoryTest(DeleteServer):
     def test_64(self):
         self.access_test(8, 'long long')
 
+    def test_block(self):
+        length = 1024
+        line_length = 16
+        fd = file("write.ihex", "w")
+        data = ""
+        for i in range(length / line_length):
+            line_data = "".join(["%c" % random.randrange(256) for _ in range(line_length)])
+            data += line_data
+            fd.write(ihex_line(i * line_length, 0, line_data))
+        fd.close()
+
+        self.gdb.command("restore write.ihex 0x%x" % target.ram)
+        for offset in range(0, length, 19*4) + [length-4]:
+            value = self.gdb.p("*((long*)0x%x)" % (target.ram + offset))
+            written = ord(data[offset]) | \
+                    (ord(data[offset+1]) << 8) | \
+                    (ord(data[offset+2]) << 16) | \
+                    (ord(data[offset+3]) << 24)
+            self.assertEqual(value, written)
+
+        self.gdb.command("dump ihex memory read.ihex 0x%x 0x%x" % (target.ram,
+            target.ram + length))
+        for line in file("read.ihex"):
+            record_type, address, line_data = ihex_parse(line)
+            if (record_type == 0):
+                self.assertEqual(line_data, data[address:address+len(line_data)])
+
 class InstantHaltTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
@@ -50,7 +102,7 @@ class InstantHaltTest(DeleteServer):
         self.assertEqual(0x1000, self.gdb.p("$pc"))
         # For some reason instret resets to 0.
         self.assertLess(self.gdb.p("$instret"), 8)
-        self.gdb.command("stepi")
+        self.gdb.stepi()
         self.assertNotEqual(0x1000, self.gdb.p("$pc"))
 
     def test_change_pc(self):
@@ -60,9 +112,9 @@ class InstantHaltTest(DeleteServer):
         self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
         self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 8))
         self.gdb.p("$pc=0x%x" % target.ram)
-        self.gdb.command("stepi")
+        self.gdb.stepi()
         self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
-        self.gdb.command("stepi")
+        self.gdb.stepi()
         self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
 
 class DebugTest(DeleteServer):
@@ -86,7 +138,7 @@ class DebugTest(DeleteServer):
         self.gdb.command("p i=0");
         last_pc = None
         for _ in range(100):
-            self.gdb.command("stepi")
+            self.gdb.stepi()
             pc = self.gdb.command("p $pc")
             self.assertNotEqual(last_pc, pc)
             last_pc = pc
@@ -129,7 +181,7 @@ class DebugTest(DeleteServer):
         #    instret = self.gdb.p("$instret")
         #    self.assertNotEqual(instret, last_instret)
         #    last_instret = instret
-        #    self.gdb.command("stepi")
+        #    self.gdb.stepi()
 
         self.exit()
 
@@ -153,7 +205,7 @@ class RegsTest(DeleteServer):
         self.gdb = testlib.Gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
-        self.gdb.command("load")
+        self.gdb.load()
         self.gdb.b("main")
         self.gdb.b("handle_trap")
         self.gdb.c()
@@ -286,7 +338,12 @@ targets = [
         ]
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+            epilog="""
+            Example command line from the real world:
+            Run all RegsTest cases against a MicroSemi m2gl_m2s board, with custom openocd command:
+            ./gdbserver.py --m2gl_m2s --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" -- -vf RegsTest
+            """)
     group = parser.add_mutually_exclusive_group(required=True)
     for t in targets:
         group.add_argument("--%s" % t.name, action="store_const", const=t,

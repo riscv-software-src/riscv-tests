@@ -3,7 +3,7 @@
 
 #include "encoding.h"
 
-#define STACK_SIZE ((1 << 12) - 128)
+#define STACK_SIZE 128
 
 #ifdef __riscv64
 # define LREG ld

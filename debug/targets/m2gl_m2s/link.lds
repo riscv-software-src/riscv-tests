@@ -2,7 +2,7 @@ OUTPUT_ARCH( "riscv" )
 
 SECTIONS
 {
-  . = 0x60040000;
+  . = 0x80000000;
   .text : 
   {
     *(.text.entry)
@@ -13,13 +13,11 @@ SECTIONS
   .data : { *(.data) }
 
   .sdata : {
-    _gp = . + 0x800;
+    _gp = .;
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2)
     *(.srodata*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   }
-
-  . = 0x80000000;
 
   /* bss segment */
   .sbss : {
@@ -32,4 +30,3 @@ SECTIONS
   _end = .;
   _heap_end = .;
 }
-

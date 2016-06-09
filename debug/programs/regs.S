@@ -51,6 +51,6 @@ write_regs:
 all_done:
         j       all_done
 
-        .align  16
+        .balign  16
 data:
         .fill   64, 8, 0
