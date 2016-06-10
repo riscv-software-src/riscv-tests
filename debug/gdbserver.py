@@ -153,7 +153,7 @@ class InstantHaltTest(DeleteServer):
         self.gdb.stepi()
         self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
         self.gdb.stepi()
-        self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
+        self.assertEqual((target.ram + 8), self.gdb.p("$pc"))
 
 class DebugTest(DeleteServer):
     def setUp(self):
