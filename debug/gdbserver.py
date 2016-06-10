@@ -206,6 +206,13 @@ class DebugTest(DeleteServer):
             #TODO self.assertIn("rot13 ", output)
         self.exit()
 
+    def test_too_many_hwbp(self):
+        for i in range(30):
+            self.gdb.hbreak("*rot13 + %d" % (i * 4))
+
+        output = self.gdb.c()
+        self.assertIn("Cannot insert hardware breakpoint", output)
+
     def test_registers(self):
         # Get to a point in the code where some registers have actually been
         # used.
