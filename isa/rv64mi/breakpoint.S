@@ -15,13 +15,26 @@ RVTEST_CODE_BEGIN
 
   # Set up breakpoint to trap on M-mode fetches.
   li TESTNUM, 2
-  csrw tdrselect, x0
+
+  # Skip tdrselect is hard-wired.
+  li t0, 1<<(_RISCV_SZLONG-1)
+  csrw tdrselect, t0
+  csrr t1, tdrselect
+  bne t0, t1, pass
+
+  # Make sure there's a breakpoint there.
+  csrr t0, tdrdata1
+  srli t0, t0, _RISCV_SZLONG-4
+  li t1, 1
+  bne t0, t1, pass
+
   la t2, 1f
   csrw tdrdata2, t2
-  li t0, (BPCONTROL_MATCHCOND & (BPCONTROL_MATCHCOND>>1)) | BPCONTROL_M | BPCONTROL_X
+  li t0, BPCONTROL_M | BPCONTROL_X
   csrw tdrdata1, t0
   # Skip if breakpoint type is unsupported.
   csrr t1, tdrdata1
+  andi t1, t1, 0x7ff
   bne t0, t1, 2f
 1:
   # Trap handler should skip this instruction.
@@ -34,10 +47,11 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode reads.
   li TESTNUM, 4
-  li t0, (BPCONTROL_MATCHCOND & (BPCONTROL_MATCHCOND>>1)) | BPCONTROL_M | BPCONTROL_R
+  li t0, BPCONTROL_M | BPCONTROL_R
   csrw tdrdata1, t0
   # Skip if breakpoint type is unsupported.
   csrr t1, tdrdata1
+  andi t1, t1, 0x7ff
   bne t0, t1, 2f
   la t2, write_data
   csrw tdrdata2, t2
@@ -53,10 +67,11 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode stores.
   li TESTNUM, 6
-  li t0, (BPCONTROL_MATCHCOND & (BPCONTROL_MATCHCOND>>1)) | BPCONTROL_M | BPCONTROL_W
+  li t0, BPCONTROL_M | BPCONTROL_W
   csrw tdrdata1, t0
   # Skip if breakpoint type is unsupported.
   csrr t1, tdrdata1
+  andi t1, t1, 0x7ff
   bne t0, t1, 2f
 
   # Trap handler should skip this instruction.
