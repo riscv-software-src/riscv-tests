@@ -39,7 +39,45 @@ class DeleteServer(unittest.TestCase):
     def tearDown(self):
         del self.server
 
-class MemoryTest(DeleteServer):
+class SimpleRegisterTest(DeleteServer):
+    def setUp(self):
+        self.server = target.server()
+        self.gdb = testlib.Gdb()
+        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+
+        # 0x13 is nop
+        self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 8))
+        self.gdb.p("$pc=0x%x" % target.ram)
+
+    def check_reg(self, name):
+        a = random.randrange(1<<target.xlen)
+        b = random.randrange(1<<target.xlen)
+        self.gdb.p("$%s=0x%x" % (name, a))
+        self.gdb.stepi()
+        self.assertEqual(self.gdb.p("$%s" % name), a)
+        self.gdb.p("$%s=0x%x" % (name, b))
+        self.gdb.stepi()
+        self.assertEqual(self.gdb.p("$%s" % name), b)
+
+    def test_s0(self):
+        # S0 is saved/restored in DSCRATCH
+        self.check_reg("s0")
+
+    def test_s1(self):
+        # S1 is saved/restored in Debug RAM
+        self.check_reg("s1")
+
+    def test_t0(self):
+        # T0 is not saved/restored at all
+        self.check_reg("t2")
+
+    def test_t2(self):
+        # T2 is not saved/restored at all
+        self.check_reg("t2")
+
+class SimpleMemoryTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
         self.gdb = testlib.Gdb()
@@ -211,17 +249,12 @@ class RegsTest(DeleteServer):
         self.gdb.c()
 
     def test_write_gprs(self):
-        # Note a0 is missing from this list since it's used to hold the
-        # address.
-        regs = ("ra", "sp", "gp", "tp", "t0", "t1", "t2", "fp", "s1",
-                "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4",
-                "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5",
-                "t6")
+        regs = [("x%d" % n) for n in range(2, 32)]
 
         self.gdb.p("$pc=write_regs")
         for i, r in enumerate(regs):
             self.gdb.command("p $%s=%d" % (r, (0xdeadbeef<<i)+17))
-        self.gdb.command("p $a0=data")
+        self.gdb.command("p $x1=data")
         self.gdb.command("b all_done")
         output = self.gdb.c()
         self.assertIn("Breakpoint ", output)
@@ -231,7 +264,7 @@ class RegsTest(DeleteServer):
         self.gdb.command("info registers")
         for n in range(len(regs)):
             self.assertEqual(self.gdb.x("data+%d" % (8*n), 'g'),
-                    (0xdeadbeef<<n)+17)
+                    ((0xdeadbeef<<n)+17) & ((1<<target.xlen)-1))
 
     def test_write_csrs(self):
         # As much a test of gdb as of the simulator.

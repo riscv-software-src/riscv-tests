@@ -48,7 +48,7 @@ class Spike(object):
             cmd = shlex.split(cmd)
         else:
             cmd = ["spike"]
-        #cmd.append("-l")    #<<<
+        cmd.append("-l")    #<<<
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
@@ -150,7 +150,7 @@ class Gdb(object):
         return output
 
     def load(self):
-        output = self.command("load", timeout=120)
+        output = self.command("load")
         assert "failed" not in  output
         assert "Transfer rate" in output
 
