@@ -196,6 +196,16 @@ class DebugTest(DeleteServer):
             #TODO self.assertIn("rot13 ", output)
         self.exit()
 
+    def test_hwbp(self):
+        self.gdb.hbreak("rot13")
+        # The breakpoint should be hit exactly 2 times.
+        for i in range(2):
+            output = self.gdb.c()
+            self.gdb.p("$pc")
+            self.assertIn("Breakpoint ", output)
+            #TODO self.assertIn("rot13 ", output)
+        self.exit()
+
     def test_registers(self):
         # Get to a point in the code where some registers have actually been
         # used.

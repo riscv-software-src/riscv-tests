@@ -162,3 +162,9 @@ class Gdb(object):
         assert "not defined" not in output
         assert "Breakpoint" in output
         return output
+
+    def hbreak(self, location):
+        output = self.command("hbreak %s" % location)
+        assert "not defined" not in output
+        assert "Breakpoint" in output
+        return output
