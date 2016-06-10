@@ -42,13 +42,15 @@ def unused_port():
     return port
 
 class Spike(object):
-    def __init__(self, cmd, binary=None, halted=False, with_gdb=True, timeout=None):
+    def __init__(self, cmd, binary=None, halted=False, with_gdb=True, timeout=None,
+            xlen=64):
         """Launch spike. Return tuple of its process and the port it's running on."""
         if cmd:
             cmd = shlex.split(cmd)
         else:
             cmd = ["spike"]
-        cmd.append("-l")    #<<<
+        if (xlen == 32):
+            cmd += ["--isa", "RV32"]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
@@ -105,6 +107,7 @@ class Gdb(object):
         self.child = pexpect.spawn(path)
         self.child.logfile = file("gdb.log", "w")
         self.wait()
+        self.command("set confirm off")
         self.command("set width 0")
         self.command("set height 0")
         # Force consistency.

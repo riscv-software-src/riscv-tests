@@ -26,10 +26,14 @@ size_t strlen(const char *buf)
     return len;
 }
 
+// TODO: These should be local to main, but if I make them global then gdb can
+// find them.
+static volatile int i;
+static int j;
 int main()
 {
-    volatile int i = 0;
-    int j = 0;
+    i = 0;
+    j = 0;
     char *fox = "The quick brown fox jumps of the lazy dog.";
     unsigned int checksum = 0;
 
