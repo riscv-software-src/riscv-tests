@@ -166,5 +166,5 @@ class Gdb(object):
     def hbreak(self, location):
         output = self.command("hbreak %s" % location)
         assert "not defined" not in output
-        assert "Breakpoint" in output
+        assert "Hardware assisted breakpoint" in output
         return output
