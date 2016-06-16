@@ -177,11 +177,21 @@ class DebugTest(DeleteServer):
         """Single step a bunch of times."""
         self.gdb.command("p i=0");
         last_pc = None
+        advances = 0
+        jumps = 0
         for _ in range(100):
             self.gdb.stepi()
-            pc = self.gdb.command("p $pc")
+            pc = self.gdb.p("$pc")
             self.assertNotEqual(last_pc, pc)
+            if (last_pc and pc > last_pc and pc - last_pc <= 4):
+                advances += 1
+            else:
+                jumps += 1
             last_pc = pc
+        # Some basic sanity that we're not running between breakpoints or
+        # something.
+        self.assertGreater(jumps, 10)
+        self.assertGreater(advances, 50)
 
     def test_exit(self):
         self.exit()
@@ -267,6 +277,24 @@ class DebugTest(DeleteServer):
         self.assertGreater(self.gdb.p("j"), 10)
         self.gdb.p("i=0");
         self.exit()
+
+class StepTest(DeleteServer):
+    def setUp(self):
+        self.binary = target.compile("programs/step.S")
+        self.server = target.server()
+        self.gdb = testlib.Gdb()
+        self.gdb.command("file %s" % self.binary)
+        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb.load()
+        self.gdb.b("main")
+        self.gdb.c()
+
+    def test_step(self):
+        main = self.gdb.p("$pc")
+        for expected in (4, 0xc, 0x10, 0x18, 0x14, 0x14):
+            self.gdb.stepi()
+            pc = self.gdb.p("$pc")
+            self.assertEqual(pc - main, expected)
 
 class RegsTest(DeleteServer):
     def setUp(self):
