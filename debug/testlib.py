@@ -102,8 +102,8 @@ class Openocd(object):
             pass
 
 class Gdb(object):
-    def __init__(self):
-        path = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")
+    def __init__(self,
+            path=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(path)
         self.child.logfile = file("gdb.log", "w")
         self.wait()
@@ -153,7 +153,7 @@ class Gdb(object):
         return output
 
     def load(self):
-        output = self.command("load")
+        output = self.command("load", timeout=60)
         assert "failed" not in  output
         assert "Transfer rate" in output
 
