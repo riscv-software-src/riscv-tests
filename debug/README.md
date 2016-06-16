@@ -1,8 +1,31 @@
-Debugging requires many of a system components to all work together.  The goal
-is to collect some tests that test gdb with spike, and gdb talking to real
-hardware through openocd.
+Debug Tests
+===========
+
+Debugging requires many system components to all work together. The tests here
+perform an end-to-end test, communicating only with gdb. If a simulator or
+hardware passes all these tests, then you can be pretty confident that the
+actual debug interface is functioning correctly.
+
+Targets
+=======
+
+64-bit Spike
+------------
+
+`./gdbserver.py --spike --cmd $RISCV/bin/spike`
+
+32-bit Spike
+------------
+
+`./gdbserver.py --spike32 --cmd $RISCV/bin/spike`
+
+32-bit SiFive Core on Microsemi FPGA board
+------------------------------------------
+
+`./gdbserver.py --m2gl_m2s`
 
 Debug Tips
+==========
 
 You can run just a single test by specifying <class>.<function> on the command
 line, eg: `./gdbserver.py --spike --cmd $RISCV/bin/spike
