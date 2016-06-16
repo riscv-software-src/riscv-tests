@@ -59,18 +59,22 @@ void wtf()
   terminate(3); \
 } while(0)
 
-typedef struct { pte_t addr; void* next; } freelist_t;
-
-pte_t l1pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_t user_l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_t kernel_l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+#define l1pt pt[0]
+#define user_l2pt pt[1]
+#define kernel_l2pt pt[2]
 #ifdef __riscv64
-pte_t user_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_t kernel_l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+# define NPT 5
+# define user_l3pt pt[3]
+# define kernel_l3pt pt[4]
 #else
+# define NPT 3
 # define user_l3pt user_l2pt
 # define kernel_l3pt kernel_l2pt
 #endif
+pte_t pt[NPT][PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+
+typedef struct { pte_t addr; void* next; } freelist_t;
+
 freelist_t user_mapping[MAX_TEST_PAGES];
 freelist_t freelist_nodes[MAX_TEST_PAGES];
 freelist_t *freelist_head, *freelist_tail;
@@ -88,7 +92,7 @@ void printhex(uint64_t x)
   cputstring(str);
 }
 
-void evict(unsigned long addr)
+static void evict(unsigned long addr)
 {
   assert(addr >= PGSIZE && addr < MAX_TEST_PAGES * PGSIZE);
   addr = addr/PGSIZE*PGSIZE;

@@ -59,6 +59,21 @@ int strcmp(const char* s1, const char* s2)
 
 int memcmp(const void* s1, const void* s2, size_t n)
 {
+  if ((((uintptr_t)s1 | (uintptr_t)s2) & (sizeof(uintptr_t)-1)) == 0) {
+    const uintptr_t* u1 = s1;
+    const uintptr_t* u2 = s2;
+    const uintptr_t* end = u1 + (n / sizeof(uintptr_t));
+    while (u1 < end) {
+      if (*u1 != *u2)
+        break;
+      u1++;
+      u2++;
+    }
+    n -= (const void*)u1 - s1;
+    s1 = u1;
+    s2 = u2;
+  }
+
   while (n--) {
     unsigned char c1 = *(const unsigned char*)s1++;
     unsigned char c2 = *(const unsigned char*)s2++;
