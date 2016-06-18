@@ -16,7 +16,7 @@ RVTEST_CODE_BEGIN
   # Set up breakpoint to trap on M-mode fetches.
   li TESTNUM, 2
 
-  # Skip tdrselect is hard-wired.
+  # Skip tdrselect if hard-wired.
   li a0, 1<<(_RISCV_SZLONG-1)
   csrw tdrselect, a0
   csrr a1, tdrselect
@@ -87,6 +87,13 @@ RVTEST_CODE_BEGIN
   csrw tdrselect, a0
   csrr a1, tdrselect
   bne a0, a1, pass
+
+  # Make sure there's a breakpoint there.
+  csrr a0, tdrdata1
+  srli a0, a0, _RISCV_SZLONG-4
+  li a1, 1
+  bne a0, a1, pass
+
   li a0, BPCONTROL_M | BPCONTROL_R
   csrw tdrdata1, a0
   la a3, data2
