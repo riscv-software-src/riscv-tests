@@ -196,6 +196,14 @@ class DebugTest(DeleteServer):
     def test_exit(self):
         self.exit()
 
+    def test_symbols(self):
+        self.gdb.b("main")
+        self.gdb.b("rot13")
+        output = self.gdb.c()
+        self.assertIn(", main ", output)
+        output = self.gdb.c()
+        self.assertIn(", rot13 ", output)
+
     def test_breakpoint(self):
         self.gdb.b("rot13")
         # The breakpoint should be hit exactly 2 times.
