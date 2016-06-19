@@ -89,6 +89,7 @@ class Openocd(object):
         if debug:
             cmd.append("-d")
         logfile = open("openocd.log", "w")
+        logfile.write("+ %s\n" % " ".join(cmd))
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
                 stderr=logfile)
         # TODO: Pick a random port
@@ -106,6 +107,7 @@ class Gdb(object):
             path=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(path)
         self.child.logfile = file("gdb.log", "w")
+        self.child.logfile.write("+ %s\n" % path)
         self.wait()
         self.command("set confirm off")
         self.command("set width 0")
