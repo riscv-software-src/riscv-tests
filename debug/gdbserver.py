@@ -354,7 +354,7 @@ class RegsTest(DeleteServer):
 
 class DownloadTest(DeleteServer):
     def setUp(self):
-        length = 2**20
+        length = min(2**20, target.ram_size - 2048)
         fd = file("download.c", "w")
         fd.write("#include <stdint.h>\n")
         fd.write("unsigned int crc32a(uint8_t *message, unsigned int size);\n")
@@ -423,6 +423,7 @@ class Spike64Target(Target):
     name = "spike"
     xlen = 64
     ram = 0x80010000
+    ram_size = 5 * 1024 * 1024
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True)
@@ -432,6 +433,7 @@ class Spike32Target(Target):
     directory = "spike"
     xlen = 32
     ram = 0x80010000
+    ram_size = 5 * 1024 * 1024
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True, xlen=32)
@@ -440,6 +442,7 @@ class MicroSemiTarget(Target):
     name = "m2gl_m2s"
     xlen = 32
     ram = 0x80000000
+    ram_size = 16 * 1024
 
     def server(self):
         return testlib.Openocd(cmd=parsed.cmd,
