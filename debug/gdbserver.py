@@ -241,6 +241,9 @@ class DebugTest(DeleteServer):
 
         output = self.gdb.c()
         self.assertIn("Cannot insert hardware breakpoint", output)
+        # Clean up, otherwise the hardware breakpoints stay set and future
+        # tests may fail.
+        self.gdb.command("D")
 
     def test_registers(self):
         # Get to a point in the code where some registers have actually been
