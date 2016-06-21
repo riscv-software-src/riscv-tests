@@ -79,7 +79,7 @@ class Spike(object):
         return self.process.wait(*args, **kwargs)
 
 class Openocd(object):
-    def __init__(self, cmd=None, config=None, debug=True):
+    def __init__(self, cmd=None, config=None, debug=False):
         if cmd:
             cmd = shlex.split(cmd)
         else:
