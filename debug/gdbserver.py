@@ -400,6 +400,7 @@ class MprvTest(DeleteServer):
     def test_mprv(self):
         """Test that the debugger can access memory when MPRV is set."""
         self.gdb.c(wait=False)
+        time.sleep(0.5)
         self.gdb.interrupt()
         output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
         self.assertIn("0xbead", output)
