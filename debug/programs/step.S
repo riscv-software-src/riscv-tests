@@ -3,15 +3,22 @@
         .global main
 
 main:
-        li      t0, 5                   // 0
-        beq     zero, zero, one         // 0x4
-        nop                             // 0x8
+        la      t0, trap_entry          // 0, 4
+        csrw    mtvec, t0               // 0x8
+
+        li      t0, 5                   // 0xc
+        beq     zero, zero, one         // 0x10
+        nop                             // 0x14
 one:
-        beq     zero, t0, one           // 0xc
-        jal     two                     // 0x10
+        beq     zero, t0, one           // 0x18
+        jal     two                     // 0x1c
 
 three:
-        j       three                   // 0x14
+        .word   0                       // 0x20
+        nop                             // 0x24
 
 two:
-        ret                             // 0x18
+        ret                             // 0x28
+
+trap_entry:
+        j       trap_entry              // 0x2c

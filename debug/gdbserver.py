@@ -302,10 +302,10 @@ class StepTest(DeleteServer):
 
     def test_step(self):
         main = self.gdb.p("$pc")
-        for expected in (4, 0xc, 0x10, 0x18, 0x14, 0x14):
+        for expected in (4, 8, 0xc, 0x10, 0x18, 0x1c, 0x28, 0x20, 0x2c, 0x2c):
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
-            self.assertEqual(pc - main, expected)
+            self.assertEqual("%x" % pc, "%x" % (expected + main))
 
 class RegsTest(DeleteServer):
     def setUp(self):
