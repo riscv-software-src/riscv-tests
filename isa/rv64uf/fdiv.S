@@ -4,7 +4,7 @@
 # fdiv.S
 #-----------------------------------------------------------------------------
 #
-# Test f{div|sqrt}.{s|d} instructions.
+# Test f{div|sqrt}.s instructions.
 #
 
 #include "riscv_test.h"
@@ -17,27 +17,16 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
-  TEST_FP_OP2_S( 2,  fdiv.s, 1, 1.1557273520668288, 3.14159265, 2.71828182 );
-  TEST_FP_OP2_S( 3,  fdiv.s, 1,-0.9991093838555584,      -1234,     1235.1 );
-  TEST_FP_OP2_S( 4,  fdiv.s, 0,         3.14159265, 3.14159265,        1.0 );
+  TEST_FP_OP2_S(2,  fdiv.s, 1, 1.1557273520668288, 3.14159265, 2.71828182 );
+  TEST_FP_OP2_S(3,  fdiv.s, 1,-0.9991093838555584,      -1234,     1235.1 );
+  TEST_FP_OP2_S(4,  fdiv.s, 0,         3.14159265, 3.14159265,        1.0 );
 
-  TEST_FP_OP2_D( 5,  fdiv.d, 1, 1.1557273520668288, 3.14159265, 2.71828182 );
-  TEST_FP_OP2_D( 6,  fdiv.d, 1,-0.9991093838555584,      -1234,     1235.1 );
-  TEST_FP_OP2_D( 7,  fdiv.d, 0,         3.14159265, 3.14159265,        1.0 );
+  TEST_FP_OP1_S(5,  fsqrt.s, 1, 1.7724538498928541, 3.14159265 );
+  TEST_FP_OP1_S(6,  fsqrt.s, 0,                100,      10000 );
 
-  TEST_FP_OP1_S(11,  fsqrt.s, 1, 1.7724538498928541, 3.14159265 );
-  TEST_FP_OP1_S(12,  fsqrt.s, 0,                100,      10000 );
+  TEST_FP_OP1_S_DWORD_RESULT(7,  fsqrt.s, 0x10, 0x7FC00000, -1.0 );
 
-  TEST_FP_OP1_D(13,  fsqrt.d, 1, 1.7724538498928541, 3.14159265 );
-  TEST_FP_OP1_D(14,  fsqrt.d, 0,                100,      10000 );
-
-  TEST_FP_OP1_S_DWORD_RESULT(15,  fsqrt.s, 0x10,              0x7FC00000,      -1.0 );
-  TEST_FP_OP1_D_DWORD_RESULT(16,  fsqrt.d, 0x10,      0x7FF8000000000000,      -1.0 );
-
-  TEST_FP_OP1_S(17,  fsqrt.s, 1, 13.076696, 171.0);
-  TEST_FP_OP1_D(18,  fsqrt.d, 1, 13.076696830622021, 171.0);
-
-  TEST_FP_OP1_D(19,  fsqrt.d, 1,0.00040099251863345283320230749702, 1.60795e-7);
+  TEST_FP_OP1_S(8,  fsqrt.s, 1, 13.076696, 171.0);
 
   TEST_PASSFAIL
 

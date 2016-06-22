@@ -6,6 +6,7 @@ src_dir := .
 
 include $(src_dir)/rv64ui/Makefrag
 include $(src_dir)/rv64uf/Makefrag
+include $(src_dir)/rv64ud/Makefrag
 include $(src_dir)/rv64si/Makefrag
 include $(src_dir)/rv64mi/Makefrag
 include $(src_dir)/rv32ui/Makefrag
@@ -66,6 +67,7 @@ $(eval $(call compile_template,rv32mi,-m32))
 ifeq ($(XLEN),64)
 $(eval $(call compile_template,rv64ui))
 $(eval $(call compile_template,rv64uf))
+$(eval $(call compile_template,rv64ud))
 $(eval $(call compile_template,rv64si))
 $(eval $(call compile_template,rv64mi))
 endif

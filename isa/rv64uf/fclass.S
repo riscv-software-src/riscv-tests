@@ -4,7 +4,7 @@
 # fclass.S
 #-----------------------------------------------------------------------------
 #
-# Test fclass.{s|d} instructions.
+# Test fclass.s instructions.
 #
 
 #include "riscv_test.h"
@@ -31,21 +31,6 @@ RVTEST_CODE_BEGIN
   TEST_FCLASS_S( 9, 1 << 7, 0x7f800000 )
   TEST_FCLASS_S(10, 1 << 8, 0x7f800001 )
   TEST_FCLASS_S(11, 1 << 9, 0x7fc00000 )
-
-  #define TEST_FCLASS_D(testnum, correct, input) \
-    TEST_CASE(testnum, a0, correct, li a0, input; fmv.d.x fa0, a0; \
-                                    fclass.d a0, fa0)
-
-  TEST_FCLASS_D(12, 1 << 0, 0xfff0000000000000 )
-  TEST_FCLASS_D(13, 1 << 1, 0xbff0000000000000 )
-  TEST_FCLASS_D(14, 1 << 2, 0x800fffffffffffff )
-  TEST_FCLASS_D(15, 1 << 3, 0x8000000000000000 )
-  TEST_FCLASS_D(16, 1 << 4, 0x0000000000000000 )
-  TEST_FCLASS_D(17, 1 << 5, 0x000fffffffffffff )
-  TEST_FCLASS_D(18, 1 << 6, 0x3ff0000000000000 )
-  TEST_FCLASS_D(19, 1 << 7, 0x7ff0000000000000 )
-  TEST_FCLASS_D(20, 1 << 8, 0x7ff0000000000001 )
-  TEST_FCLASS_D(21, 1 << 9, 0x7ff8000000000000 )
 
   TEST_PASSFAIL
 
