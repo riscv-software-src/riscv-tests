@@ -157,7 +157,11 @@ class InstantHaltTest(DeleteServer):
 
 class DebugTest(DeleteServer):
     def setUp(self):
-        self.binary = target.compile("programs/debug.c", "programs/checksum.c")
+        # Include malloc so that gdb can make function calls. I suspect this
+        # malloc will silently blow through the memory set aside for it, so be
+        # careful.
+        self.binary = target.compile("programs/debug.c", "programs/checksum.c",
+                "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         self.server = target.server()
         self.gdb = testlib.Gdb()
         self.gdb.command("file %s" % self.binary)
@@ -172,6 +176,12 @@ class DebugTest(DeleteServer):
         #TODO self.assertEqual(self.gdb.p("status"), 0xc86455d4)
         # Use a0 until gdb can resolve "status"
         self.assertEqual(self.gdb.p("$a0") & 0xffffffff, 0xc86455d4)
+
+    def test_function_call(self):
+        text = "Howdy, Earth!"
+        gdb_length = self.gdb.p('strlen("%s")' % text)
+        self.assertEqual(gdb_length, len(text))
+        self.exit()
 
     def test_turbostep(self):
         """Single step a bunch of times."""

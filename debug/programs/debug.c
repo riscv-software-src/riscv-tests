@@ -4,6 +4,8 @@
 
 unsigned int crc32a(uint8_t *message, unsigned int size);
 
+char __malloc_start[512];
+
 void rot13(char *buf)
 {
     while (*buf) {
