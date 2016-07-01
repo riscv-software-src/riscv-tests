@@ -169,19 +169,26 @@ class DebugTest(DeleteServer):
         self.gdb.load()
         self.gdb.b("_exit")
 
-    def exit(self):
+    def exit(self, expected_result = 0xc86455d4):
         output = self.gdb.c()
         self.assertIn("Breakpoint", output)
-        #TODO self.assertIn("_exit", output)
-        #TODO self.assertEqual(self.gdb.p("status"), 0xc86455d4)
-        # Use a0 until gdb can resolve "status"
-        self.assertEqual(self.gdb.p("$a0") & 0xffffffff, 0xc86455d4)
+        self.assertIn("_exit", output)
+        self.assertEqual(self.gdb.p("status"), expected_result)
 
     def test_function_call(self):
+        self.gdb.b("main:start")
+        self.gdb.c()
         text = "Howdy, Earth!"
         gdb_length = self.gdb.p('strlen("%s")' % text)
         self.assertEqual(gdb_length, len(text))
         self.exit()
+
+    def test_change_string(self):
+        text = "This little piggy went to the market."
+        self.gdb.b("main:start")
+        self.gdb.c()
+        self.gdb.p('fox = "%s"' % text)
+        self.exit(0x43b497b8)
 
     def test_turbostep(self):
         """Single step a bunch of times."""

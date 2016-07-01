@@ -13,7 +13,7 @@ SECTIONS
   .data : { *(.data) }
 
   .sdata : {
-    _gp = .;
+    _gp = . + 0x800;
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2)
     *(.srodata*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
@@ -26,7 +26,9 @@ SECTIONS
   }
   .bss : { *(.bss) }
 
+  __malloc_start = .;
+  . = . + 512;
+
   /* End of uninitalized data segement */
   _end = .;
-  _heap_end = .;
 }

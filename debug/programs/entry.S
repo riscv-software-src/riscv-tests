@@ -3,7 +3,7 @@
 
 #include "encoding.h"
 
-#define STACK_SIZE 128
+#define STACK_SIZE 512
 
 #ifdef __riscv64
 # define LREG ld
@@ -124,9 +124,9 @@ trap_entry:
   addi sp, sp, 32*REGBYTES
   mret
 
-  .bss
+  // Fill the stack with data so we can see if it was overrun.
   .align 4
 stack_bottom:
-  .skip STACK_SIZE
+  .fill STACK_SIZE/4, 4, 0x22446688
 stack_top:
 #endif

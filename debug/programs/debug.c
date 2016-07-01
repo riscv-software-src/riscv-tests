@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 unsigned int crc32a(uint8_t *message, unsigned int size);
-
-char __malloc_start[512];
 
 void rot13(char *buf)
 {
@@ -28,8 +27,12 @@ size_t strlen(const char *buf)
     return len;
 }
 
+extern void *__malloc_freelist;
+
 int main()
 {
+    __malloc_freelist = 0;
+
     volatile int i = 0;
     int j = 0;
     char *fox = "The quick brown fox jumps of the lazy dog.";

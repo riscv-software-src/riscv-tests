@@ -28,8 +28,9 @@ SECTIONS
   }
   .bss : { *(.bss) }
 
+  __malloc_start = .;
+  . = . + 512;
+
   /* End of uninitalized data segement */
   _end = .;
-  _heap_end = .;
 }
-
