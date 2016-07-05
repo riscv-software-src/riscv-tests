@@ -27,6 +27,7 @@ bmarks = \
 	spmv \
 	mt-vvadd \
 	mt-matmul \
+	ioexample \
 
 bmarks_host = \
 	median \
