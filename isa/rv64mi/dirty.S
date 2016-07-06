@@ -44,7 +44,7 @@ RVTEST_CODE_BEGIN
 
   # Make sure R and D bits are set
   lw t0, page_table_2
-  li t1, PTE_R | PTE_D
+  li t1, PTE_A | PTE_D
   and t0, t0, t1
   bne t0, t1, die
   
@@ -58,7 +58,7 @@ stvec_handler:
   bne TESTNUM, t1, 1f
   # Make sure R bit is set
   lw t0, page_table_1
-  li t1, PTE_R
+  li t1, PTE_A
   and t0, t0, t1
   bne t0, t1, die
 
@@ -84,9 +84,9 @@ RVTEST_DATA_BEGIN
   TEST_DATA
 
 .align 12
-page_table_1: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URX_SRX
+page_table_1: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_U | PTE_R | PTE_X
 dummy: .dword 0
 .align 12
-page_table_2: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_TYPE_URWX_SRWX
+page_table_2: .dword (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_U | PTE_R | PTE_X | PTE_W
 
 RVTEST_DATA_END
