@@ -412,7 +412,7 @@ struct tms      time_info;
 #endif /* TIME */
 
 
-#define Mic_secs_Per_Second     1000000.0
+#define Mic_secs_Per_Second     1000000
 #define NUMBER_OF_RUNS		500 /* Default number of runs */
 
 #ifdef  NOSTRUCTASSIGN
