@@ -1,3 +1,6 @@
 [submodule "env"]
 	path = env
 	url = https://github.com/riscv/riscv-test-env.git
+[submodule "benchmarks/ioexample/libamf"]
+	path = benchmarks/ioexample/libamf
+	url = git://github.com/palmer-dabbelt/libamf.git
