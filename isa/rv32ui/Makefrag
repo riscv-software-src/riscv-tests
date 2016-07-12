@@ -9,7 +9,7 @@ rv32ui_sc_tests = \
 	auipc \
 	beq bge bgeu blt bltu bne \
 	fence_i \
-	j jal jalr \
+	jal jalr \
 	lb lbu lh lhu lw \
 	lui \
 	or ori \
