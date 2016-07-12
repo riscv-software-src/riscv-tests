@@ -39,6 +39,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
+  .align 2
 stvec_handler:
   li t1, CAUSE_USER_ECALL
   csrr t0, scause

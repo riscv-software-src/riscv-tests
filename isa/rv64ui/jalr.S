@@ -42,6 +42,8 @@ target_2:
   # Test delay slot instructions not executed nor bypassed
   #-------------------------------------------------------------
 
+  .option push
+  .option norvc
   TEST_CASE( 7, t0, 4, \
     li  t0, 1; \
     la  t1, 1f; \
@@ -53,6 +55,7 @@ target_2:
 1:  addi t0, t0, 1; \
     addi t0, t0, 1; \
   )
+  .option pop
 
   TEST_PASSFAIL
 

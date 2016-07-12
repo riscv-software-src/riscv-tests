@@ -14,6 +14,7 @@ RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
   .align 3
+  .option norvc
   auipc s0, 0
 
   # indicate it's a load test

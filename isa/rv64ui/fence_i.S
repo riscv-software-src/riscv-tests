@@ -22,6 +22,7 @@ lw a0, 0(a0)
 # test I$ hit
 .align 6
 sw a0, 0(a1)
+.align 2
 fence.i
 
 1: addi a3, a3, 222

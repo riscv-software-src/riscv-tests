@@ -61,6 +61,7 @@ RVTEST_CODE_BEGIN
   # We should only fall through to this if scall failed.
   TEST_PASSFAIL
 
+  .align 2
 stvec_handler:
   # Trapping on tests 10 and 11 is good news.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.

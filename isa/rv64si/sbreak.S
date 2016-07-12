@@ -23,21 +23,18 @@ RVTEST_CODE_BEGIN
 #endif
 
   li TESTNUM, 2
+
   sbreak
   j fail
 
-  j pass
-
   TEST_PASSFAIL
 
+  .align 2
 stvec_handler:
   li t1, CAUSE_BREAKPOINT
   csrr t0, scause
   bne t0, t1, fail
-  csrr t0, sepc
-  addi t0, t0, 8
-  csrw sepc, t0
-  sret
+  j pass
 
 RVTEST_CODE_END
 
