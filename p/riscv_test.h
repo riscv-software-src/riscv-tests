@@ -93,6 +93,7 @@
 _start:                                                                 \
         /* reset vector */                                              \
         j reset_vector;                                                 \
+        .align 2;                                                       \
 trap_vector:                                                            \
         /* test whether the test came from pass/fail */                 \
         csrr t5, mcause;                                                \
