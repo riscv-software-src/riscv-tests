@@ -32,35 +32,28 @@ static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
   return magic_mem[0];
 }
 
-// In setStats, we might trap reading uarch-specific counters.
-// The trap handler will skip over the instruction and write 0,
-// but only if a0 is the destination register.
-#define read_csr_safe(reg) ({ register long __tmp asm("a0"); \
-  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
-  __tmp; })
-
-#define NUM_COUNTERS 18
+#define NUM_COUNTERS 2
 static long counters[NUM_COUNTERS];
 static char* counter_names[NUM_COUNTERS];
+
 static int handle_stats(int enable)
 {
   int i = 0;
 #define READ_CTR(name) do { \
     while (i >= NUM_COUNTERS) ; \
-    long csr = read_csr_safe(name); \
+    long csr = read_csr(name); \
     if (!enable) { csr -= counters[i]; counter_names[i] = #name; } \
     counters[i++] = csr; \
   } while (0)
-  READ_CTR(mcycle);  READ_CTR(minstret);
-  READ_CTR(0xcc0); READ_CTR(0xcc1); READ_CTR(0xcc2); READ_CTR(0xcc3);
-  READ_CTR(0xcc4); READ_CTR(0xcc5); READ_CTR(0xcc6); READ_CTR(0xcc7);
-  READ_CTR(0xcc8); READ_CTR(0xcc9); READ_CTR(0xcca); READ_CTR(0xccb);
-  READ_CTR(0xccc); READ_CTR(0xccd); READ_CTR(0xcce); READ_CTR(0xccf);
+
+  READ_CTR(mcycle);
+  READ_CTR(minstret);
+
 #undef READ_CTR
   return 0;
 }
 
-void tohost_exit(long code)
+void __attribute__((noreturn)) tohost_exit(long code)
 {
   tohost = (code << 1) | 1;
   while (1);
@@ -68,24 +61,16 @@ void tohost_exit(long code)
 
 long handle_trap(long cause, long epc, long regs[32])
 {
-  int* csr_insn;
-  asm ("jal %0, 1f; csrr a0, 0xcc0; 1:" : "=r"(csr_insn));
-  long sys_ret = 0;
-
-  if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
-      (*(int*)epc & *csr_insn) == *csr_insn)
-    ;
-  else if (cause != CAUSE_MACHINE_ECALL)
+  if (cause != CAUSE_MACHINE_ECALL)
     tohost_exit(1337);
   else if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);
   else if (regs[17] == SYS_stats)
-    sys_ret = handle_stats(regs[10]);
+    regs[10] = handle_stats(regs[10]);
   else
-    sys_ret = handle_frontend_syscall(regs[17], regs[10], regs[11], regs[12]);
+    regs[10] = handle_frontend_syscall(regs[17], regs[10], regs[11], regs[12]);
 
-  regs[10] = sys_ret;
-  return epc+4;
+  return epc + ((*(unsigned short*)epc & 3) == 3 ? 4 : 2);
 }
 
 static long syscall(long num, long arg0, long arg1, long arg2)
