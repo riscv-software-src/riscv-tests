@@ -1,49 +1,7 @@
 # See LICENSE for license details.
 
-#*****************************************************************************
-# amominu_d.S
-#-----------------------------------------------------------------------------
-#
-# Test amominu.w instruction.
-#
-
 #include "riscv_test.h"
-#include "test_macros.h"
+#undef RVTEST_RV64U
+#define RVTEST_RV64U RVTEST_RV32U
 
-RVTEST_RV32U
-RVTEST_CODE_BEGIN
-
-  TEST_CASE(2, a4, 0x80000000, \
-    li a0, 0x80000000; \
-    li a1, 0xfffff800; \
-    la a3, amo_operand; \
-    sw a0, 0(a3); \
-    amominu.w	a4, a1, 0(a3); \
-  )
-
-  TEST_CASE(3, a5, 0x80000000, lw a5, 0(a3))
-
-  TEST_CASE(4, a4, 0, \
-    li a1, 0xffffffff; \
-    sw x0, 0(a3); \
-    amominu.w	a4, a1, 0(a3); \
-  )
-
-  TEST_CASE(5, a5, 0, lw a5, 0(a3))
-
-  TEST_PASSFAIL
-
-RVTEST_CODE_END
-
-  .data
-RVTEST_DATA_BEGIN
-
-  TEST_DATA
-
-RVTEST_DATA_END
-
-  .bss
-  .align 3
-amo_operand:
-  .dword 0
-  .skip 65536
+#include "../rv64ua/amominu_w.S"

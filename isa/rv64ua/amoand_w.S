@@ -17,7 +17,7 @@ RVTEST_CODE_BEGIN
     li a0, 0xffffffff80000000; \
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
-    sd a0, 0(a3); \
+    sw a0, 0(a3); \
     nop; nop; nop; nop; \
     nop; nop; nop; nop; \
     nop; nop; nop; nop; \
