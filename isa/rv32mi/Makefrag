@@ -12,7 +12,6 @@ rv32mi_sc_tests = \
 	scall \
 	sbreak \
 	shamt \
-	wfi \
 
 rv32mi_mc_tests = \
 	ipi \

@@ -68,6 +68,23 @@ RVTEST_CODE_BEGIN
   TEST_ST_SRC21_BYPASS( 22, 1, 1, lh, sh, 0x0011, 8, tdat );
   TEST_ST_SRC21_BYPASS( 23, 2, 0, lh, sh, 0x3001, 10, tdat );
 
+  #---------------------------------------------------------------
+  # Side effect tests
+  #---------------------------------------------------------------
+
+  # sh to a word aligned address should only affect the 2 lower bytes
+  # and should leave the 2 upper bytes unmodified.
+  #
+  # In this test we write 2 bytes to the lower 2 bytes of the word
+  # tdat11 and then ensure that the both the upper 2 bytes and
+  # lower 2 bytes are as expected.
+  TEST_CASE( 24, x3, 0x12343098, \
+    la  x1, tdat11; \
+    li  x2, 0x00003098; \
+    sh x2, 0(x1); \
+    lw x3, 0(x1); \
+  )
+
   li a0, 0xbeef
   la a1, tdat
   sh a0, 6(a1)
@@ -92,5 +109,6 @@ tdat7:  .half 0xbeef
 tdat8:  .half 0xbeef
 tdat9:  .half 0xbeef
 tdat10: .half 0xbeef
+tdat11: .word 0x12345678
 
 RVTEST_DATA_END

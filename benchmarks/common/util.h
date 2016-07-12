@@ -35,8 +35,6 @@ extern void setStats(int enable);
 
 #include <stdint.h>
 
-extern int have_vec;
-
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
 static void printArray(const char name[], int n, const int arr[])

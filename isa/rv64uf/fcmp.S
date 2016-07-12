@@ -4,7 +4,7 @@
 # fcmp.S
 #-----------------------------------------------------------------------------
 #
-# Test f{eq|lt|le}.{s|d} instructions.
+# Test f{eq|lt|le}.s instructions.
 #
 
 #include "riscv_test.h"

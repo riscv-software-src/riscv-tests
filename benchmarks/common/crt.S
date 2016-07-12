@@ -50,29 +50,26 @@ _start:
   li  x30,0
   li  x31,0
 
-  li t0, MSTATUS_FS;   csrs mstatus, t0    # enable FPU
-  li t0, MSTATUS_XS;   csrs mstatus, t0    # enable accelerator
+  # enable FPU and accelerator if present
+  li t0, MSTATUS_FS | MSTATUS_XS
+  csrs mstatus, t0
 
-#ifdef __riscv64
+  # make sure XLEN agrees with compilation choice
   csrr t0, misa
-  # make sure processor supports RV64 if this was compiled for RV64
+#ifdef __riscv64
   bltz t0, 1f
+#else
+  bgez t0, 1f
+#endif
   li a0, 1234
   j tohost_exit
 1:
-#endif
-
-  csrr t0, mstatus
-  li t1, MSTATUS_XS
-  and t1, t0, t1
-  sw t1, have_vec, t2
-
-  ## if that didn't stick, we don't have a FPU, so don't initialize it
-  li t1, MSTATUS_FS
-  and t1, t0, t1
-  beqz t1, 1f
 
 #ifdef __riscv_hard_float
+  # initialize FPU if we have one
+  andi t0, t0, 1 << ('f' - 'a')
+  beqz t0, 1f
+
   fssr    x0
   fmv.s.x f0, x0
   fmv.s.x f1, x0
