@@ -43,6 +43,10 @@ class SimpleRegisterTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
         self.gdb = testlib.Gdb()
+        # For now gdb has to be told what the architecture is when it's not
+        # given an ELF file.
+        self.gdb.command("set arch riscv:rv%d" % target.xlen)
+
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
         # 0x13 is nop
@@ -81,6 +85,7 @@ class SimpleMemoryTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
         self.gdb = testlib.Gdb()
+        self.gdb.command("set arch riscv:rv%d" % target.xlen)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
     def access_test(self, size, data_type):
@@ -134,6 +139,7 @@ class InstantHaltTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
         self.gdb = testlib.Gdb()
+        self.gdb.command("set arch riscv:rv%d" % target.xlen)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
     def test_instant_halt(self):
