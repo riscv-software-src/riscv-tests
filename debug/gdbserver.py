@@ -238,6 +238,9 @@ class DebugTest(DeleteServer):
         self.exit()
 
     def test_hwbp_1(self):
+        if target.instruction_hardware_breakpoint_count < 1:
+            return
+
         self.gdb.hbreak("rot13")
         # The breakpoint should be hit exactly 2 times.
         for i in range(2):
@@ -248,6 +251,9 @@ class DebugTest(DeleteServer):
         self.exit()
 
     def test_hwbp_2(self):
+        if target.instruction_hardware_breakpoint_count < 2:
+            return
+
         self.gdb.hbreak("main")
         self.gdb.hbreak("rot13")
         # We should hit 3 breakpoints.
@@ -450,6 +456,7 @@ class Spike64Target(Target):
     xlen = 64
     ram = 0x80010000
     ram_size = 5 * 1024 * 1024
+    instruction_hardware_breakpoint_count = 0
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True)
@@ -460,6 +467,7 @@ class Spike32Target(Target):
     xlen = 32
     ram = 0x80010000
     ram_size = 5 * 1024 * 1024
+    instruction_hardware_breakpoint_count = 0
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True, xlen=32)
@@ -469,6 +477,7 @@ class MicroSemiTarget(Target):
     xlen = 32
     ram = 0x80000000
     ram_size = 16 * 1024
+    instruction_hardware_breakpoint_count = 2
 
     def server(self):
         return testlib.Openocd(cmd=parsed.cmd,
