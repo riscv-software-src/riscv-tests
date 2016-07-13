@@ -65,6 +65,7 @@ class Spike(object):
             cmd.append(binary)
         logfile = open("spike.log", "w")
         logfile.write("+ %s\n" % " ".join(cmd))
+        logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
                 stderr=logfile)
 
