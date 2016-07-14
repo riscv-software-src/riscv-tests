@@ -123,7 +123,7 @@ class SimpleMemoryTest(DeleteServer):
 
         self.gdb.command("restore write.ihex 0x%x" % target.ram)
         for offset in range(0, length, 19*4) + [length-4]:
-            value = self.gdb.p("*((long*)0x%x)" % (target.ram + offset))
+            value = self.gdb.p("*((int*)0x%x)" % (target.ram + offset))
             written = ord(data[offset]) | \
                     (ord(data[offset+1]) << 8) | \
                     (ord(data[offset+2]) << 16) | \
