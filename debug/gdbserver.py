@@ -89,6 +89,8 @@ class SimpleMemoryTest(DeleteServer):
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
     def access_test(self, size, data_type):
+        self.assertEqual(self.gdb.p("sizeof(%s)" % data_type),
+                size)
         a = 0x86753095555aaaa & ((1<<(size*8))-1)
         b = 0xdeadbeef12345678 & ((1<<(size*8))-1)
         self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, target.ram, a))
@@ -103,7 +105,7 @@ class SimpleMemoryTest(DeleteServer):
         self.access_test(2, 'short')
 
     def test_32(self):
-        self.access_test(4, 'long')
+        self.access_test(4, 'int')
 
     def test_64(self):
         self.access_test(8, 'long long')
