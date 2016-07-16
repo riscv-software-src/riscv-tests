@@ -10,6 +10,26 @@ import time
 import random
 import binascii
 
+MSTATUS_UIE = 0x00000001
+MSTATUS_SIE = 0x00000002
+MSTATUS_HIE = 0x00000004
+MSTATUS_MIE = 0x00000008
+MSTATUS_UPIE = 0x00000010
+MSTATUS_SPIE = 0x00000020
+MSTATUS_HPIE = 0x00000040
+MSTATUS_MPIE = 0x00000080
+MSTATUS_SPP = 0x00000100
+MSTATUS_HPP = 0x00000600
+MSTATUS_MPP = 0x00001800
+MSTATUS_FS = 0x00006000
+MSTATUS_XS = 0x00018000
+MSTATUS_MPRV = 0x00020000
+MSTATUS_PUM = 0x00040000
+MSTATUS_MXR = 0x00080000
+MSTATUS_VM = 0x1F000000
+MSTATUS32_SD = 0x80000000
+MSTATUS64_SD = 0x8000000000000000
+
 def ihex_line(address, record_type, data):
     assert len(data) < 128
     line = ":%02X%04X%02X" % (len(data), address, record_type)
@@ -145,11 +165,11 @@ class InstantHaltTest(DeleteServer):
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
     def test_instant_halt(self):
-        self.assertEqual(0x1000, self.gdb.p("$pc"))
-        # For some reason instret resets to 0.
-        self.assertLess(self.gdb.p("$instret"), 8)
-        self.gdb.stepi()
-        self.assertNotEqual(0x1000, self.gdb.p("$pc"))
+        self.assertEqual(target.reset_vector, self.gdb.p("$pc"))
+        # mcycle and minstret have no defined reset value.
+        mstatus = self.gdb.p("$mstatus")
+        self.assertEqual(mstatus & (MSTATUS_MIE | MSTATUS_MPRV |
+            MSTATUS_VM), 0)
 
     def test_change_pc(self):
         """Change the PC right as we come out of reset."""
@@ -459,6 +479,7 @@ class Spike64Target(Target):
     ram = 0x80010000
     ram_size = 5 * 1024 * 1024
     instruction_hardware_breakpoint_count = 0
+    reset_vector = 0x1000
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True)
@@ -470,6 +491,7 @@ class Spike32Target(Target):
     ram = 0x80010000
     ram_size = 5 * 1024 * 1024
     instruction_hardware_breakpoint_count = 0
+    reset_vector = 0x1000
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True, xlen=32)
