@@ -17,10 +17,8 @@ def find_file(path):
     return None
 
 def compile(args, xlen=32):
-    """Compile a single .c file into a binary."""
-    dst = os.path.splitext(args[0])[0]
     cc = os.path.expandvars("$RISCV/bin/riscv%d-unknown-elf-gcc" % xlen)
-    cmd = [cc, "-g", "-o", dst]
+    cmd = [cc, "-g"]
     for arg in args:
         found = find_file(arg)
         if found:
@@ -30,7 +28,6 @@ def compile(args, xlen=32):
     cmd = " ".join(cmd)
     result = os.system(cmd)
     assert result == 0, "%r failed" % cmd
-    return dst
 
 def unused_port():
     # http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309

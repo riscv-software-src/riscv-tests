@@ -409,28 +409,28 @@ class RegsTest(DeleteServer):
 class DownloadTest(DeleteServer):
     def setUp(self):
         length = min(2**20, target.ram_size - 2048)
-        fd = file("download.c", "w")
-        fd.write("#include <stdint.h>\n")
-        fd.write("unsigned int crc32a(uint8_t *message, unsigned int size);\n")
-        fd.write("uint32_t length = %d;\n" % length)
-        fd.write("uint8_t d[%d] = {\n" % length)
+        download_c = tempfile.NamedTemporaryFile(prefix="download_", suffix=".c")
+        download_c.write("#include <stdint.h>\n")
+        download_c.write("unsigned int crc32a(uint8_t *message, unsigned int size);\n")
+        download_c.write("uint32_t length = %d;\n" % length)
+        download_c.write("uint8_t d[%d] = {\n" % length)
         self.crc = 0
         for i in range(length / 16):
-            fd.write("  /* 0x%04x */ " % (i * 16));
+            download_c.write("  /* 0x%04x */ " % (i * 16));
             for _ in range(16):
                 value = random.randrange(1<<8)
-                fd.write("%d, " % value)
+                download_c.write("%d, " % value)
                 self.crc = binascii.crc32("%c" % value, self.crc)
-            fd.write("\n");
-        fd.write("};\n");
-        fd.write("uint8_t *data = &d[0];\n");
-        fd.write("uint32_t main() { return crc32a(data, length); }\n")
-        fd.close()
+            download_c.write("\n");
+        download_c.write("};\n");
+        download_c.write("uint8_t *data = &d[0];\n");
+        download_c.write("uint32_t main() { return crc32a(data, length); }\n")
+        download_c.flush()
 
         if self.crc < 0:
             self.crc += 2**32
 
-        self.binary = target.compile("download.c", "programs/checksum.c")
+        self.binary = target.compile(download_c.name, "programs/checksum.c")
         self.server = target.server()
         self.gdb = testlib.Gdb()
         self.gdb.command("file %s" % self.binary)
@@ -466,12 +466,22 @@ class Target(object):
         raise NotImplementedError
 
     def compile(self, *sources):
-        return testlib.compile(sources +
+        binary_name = "%s_%s" % (
+                self.name,
+                os.path.basename(os.path.splitext(sources[0])[0]))
+        if parsed.isolate:
+            self.temporary_binary = tempfile.NamedTemporaryFile(
+                    prefix=binary_name + "_")
+            binary_name = self.temporary_binary.name
+        testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
                     "-I", "../env",
                     "-T", "targets/%s/link.lds" % (self.directory or self.name),
                     "-nostartfiles",
-                    "-mcmodel=medany"), xlen=self.xlen)
+                    "-mcmodel=medany",
+                    "-o", binary_name),
+                xlen=self.xlen)
+        return binary_name
 
 class Spike64Target(Target):
     name = "spike"
@@ -526,6 +536,10 @@ def main():
                 dest="target")
     parser.add_argument("--cmd",
             help="The command to use to start the debug server.")
+    parser.add_argument("--isolate", action="store_true",
+            help="Try to run in such a way that multiple instances can run at "
+            "the same time. This may make it harder to debug a failure if it "
+            "does occur.")
     parser.add_argument("unittest", nargs="*")
     global parsed
     parsed = parser.parse_args()
