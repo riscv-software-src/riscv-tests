@@ -4,6 +4,8 @@
 # Yunsup Lee (yunsup@cs.berkeley.edu)
 #
 
+XLEN ?= 64
+
 default: all
 
 src_dir = .

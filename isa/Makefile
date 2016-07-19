@@ -2,6 +2,8 @@
 # Makefile for riscv-tests/isa
 #-----------------------------------------------------------------------
 
+XLEN ?= 64
+
 src_dir := .
 
 include $(src_dir)/rv64ui/Makefrag
