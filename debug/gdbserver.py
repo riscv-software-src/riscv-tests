@@ -133,15 +133,15 @@ class SimpleMemoryTest(DeleteServer):
     def test_block(self):
         length = 1024
         line_length = 16
-        fd = file("write.ihex", "w")
+        a = tempfile.NamedTemporaryFile(suffix=".ihex")
         data = ""
         for i in range(length / line_length):
             line_data = "".join(["%c" % random.randrange(256) for _ in range(line_length)])
             data += line_data
-            fd.write(ihex_line(i * line_length, 0, line_data))
-        fd.close()
+            a.write(ihex_line(i * line_length, 0, line_data))
+        a.flush()
 
-        self.gdb.command("restore write.ihex 0x%x" % target.ram)
+        self.gdb.command("restore %s 0x%x" % (a.name, target.ram))
         for offset in range(0, length, 19*4) + [length-4]:
             value = self.gdb.p("*((int*)0x%x)" % (target.ram + offset))
             written = ord(data[offset]) | \
@@ -150,9 +150,10 @@ class SimpleMemoryTest(DeleteServer):
                     (ord(data[offset+3]) << 24)
             self.assertEqual(value, written)
 
-        self.gdb.command("dump ihex memory read.ihex 0x%x 0x%x" % (target.ram,
+        b = tempfile.NamedTemporaryFile(suffix=".ihex")
+        self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name, target.ram,
             target.ram + length))
-        for line in file("read.ihex"):
+        for line in b:
             record_type, address, line_data = ihex_parse(line)
             if (record_type == 0):
                 self.assertEqual(line_data, data[address:address+len(line_data)])
