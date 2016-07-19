@@ -12,7 +12,11 @@ main:
 
         # update mstatus
         csrr    t1, CSR_MSTATUS
+#ifdef __riscv32
+        li      t0, (MSTATUS_MPRV | (VM_SV32 << 24))
+#else
         li      t0, (MSTATUS_MPRV | (VM_SV39 << 24))
+#endif
         #li      t0, ((VM_SV39 << 24))
         or      t1, t0, t1
         csrw    CSR_MSTATUS, t1
@@ -34,5 +38,9 @@ data:
 
         .balign 0x1000
 page_table:
-        .word   ((0x80000000 >> 2) | PTE_V | PTE_TYPE_URWX_SRWX)
+#ifdef __riscv32
+        .word   ((0x80000000 >> 2) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_G | PTE_U)
+#else
+        .word   ((0x80000000 >> 2) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_G | PTE_U)
         .word   0
+#endif
