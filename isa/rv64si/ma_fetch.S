@@ -32,9 +32,10 @@ RVTEST_CODE_BEGIN
   jalr t1, t0, 2
 1:
   .option rvc
-  c.j fail
+  c.j 1f
   c.j 2f
   .option norvc
+1:
   j fail
 2:
 
@@ -53,9 +54,10 @@ RVTEST_CODE_BEGIN
   jalr t1, t0, 3
 1:
   .option rvc
-  c.j fail
+  c.j 1f
   c.j 2f
   .option norvc
+1:
   j fail
 2:
 
