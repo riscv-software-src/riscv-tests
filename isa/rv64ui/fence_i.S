@@ -14,15 +14,13 @@ RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
 li a3, 111
-la a0, 3f
-la a1, 1f
-la a2, 2f
-lw a0, 0(a0)
+lh a0, insn
+lh a1, insn+2
 
 # test I$ hit
 .align 6
-sw a0, 0(a1)
-.align 2
+sh a0, 1f, t0
+sh a1, 1f+2, t0
 fence.i
 
 1: addi a3, a3, 222
@@ -33,14 +31,13 @@ li a4, 100
 1: addi a4, a4, -1
 bnez a4, 1b
 
-sw a0, 0(a2)
+sh a0, 1f, t0
+sh a1, 1f+2, t0
 fence.i
 
 .align 6
-2: addi a3, a3, 555
+1: addi a3, a3, 555
 TEST_CASE( 3, a3, 777, nop )
-
-3: addi a3, a3, 333
 
 TEST_PASSFAIL
 
@@ -50,5 +47,8 @@ RVTEST_CODE_END
 RVTEST_DATA_BEGIN
 
   TEST_DATA
+
+insn:
+  addi a3, a3, 333
 
 RVTEST_DATA_END
