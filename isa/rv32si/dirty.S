@@ -7,4 +7,4 @@
 #undef VM_SV39
 #define VM_SV39 VM_SV32
 
-#include "../rv64mi/dirty.S"
+#include "../rv64si/dirty.S"

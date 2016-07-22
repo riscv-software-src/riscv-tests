@@ -4,6 +4,7 @@
 
 rv32si_sc_tests = \
 	csr \
+	dirty \
 	ma_fetch \
 	scall \
 	sbreak \
