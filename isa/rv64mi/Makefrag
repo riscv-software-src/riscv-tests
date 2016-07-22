@@ -4,7 +4,6 @@
 
 rv64mi_sc_tests = \
 	breakpoint \
-	dirty \
 	csr \
 	mcsr \
 	illegal \
