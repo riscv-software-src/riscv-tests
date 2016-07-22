@@ -34,6 +34,14 @@ RVTEST_CODE_BEGIN
   TEST_CASE( 8, a0, 0xbad0000, li a0, 0x000beef; csrrs a0, sscratch, a0);
   TEST_CASE( 9, a0, 0xbadbeef, csrr a0, sscratch);
 
+#ifdef __MACHINE_MODE
+  # Figure out if 'U' is set in misa
+  csrr a0, misa   # a0 = csr(misa)
+  srli a0, a0, 20 # a0 = a0 >> 20
+  andi a0, a0, 1  # a0 = a0 & 1
+  beqz a0, finish # if no user mode, skip the rest of these checks
+#endif
+
   # Make sure writing the cycle counter causes an exception.
   # Don't run in supervisor, as we don't delegate illegal instruction traps.
 #ifdef __MACHINE_MODE
@@ -56,6 +64,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE(11, x0, 0, nop)
 #endif
 
+finish:
   RVTEST_PASS
 
   # We should only fall through to this if scall failed.
