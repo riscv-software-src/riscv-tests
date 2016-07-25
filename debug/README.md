@@ -12,7 +12,7 @@ Targets
 64-bit Spike
 ------------
 
-`./gdbserver.py --spike --cmd $RISCV/bin/spike`
+`./gdbserver.py --spike64 --cmd $RISCV/bin/spike`
 
 32-bit Spike
 ------------
@@ -28,7 +28,7 @@ Debug Tips
 ==========
 
 You can run just a single test by specifying <class>.<function> on the command
-line, eg: `./gdbserver.py --spike --cmd $RISCV/bin/spike
+line, eg: `./gdbserver.py --spike64 --cmd $RISCV/bin/spike
 SimpleRegisterTest.test_s0`.
 Once that test has failed, you can look at gdb.log and (in this case) spike.log
 to get an idea of what might have gone wrong.

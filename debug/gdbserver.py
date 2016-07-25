@@ -484,25 +484,23 @@ class Target(object):
                 xlen=self.xlen)
         return binary_name
 
-class Spike64Target(Target):
-    name = "spike"
-    xlen = 64
+class SpikeTarget(Target):
+    directory = "spike"
     ram = 0x80010000
     ram_size = 5 * 1024 * 1024
     instruction_hardware_breakpoint_count = 0
     reset_vector = 0x1000
+
+class Spike64Target(SpikeTarget):
+    name = "spike64"
+    xlen = 64
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True)
 
-class Spike32Target(Target):
+class Spike32Target(SpikeTarget):
     name = "spike32"
-    directory = "spike"
     xlen = 32
-    ram = 0x80010000
-    ram_size = 5 * 1024 * 1024
-    instruction_hardware_breakpoint_count = 0
-    reset_vector = 0x1000
 
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True, xlen=32)
