@@ -505,8 +505,8 @@ class Spike32Target(SpikeTarget):
     def server(self):
         return testlib.Spike(parsed.cmd, halted=True, xlen=32)
 
-class MicroSemiTarget(Target):
-    name = "m2gl_m2s"
+class FreedomE300Target(Target):
+    name = "freedom-e300"
     xlen = 32
     ram = 0x80000000
     ram_size = 16 * 1024
@@ -519,7 +519,7 @@ class MicroSemiTarget(Target):
 targets = [
         Spike32Target,
         Spike64Target,
-        MicroSemiTarget
+        FreedomE300Target
         ]
 
 def main():
