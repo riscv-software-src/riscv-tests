@@ -466,6 +466,58 @@ class MprvTest(DeleteServer):
         output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
         self.assertIn("0xbead", output)
 
+class PrivTest(DeleteServer):
+    def setUp(self):
+        self.binary = target.compile("programs/priv.S")
+        self.server = target.server()
+        self.gdb = gdb()
+        self.gdb.command("file %s" % self.binary)
+        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb.load()
+
+        misa = self.gdb.p("$misa")
+        self.supported = set()
+        if misa & (1<<20):
+            self.supported.add(0)
+        if misa & (1<<18):
+            self.supported.add(1)
+        if misa & (1<<7):
+            self.supported.add(2)
+        self.supported.add(3)
+
+    def test_rw(self):
+        """Test reading/writing priv."""
+        for privilege in range(4):
+            self.gdb.p("$priv=%d" % privilege)
+            self.gdb.stepi()
+            actual = self.gdb.p("$priv")
+            self.assertIn(actual, self.supported)
+            if privilege in self.supported:
+                self.assertEqual(actual, privilege)
+
+    def test_change(self):
+        """Test that the core's privilege level actually changes."""
+
+        if 0 not in self.supported:
+            # TODO: return not applicable
+            return
+
+        self.gdb.b("main")
+        self.gdb.c()
+
+        # Machine mode
+        self.gdb.p("$priv=3")
+        main = self.gdb.p("$pc")
+        self.gdb.stepi()
+        self.assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main+4))
+
+        # User mode
+        self.gdb.p("$priv=0")
+        self.gdb.stepi()
+        # Should have taken an exception, so be nowhere near main.
+        pc = self.gdb.p("$pc")
+        self.assertTrue(pc < main or pc > main + 0x100)
+
 class Target(object):
     directory = None
 
