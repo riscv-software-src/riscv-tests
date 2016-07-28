@@ -30,6 +30,12 @@ MSTATUS_VM = 0x1F000000
 MSTATUS32_SD = 0x80000000
 MSTATUS64_SD = 0x8000000000000000
 
+def gdb():
+    if parsed.gdb:
+        return testlib.Gdb(parsed.gdb)
+    else:
+        return testlib.Gdb()
+
 def ihex_line(address, record_type, data):
     assert len(data) < 128
     line = ":%02X%04X%02X" % (len(data), address, record_type)
@@ -62,7 +68,7 @@ class DeleteServer(unittest.TestCase):
 class SimpleRegisterTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         # For now gdb has to be told what the architecture is when it's not
         # given an ELF file.
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
@@ -104,7 +110,7 @@ class SimpleRegisterTest(DeleteServer):
 class SimpleMemoryTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
@@ -161,7 +167,7 @@ class SimpleMemoryTest(DeleteServer):
 class InstantHaltTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
@@ -192,7 +198,7 @@ class DebugTest(DeleteServer):
         self.binary = target.compile("programs/debug.c", "programs/checksum.c",
                 "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -345,7 +351,7 @@ class StepTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/step.S")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -363,7 +369,7 @@ class RegsTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/regs.S")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -433,7 +439,7 @@ class DownloadTest(DeleteServer):
 
         self.binary = target.compile(download_c.name, "programs/checksum.c")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
@@ -447,7 +453,7 @@ class MprvTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/mprv.S")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -535,6 +541,8 @@ def main():
                 dest="target")
     parser.add_argument("--cmd",
             help="The command to use to start the debug server.")
+    parser.add_argument("--gdb",
+            help="The command to use to start gdb.")
     parser.add_argument("--isolate", action="store_true",
             help="Try to run in such a way that multiple instances can run at "
             "the same time. This may make it harder to debug a failure if it "

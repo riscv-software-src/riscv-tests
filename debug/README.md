@@ -19,10 +19,10 @@ Targets
 
 `./gdbserver.py --spike32 --cmd $RISCV/bin/spike`
 
-32-bit SiFive Core on Microsemi FPGA board
-------------------------------------------
+32-bit SiFive Core on Arty FPGA board
+-------------------------------------
 
-`./gdbserver.py --m2gl_m2s`
+`./gdbserver.py --freedom-e300`
 
 Debug Tips
 ==========
@@ -36,3 +36,6 @@ to get an idea of what might have gone wrong.
 You can see what spike is doing by add `-l` to the spike command, eg.:
 `./gdbserver.py --spike32 --cmd "$RISCV/bin/spike -l"
 DebugTest.test_breakpoint`. (Then look at spike.log.)
+
+You can run gdb under valgrind by passing --gdb, eg.: `./gdbserver.py --spike64
+--gdb "valgrind riscv64-unknown-elf-gdb" -- -v DownloadTest`.
