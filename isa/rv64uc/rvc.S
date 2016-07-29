@@ -47,8 +47,11 @@ RVTEST_CODE_BEGIN
 #endif
 
   RVC_TEST_CASE (11, s0, 0xffffffffffffffe1, c.lui s0, 0xfffe1; c.srai s0, 12)
+#ifdef __riscv64
   RVC_TEST_CASE (12, s0, 0x000fffffffffffe1, c.lui s0, 0xfffe1; c.srli s0, 12)
-  RVC_TEST_CASE (13, s0, 0x000fffffffffffe1, c.lui s0, 0xfffe1; c.srli s0, 12)
+#else
+  RVC_TEST_CASE (12, s0, 0x000fffe1, c.lui s0, 0xfffe1; c.srli s0, 12)
+#endif
   RVC_TEST_CASE (14, s0, ~0x11, c.li s0, -2; c.andi s0, ~0x10)
   RVC_TEST_CASE (15, s1, 14, li s1, 20; li a0, 6; c.sub s1, a0)
   RVC_TEST_CASE (16, s1, 18, li s1, 20; li a0, 6; c.xor s1, a0)

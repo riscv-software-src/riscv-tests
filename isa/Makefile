@@ -15,6 +15,7 @@ include $(src_dir)/rv64ud/Makefrag
 include $(src_dir)/rv64si/Makefrag
 include $(src_dir)/rv64mi/Makefrag
 include $(src_dir)/rv32ui/Makefrag
+include $(src_dir)/rv32uc/Makefrag
 include $(src_dir)/rv32um/Makefrag
 include $(src_dir)/rv32ua/Makefrag
 include $(src_dir)/rv32si/Makefrag
@@ -68,6 +69,7 @@ tests += $$($(1)_tests)
 endef
 
 $(eval $(call compile_template,rv32ui,-m32))
+$(eval $(call compile_template,rv32uc,-m32))
 $(eval $(call compile_template,rv32um,-m32))
 $(eval $(call compile_template,rv32ua,-m32))
 $(eval $(call compile_template,rv32si,-m32))

@@ -3,11 +3,12 @@
 #-----------------------------------------------------------------------
 
 rv32mi_sc_tests = \
+	breakpoint \
 	csr \
+	mcsr \
 	illegal \
 	ma_fetch \
 	ma_addr \
-	mcsr \
 	scall \
 	sbreak \
 	shamt \
