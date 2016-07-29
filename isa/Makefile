@@ -7,6 +7,7 @@ XLEN ?= 64
 src_dir := .
 
 include $(src_dir)/rv64ui/Makefrag
+include $(src_dir)/rv64uc/Makefrag
 include $(src_dir)/rv64um/Makefrag
 include $(src_dir)/rv64ua/Makefrag
 include $(src_dir)/rv64uf/Makefrag
@@ -73,6 +74,7 @@ $(eval $(call compile_template,rv32si,-m32))
 $(eval $(call compile_template,rv32mi,-m32))
 ifeq ($(XLEN),64)
 $(eval $(call compile_template,rv64ui))
+$(eval $(call compile_template,rv64uc))
 $(eval $(call compile_template,rv64um))
 $(eval $(call compile_template,rv64ua))
 $(eval $(call compile_template,rv64uf))

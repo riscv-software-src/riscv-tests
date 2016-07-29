@@ -36,9 +36,10 @@ RVTEST_CODE_BEGIN
   csrr a1, tdrdata1
   andi a1, a1, 0x7ff
   bne a0, a1, 2f
+  .align 2
 1:
   # Trap handler should skip this instruction.
-  j fail
+  beqz x0, fail
 
   # Make sure reads don't trap.
   li TESTNUM, 3
