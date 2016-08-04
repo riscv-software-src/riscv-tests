@@ -10,6 +10,7 @@ import time
 import random
 import binascii
 
+
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
 MSTATUS_HIE = 0x00000004
@@ -72,9 +73,9 @@ class SimpleRegisterTest(DeleteServer):
         # For now gdb has to be told what the architecture is when it's not
         # given an ELF file.
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
-
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
-
+       
         # 0x13 is nop
         self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
         self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
@@ -112,6 +113,7 @@ class SimpleMemoryTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
     def access_test(self, size, data_type):
@@ -169,8 +171,9 @@ class InstantHaltTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
-
+         
     def test_instant_halt(self):
         self.assertEqual(target.reset_vector, self.gdb.p("$pc"))
         # mcycle and minstret have no defined reset value.
@@ -200,6 +203,7 @@ class DebugTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
         self.gdb.b("_exit")
@@ -353,6 +357,7 @@ class StepTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
         self.gdb.b("main")
@@ -371,6 +376,7 @@ class RegsTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
         self.gdb.b("main")
@@ -441,8 +447,9 @@ class DownloadTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
-
+        
     def test_download(self):
         output = self.gdb.load()
         self.gdb.command("b _exit")
@@ -455,6 +462,7 @@ class MprvTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
 
@@ -472,6 +480,7 @@ class PrivTest(DeleteServer):
         self.server = target.server()
         self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
+        self.gdb.command("set remotetimeout %d" % target.timeout)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
 
@@ -520,7 +529,8 @@ class PrivTest(DeleteServer):
 
 class Target(object):
     directory = None
-
+    timeout = 2
+    
     def server(self):
         raise NotImplementedError
 
@@ -574,23 +584,42 @@ class FreedomE300Target(Target):
         return testlib.Openocd(cmd=parsed.cmd,
                 config="targets/%s/openocd.cfg" % self.name)
 
+class FreedomE300SimTarget(Target):
+    name = "freedom-e300-sim"
+    xlen = 32
+    timeout = 240
+    ram = 0x80000000
+    ram_size = 256 * 1024 * 1024
+    instruction_hardware_breakpoint_count = 2
+       
+    def server(self):
+        sim = testlib.VcsSim(simv=parsed.run)
+        x = testlib.Openocd(cmd=parsed.cmd,
+                            config="targets/%s/openocd.cfg" % self.name,
+                            keepAlive = sim)
+        time.sleep(20)
+        return x
+    
 targets = [
         Spike32Target,
         Spike64Target,
-        FreedomE300Target
+        FreedomE300Target,
+        FreedomE300SimTarget
         ]
 
 def main():
     parser = argparse.ArgumentParser(
             epilog="""
             Example command line from the real world:
-            Run all RegsTest cases against a MicroSemi m2gl_m2s board, with custom openocd command:
-            ./gdbserver.py --m2gl_m2s --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" -- -vf RegsTest
+            Run all RegsTest cases against a physical FPGA, with custom openocd command:
+            ./gdbserver.py --freedom-e-300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" -- -vf RegsTest
             """)
     group = parser.add_mutually_exclusive_group(required=True)
     for t in targets:
         group.add_argument("--%s" % t.name, action="store_const", const=t,
                 dest="target")
+    parser.add_argument("--run",
+                        help="The command to use to start the actual target (e.g. simulation)")
     parser.add_argument("--cmd",
             help="The command to use to start the debug server.")
     parser.add_argument("--gdb",
