@@ -19,7 +19,7 @@ Targets
 
 `./gdbserver.py --spike32 --cmd $RISCV/bin/spike`
 
-32-bit SiFive Core on Supported FPGA boards
+32-bit SiFive Core on Supported FPGA Boards &  Hardware
 -------------------------------------
 
 `./gdbserver.py --freedom-e300`

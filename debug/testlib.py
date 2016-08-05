@@ -103,7 +103,6 @@ class VcsSim(object):
                 done = True
             
     def __del__(self):
-        print "DELETE called for VcsSim"
         try:
             self.process.kill()
             self.process.wait()
@@ -112,12 +111,12 @@ class VcsSim(object):
 
         
 class Openocd(object):
-    def __init__(self, cmd=None, config=None, debug=False, keepAlive=None):
+    def __init__(self, cmd=None, config=None, debug=False, otherProcess=None):
 
         # keep handles to other processes -- don't let them be
         # garbage collected yet.
 
-        self.keepAlive = keepAlive
+        self.otherProcess = otherProcess
         if cmd:
             cmd = shlex.split(cmd)
         else:
