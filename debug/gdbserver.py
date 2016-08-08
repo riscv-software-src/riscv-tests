@@ -593,7 +593,7 @@ class FreedomE300SimTarget(Target):
     instruction_hardware_breakpoint_count = 2
        
     def server(self):
-        sim = testlib.VcsSim(simv=parsed.run, debug=True)
+        sim = testlib.VcsSim(simv=parsed.run, debug=False)
         x = testlib.Openocd(cmd=parsed.cmd,
                             config="targets/%s/openocd.cfg" % self.name,
                             otherProcess = sim)
@@ -610,7 +610,7 @@ class FreedomU500SimTarget(Target):
     instruction_hardware_breakpoint_count = 2
        
     def server(self):
-        sim = testlib.VcsSim(simv=parsed.run, debug=True)
+        sim = testlib.VcsSim(simv=parsed.run, debug=False)
         x = testlib.Openocd(cmd=parsed.cmd,
                             config="targets/%s/openocd.cfg" % self.name,
                             otherProcess = sim)
