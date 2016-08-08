@@ -7,6 +7,7 @@ XLEN ?= 64
 src_dir := .
 
 include $(src_dir)/rv64ui/Makefrag
+include $(src_dir)/rv64uc/Makefrag
 include $(src_dir)/rv64um/Makefrag
 include $(src_dir)/rv64ua/Makefrag
 include $(src_dir)/rv64uf/Makefrag
@@ -14,6 +15,7 @@ include $(src_dir)/rv64ud/Makefrag
 include $(src_dir)/rv64si/Makefrag
 include $(src_dir)/rv64mi/Makefrag
 include $(src_dir)/rv32ui/Makefrag
+include $(src_dir)/rv32uc/Makefrag
 include $(src_dir)/rv32um/Makefrag
 include $(src_dir)/rv32ua/Makefrag
 include $(src_dir)/rv32si/Makefrag
@@ -67,12 +69,14 @@ tests += $$($(1)_tests)
 endef
 
 $(eval $(call compile_template,rv32ui,-m32))
+$(eval $(call compile_template,rv32uc,-m32))
 $(eval $(call compile_template,rv32um,-m32))
 $(eval $(call compile_template,rv32ua,-m32))
 $(eval $(call compile_template,rv32si,-m32))
 $(eval $(call compile_template,rv32mi,-m32))
 ifeq ($(XLEN),64)
 $(eval $(call compile_template,rv64ui))
+$(eval $(call compile_template,rv64uc))
 $(eval $(call compile_template,rv64um))
 $(eval $(call compile_template,rv64ua))
 $(eval $(call compile_template,rv64uf))

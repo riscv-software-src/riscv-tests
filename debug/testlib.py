@@ -102,10 +102,10 @@ class Openocd(object):
 
 class Gdb(object):
     def __init__(self,
-            path=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
-        self.child = pexpect.spawn(path)
+            cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
+        self.child = pexpect.spawn(cmd)
         self.child.logfile = file("gdb.log", "w")
-        self.child.logfile.write("+ %s\n" % path)
+        self.child.logfile.write("+ %s\n" % cmd)
         self.wait()
         self.command("set confirm off")
         self.command("set width 0")

@@ -30,6 +30,12 @@ MSTATUS_VM = 0x1F000000
 MSTATUS32_SD = 0x80000000
 MSTATUS64_SD = 0x8000000000000000
 
+def gdb():
+    if parsed.gdb:
+        return testlib.Gdb(parsed.gdb)
+    else:
+        return testlib.Gdb()
+
 def ihex_line(address, record_type, data):
     assert len(data) < 128
     line = ":%02X%04X%02X" % (len(data), address, record_type)
@@ -62,7 +68,7 @@ class DeleteServer(unittest.TestCase):
 class SimpleRegisterTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         # For now gdb has to be told what the architecture is when it's not
         # given an ELF file.
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
@@ -104,7 +110,7 @@ class SimpleRegisterTest(DeleteServer):
 class SimpleMemoryTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
@@ -161,7 +167,7 @@ class SimpleMemoryTest(DeleteServer):
 class InstantHaltTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("set arch riscv:rv%d" % target.xlen)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
@@ -192,7 +198,7 @@ class DebugTest(DeleteServer):
         self.binary = target.compile("programs/debug.c", "programs/checksum.c",
                 "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -345,7 +351,7 @@ class StepTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/step.S")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -363,7 +369,7 @@ class RegsTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/regs.S")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -433,7 +439,7 @@ class DownloadTest(DeleteServer):
 
         self.binary = target.compile(download_c.name, "programs/checksum.c")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
 
@@ -447,7 +453,7 @@ class MprvTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/mprv.S")
         self.server = target.server()
-        self.gdb = testlib.Gdb()
+        self.gdb = gdb()
         self.gdb.command("file %s" % self.binary)
         self.gdb.command("target extended-remote localhost:%d" % self.server.port)
         self.gdb.load()
@@ -459,6 +465,58 @@ class MprvTest(DeleteServer):
         self.gdb.interrupt()
         output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
         self.assertIn("0xbead", output)
+
+class PrivTest(DeleteServer):
+    def setUp(self):
+        self.binary = target.compile("programs/priv.S")
+        self.server = target.server()
+        self.gdb = gdb()
+        self.gdb.command("file %s" % self.binary)
+        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb.load()
+
+        misa = self.gdb.p("$misa")
+        self.supported = set()
+        if misa & (1<<20):
+            self.supported.add(0)
+        if misa & (1<<18):
+            self.supported.add(1)
+        if misa & (1<<7):
+            self.supported.add(2)
+        self.supported.add(3)
+
+    def test_rw(self):
+        """Test reading/writing priv."""
+        for privilege in range(4):
+            self.gdb.p("$priv=%d" % privilege)
+            self.gdb.stepi()
+            actual = self.gdb.p("$priv")
+            self.assertIn(actual, self.supported)
+            if privilege in self.supported:
+                self.assertEqual(actual, privilege)
+
+    def test_change(self):
+        """Test that the core's privilege level actually changes."""
+
+        if 0 not in self.supported:
+            # TODO: return not applicable
+            return
+
+        self.gdb.b("main")
+        self.gdb.c()
+
+        # Machine mode
+        self.gdb.p("$priv=3")
+        main = self.gdb.p("$pc")
+        self.gdb.stepi()
+        self.assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main+4))
+
+        # User mode
+        self.gdb.p("$priv=0")
+        self.gdb.stepi()
+        # Should have taken an exception, so be nowhere near main.
+        pc = self.gdb.p("$pc")
+        self.assertTrue(pc < main or pc > main + 0x100)
 
 class Target(object):
     directory = None
@@ -535,6 +593,8 @@ def main():
                 dest="target")
     parser.add_argument("--cmd",
             help="The command to use to start the debug server.")
+    parser.add_argument("--gdb",
+            help="The command to use to start gdb.")
     parser.add_argument("--isolate", action="store_true",
             help="Try to run in such a way that multiple instances can run at "
             "the same time. This may make it harder to debug a failure if it "
