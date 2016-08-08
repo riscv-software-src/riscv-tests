@@ -17,10 +17,6 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
-  #define TEST_FCLASS_S(testnum, correct, input) \
-    TEST_CASE(testnum, a0, correct, li a0, input; fmv.s.x fa0, a0; \
-                                    fclass.s a0, fa0)
-
   TEST_FCLASS_S( 2, 1 << 0, 0xff800000 )
   TEST_FCLASS_S( 3, 1 << 1, 0xbf800000 )
   TEST_FCLASS_S( 4, 1 << 2, 0x807fffff )
