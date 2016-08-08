@@ -599,13 +599,30 @@ class FreedomE300SimTarget(Target):
                             otherProcess = sim)
         time.sleep(20)
         return x
+
     
+class FreedomU500SimTarget(Target):
+    name = "freedom-u500-sim"
+    xlen = 64
+    timeout = 240
+    ram = 0x80000000
+    ram_size = 256 * 1024 * 1024
+    instruction_hardware_breakpoint_count = 2
+       
+    def server(self):
+        sim = testlib.VcsSim(simv=parsed.run, debug=True)
+        x = testlib.Openocd(cmd=parsed.cmd,
+                            config="targets/%s/openocd.cfg" % self.name,
+                            otherProcess = sim)
+        time.sleep(20)
+        return x
+
 targets = [
         Spike32Target,
         Spike64Target,
         FreedomE300Target,
-        FreedomE300SimTarget
-        ]
+        FreedomE300SimTarget,
+        FreedomU500SimTarget]
 
 def main():
     parser = argparse.ArgumentParser(
