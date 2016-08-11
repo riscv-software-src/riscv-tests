@@ -61,6 +61,9 @@ def ihex_parse(line):
         data += "%c" % int(line[8+2*i:10+2*i], 16)
     return record_type, address, data
 
+def readable_binary_string(s):
+    return "".join("%02x" % ord(c) for c in s)
+
 class DeleteServer(unittest.TestCase):
     def tearDown(self):
         del self.server
@@ -162,7 +165,8 @@ class SimpleMemoryTest(DeleteServer):
         for line in b:
             record_type, address, line_data = ihex_parse(line)
             if (record_type == 0):
-                self.assertEqual(line_data, data[address:address+len(line_data)])
+                self.assertEqual(readable_binary_string(line_data),
+                        readable_binary_string(data[address:address+len(line_data)]))
 
 class InstantHaltTest(DeleteServer):
     def setUp(self):
