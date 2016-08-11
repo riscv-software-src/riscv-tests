@@ -31,12 +31,29 @@ MSTATUS_VM = 0x1F000000
 MSTATUS32_SD = 0x80000000
 MSTATUS64_SD = 0x8000000000000000
 
-def gdb():
-    if parsed.gdb:
-        return testlib.Gdb(parsed.gdb)
-    else:
-        return testlib.Gdb()
+def gdb(
+        target=None,
+        port=None,
+        binary=None
+        ):
 
+    gdb = None
+    if parsed.gdb:
+        gdb = testlib.Gdb(parsed.gdb)
+    else:
+        gdb =  testlib.Gdb()
+
+    if (binary):
+        gdb.command("file %s" % self.binary)
+    if (target):
+        gdb.command("set arch riscv:rv%d" % target.xlen)
+        gdb.command("set remotetimeout %d" % target.timeout_sec)
+    if (port):
+        gdb.command("target extended-remote localhost:%d" % port)
+
+    return gdb
+
+        
 def ihex_line(address, record_type, data):
     assert len(data) < 128
     line = ":%02X%04X%02X" % (len(data), address, record_type)
@@ -69,13 +86,8 @@ class DeleteServer(unittest.TestCase):
 class SimpleRegisterTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = gdb()
-        # For now gdb has to be told what the architecture is when it's not
-        # given an ELF file.
-        self.gdb.command("set arch riscv:rv%d" % target.xlen)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
-       
+        self.gdb = gdb(target, self.server.port)
+
         # 0x13 is nop
         self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
         self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
@@ -111,10 +123,7 @@ class SimpleRegisterTest(DeleteServer):
 class SimpleMemoryTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("set arch riscv:rv%d" % target.xlen)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port)
 
     def access_test(self, size, data_type):
         self.assertEqual(self.gdb.p("sizeof(%s)" % data_type),
@@ -169,10 +178,7 @@ class SimpleMemoryTest(DeleteServer):
 class InstantHaltTest(DeleteServer):
     def setUp(self):
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("set arch riscv:rv%d" % target.xlen)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port)
          
     def test_instant_halt(self):
         self.assertEqual(target.reset_vector, self.gdb.p("$pc"))
@@ -201,10 +207,7 @@ class DebugTest(DeleteServer):
         self.binary = target.compile("programs/debug.c", "programs/checksum.c",
                 "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("file %s" % self.binary)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("_exit")
 
@@ -355,10 +358,7 @@ class StepTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/step.S")
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("file %s" % self.binary)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("main")
         self.gdb.c()
@@ -374,10 +374,7 @@ class RegsTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/regs.S")
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("file %s" % self.binary)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("main")
         self.gdb.b("handle_trap")
@@ -445,10 +442,7 @@ class DownloadTest(DeleteServer):
 
         self.binary = target.compile(download_c.name, "programs/checksum.c")
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("file %s" % self.binary)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port, self.binary)
         
     def test_download(self):
         output = self.gdb.load()
@@ -460,10 +454,7 @@ class MprvTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/mprv.S")
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("file %s" % self.binary)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
 
     def test_mprv(self):
@@ -478,10 +469,7 @@ class PrivTest(DeleteServer):
     def setUp(self):
         self.binary = target.compile("programs/priv.S")
         self.server = target.server()
-        self.gdb = gdb()
-        self.gdb.command("file %s" % self.binary)
-        self.gdb.command("set remotetimeout %d" % target.timeout)
-        self.gdb.command("target extended-remote localhost:%d" % self.server.port)
+        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
 
         misa = self.gdb.p("$misa")
@@ -529,7 +517,7 @@ class PrivTest(DeleteServer):
 
 class Target(object):
     directory = None
-    timeout = 2
+    timeout_sec = 2
     
     def server(self):
         raise NotImplementedError
@@ -587,40 +575,51 @@ class FreedomE300Target(Target):
 class FreedomE300SimTarget(Target):
     name = "freedom-e300-sim"
     xlen = 32
-    timeout = 240
+    timeout_sec = 240
     ram = 0x80000000
     ram_size = 256 * 1024 * 1024
     instruction_hardware_breakpoint_count = 2
        
     def server(self):
         sim = testlib.VcsSim(simv=parsed.run, debug=False)
-        x = testlib.Openocd(cmd=parsed.cmd,
+        openocd = testlib.Openocd(cmd=parsed.cmd,
                             config="targets/%s/openocd.cfg" % self.name,
                             otherProcess = sim)
         time.sleep(20)
-        return x
+        return openocd
 
+class FreedomU500Target(Target):
+    name = "freedom-u500"
+    xlen = 64
+    ram = 0x80000000
+    ram_size = 16 * 1024
+    instruction_hardware_breakpoint_count = 2
+
+    def server(self):
+        return testlib.Openocd(cmd=parsed.cmd,
+                config="targets/%s/openocd.cfg" % self.name)
     
 class FreedomU500SimTarget(Target):
     name = "freedom-u500-sim"
     xlen = 64
-    timeout = 240
+    timeout_sec = 240
     ram = 0x80000000
     ram_size = 256 * 1024 * 1024
     instruction_hardware_breakpoint_count = 2
        
     def server(self):
         sim = testlib.VcsSim(simv=parsed.run, debug=False)
-        x = testlib.Openocd(cmd=parsed.cmd,
+        openocd = testlib.Openocd(cmd=parsed.cmd,
                             config="targets/%s/openocd.cfg" % self.name,
                             otherProcess = sim)
         time.sleep(20)
-        return x
+        return openocd
 
 targets = [
         Spike32Target,
         Spike64Target,
         FreedomE300Target,
+        FreedomU500Target,
         FreedomE300SimTarget,
         FreedomU500SimTarget]
 
@@ -655,7 +654,7 @@ def main():
 
 # TROUBLESHOOTING TIPS
 # If a particular test fails, run just that one test, eg.:
-# ./tests/gdbserver.py MprvTest.test_mprv
+# ./gdbserver.py MprvTest.test_mprv
 # Then inspect gdb.log and spike.log to see what happened in more detail.
 
 if __name__ == '__main__':
