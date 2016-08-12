@@ -19,10 +19,16 @@ Targets
 
 `./gdbserver.py --spike32 --cmd $RISCV/bin/spike`
 
-32-bit SiFive Core on Arty FPGA board
+32-bit SiFive Core on Supported FPGA Boards &  Hardware
 -------------------------------------
 
 `./gdbserver.py --freedom-e300`
+
+32-bit rocket-chip core in Simulation
+-------------------------------------
+
+`./gdbserver.py --freedom-e300-sim`
+
 
 Debug Tips
 ==========

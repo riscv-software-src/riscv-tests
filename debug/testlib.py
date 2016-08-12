@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import testlib
 import unittest
+import time
 
 # Note that gdb comes with its own testsuite. I was unable to figure out how to
 # run that testsuite against the spike simulator.
@@ -76,8 +77,46 @@ class Spike(object):
     def wait(self, *args, **kwargs):
         return self.process.wait(*args, **kwargs)
 
+class VcsSim(object):
+    def __init__(self, simv=None, debug=False):
+        if simv:
+            cmd = shlex.split(simv)
+        else:
+            cmd =  ["simv"]
+        cmd += ["+jtag_vpi_enable"]
+        if debug:
+            cmd[0] = cmd[0] + "-debug"
+            cmd += ["+vcdplusfile=output/gdbserver.vpd"]
+        logfile = open("simv.log", "w")
+        logfile.write("+ %s\n" % " ".join(cmd))
+        logfile.flush()
+        listenfile = open("simv.log", "r")
+        listenfile.seek(0,2)
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
+                                        stderr=logfile)
+        done = False
+        while (not done):
+            line = listenfile.readline()
+            if (not line):
+                time.sleep(1)
+            if ("Listening on port 5555" in line):
+                done = True
+            
+    def __del__(self):
+        try:
+            self.process.kill()
+            self.process.wait()
+        except OSError:
+            pass
+
+        
 class Openocd(object):
-    def __init__(self, cmd=None, config=None, debug=False):
+    def __init__(self, cmd=None, config=None, debug=False, otherProcess=None):
+
+        # keep handles to other processes -- don't let them be
+        # garbage collected yet.
+
+        self.otherProcess = otherProcess
         if cmd:
             cmd = shlex.split(cmd)
         else:
