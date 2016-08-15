@@ -224,9 +224,8 @@ class DebugTest(DeleteServer):
     def test_function_call(self):
         self.gdb.b("main:start")
         self.gdb.c()
-        text = "Howdy, Earth!"
-        gdb_length = self.gdb.p('strlen("%s")' % text)
-        self.assertEqual(gdb_length, len(text))
+        self.assertEqual(self.gdb.p('fib(6)'), 8)
+        self.assertEqual(self.gdb.p('fib(7)'), 13)
         self.exit()
 
     def test_change_string(self):

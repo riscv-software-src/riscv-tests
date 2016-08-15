@@ -5,6 +5,24 @@
 
 unsigned int crc32a(uint8_t *message, unsigned int size);
 
+unsigned int fib(unsigned int n)
+{
+    if (n == 0) {
+        return 0;
+    }
+
+    unsigned int a = 0;
+    unsigned int b = 1;
+
+    for (unsigned int i = 1; i < n; i++) {
+        unsigned int next = a + b;
+        a = b;
+        b = next;
+    }
+
+    return b;
+}
+
 void rot13(char *buf)
 {
     while (*buf) {
