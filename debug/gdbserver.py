@@ -41,14 +41,14 @@ def gdb(
     if parsed.gdb:
         gdb = testlib.Gdb(parsed.gdb)
     else:
-        gdb =  testlib.Gdb()
+        gdb = testlib.Gdb()
 
-    if (binary):
-        gdb.command("file %s" % self.binary)
-    if (target):
+    if binary:
+        gdb.command("file %s" % binary)
+    if target:
         gdb.command("set arch riscv:rv%d" % target.xlen)
         gdb.command("set remotetimeout %d" % target.timeout_sec)
-    if (port):
+    if port:
         gdb.command("target extended-remote localhost:%d" % port)
 
     return gdb
