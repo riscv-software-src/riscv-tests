@@ -389,8 +389,8 @@ class RegsTest(DeleteServer):
 
         self.gdb.p("$pc=write_regs")
         for i, r in enumerate(regs):
-            self.gdb.command("p $%s=%d" % (r, (0xdeadbeef<<i)+17))
-        self.gdb.command("p $x1=data")
+            self.gdb.p("$%s=%d" % (r, (0xdeadbeef<<i)+17))
+        self.gdb.p("$x1=data")
         self.gdb.command("b all_done")
         output = self.gdb.c()
         self.assertIn("Breakpoint ", output)
@@ -527,9 +527,10 @@ class Target(object):
         raise NotImplementedError
 
     def compile(self, *sources):
-        binary_name = "%s_%s" % (
+        binary_name = "%s_%s-%d" % (
                 self.name,
-                os.path.basename(os.path.splitext(sources[0])[0]))
+                os.path.basename(os.path.splitext(sources[0])[0]),
+                self.xlen)
         if parsed.isolate:
             self.temporary_binary = tempfile.NamedTemporaryFile(
                     prefix=binary_name + "_")
@@ -644,16 +645,28 @@ def main():
             help="The command to use to start the debug server.")
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
+
+    xlen_group = parser.add_mutually_exclusive_group()
+    xlen_group.add_argument("--32", action="store_const", const=32, dest="xlen",
+            help="Force the target to be 32-bit.")
+    xlen_group.add_argument("--64", action="store_const", const=64, dest="xlen",
+            help="Force the target to be 64-bit.")
+
     parser.add_argument("--isolate", action="store_true",
             help="Try to run in such a way that multiple instances can run at "
             "the same time. This may make it harder to debug a failure if it "
             "does occur.")
+
     parser.add_argument("unittest", nargs="*")
     global parsed
     parsed = parser.parse_args()
 
     global target
     target = parsed.target()
+
+    if parsed.xlen:
+        target.xlen = parsed.xlen
+
     unittest.main(argv=[sys.argv[0]] + parsed.unittest)
 
 # TROUBLESHOOTING TIPS
