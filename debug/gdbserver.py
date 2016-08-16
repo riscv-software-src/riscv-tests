@@ -237,6 +237,8 @@ class DebugTest(DeleteServer):
 
     def test_turbostep(self):
         """Single step a bunch of times."""
+        self.gdb.b("main:start")
+        self.gdb.c()
         self.gdb.command("p i=0");
         last_pc = None
         advances = 0
