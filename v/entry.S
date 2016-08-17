@@ -32,7 +32,6 @@ handle_reset:
   slli t0, t0, 12
   add sp, sp, t0
   csrw mscratch, sp
-  li a1, 1337
   la a0, userstart
   j vm_boot
 

@@ -175,7 +175,7 @@ void handle_trap(trapframe_t* tf)
 static void coherence_torture()
 {
   // cause coherence misses without affecting program semantics
-  uint64_t random = ENTROPY;
+  unsigned int random = ENTROPY;
   while (1) {
     uintptr_t paddr = DRAM_BASE + ((random % (2 * (MAX_TEST_PAGES + 1) * PGSIZE)) & -4);
 #ifdef __riscv_atomic
@@ -188,8 +188,9 @@ static void coherence_torture()
   }
 }
 
-void vm_boot(long test_addr, long seed)
+void vm_boot(uintptr_t test_addr)
 {
+  unsigned int random = ENTROPY;
   if (read_csr(mhartid) > 0)
     coherence_torture();
 
@@ -221,14 +222,14 @@ void vm_boot(long test_addr, long seed)
   write_csr(mstatus, MSTATUS_UIE | MSTATUS_FS | MSTATUS_XS |
                      (vm_choice * (MSTATUS_VM & ~(MSTATUS_VM<<1))));
 
-  seed = 1 + (seed % MAX_TEST_PAGES);
+  random = 1 + (random % MAX_TEST_PAGES);
   freelist_head = pa2kva((void*)&freelist_nodes[0]);
   freelist_tail = pa2kva(&freelist_nodes[MAX_TEST_PAGES-1]);
   for (long i = 0; i < MAX_TEST_PAGES; i++)
   {
-    freelist_nodes[i].addr = DRAM_BASE + (MAX_TEST_PAGES + seed)*PGSIZE;
+    freelist_nodes[i].addr = DRAM_BASE + (MAX_TEST_PAGES + random)*PGSIZE;
     freelist_nodes[i].next = pa2kva(&freelist_nodes[i+1]);
-    seed = LFSR_NEXT(seed);
+    random = LFSR_NEXT(random);
 
     kernel_l3pt[i] = ((i + DRAM_BASE/RISCV_PGSIZE) << PTE_PPN_SHIFT) | PTE_V | PTE_R | PTE_W | PTE_X;
   }
