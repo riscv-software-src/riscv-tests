@@ -40,9 +40,12 @@ TEST_CASE( 3, a4, 1, \
   sc.w a4, a1, (a0); \
 )
 
-# have each core add its coreid to foo 1000 times
+#define LOG_ITERATIONS 10
+
+# have each core add its coreid+1 to foo 1024 times
 la a0, foo
-li a1, 1000
+li a1, 1<<LOG_ITERATIONS
+addi a2, a2, 1
 1: lr.w a4, (a0)
 add a4, a4, a2
 sc.w a4, a4, (a0)
@@ -58,15 +61,13 @@ amoadd.w x0, a1, (a0)
 blt a1, a3, 1b
 fence
 
-# expected result is 1000*ncores*(ncores-1)/2
-TEST_CASE( 4, a2, 0, \
-  la a0, foo; \
-  li a1, 500; \
-  mul a1, a1, a3; \
-  add a2, a3, -1; \
-  mul a1, a1, a2; \
-  lw a2, (a0); \
-  sub a2, a2, a1; \
+# expected result is 512*ncores*(ncores+1)
+TEST_CASE( 4, a0, 0, \
+  lw a0, foo; \
+  slli a1, a3, LOG_ITERATIONS-1; \
+1:sub a0, a0, a1; \
+  addi a3, a3, -1; \
+  bgez a3, 1b
 )
 
 TEST_PASSFAIL
