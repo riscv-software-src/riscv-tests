@@ -3,12 +3,13 @@
 import os
 import sys
 import argparse
-import testlib
 import unittest
 import tempfile
 import time
 import random
 import binascii
+
+import .testlib
 
 
 MSTATUS_UIE = 0x00000001
