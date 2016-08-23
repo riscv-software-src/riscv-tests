@@ -52,6 +52,8 @@ def gdb(
     if port:
         gdb.command("target extended-remote localhost:%d" % port)
 
+    gdb.p("$priv=3")
+
     return gdb
 
         
@@ -316,6 +318,27 @@ class DebugTest(DeleteServer):
         # tests may fail.
         self.gdb.command("D")
 
+    def test_address_trigger(self):
+        self.gdb.b("main:start")
+        self.gdb.c()
+        self.gdb.command("watch fox[13]");
+
+        output = self.gdb.c()
+        self.assertNotIn("Could not insert", output)
+        self.assertIn("rot13", output)
+        output = self.gdb.command("up")
+        self.assertIn("in main", output)
+        self.assertEqual(self.gdb.p_string("fox"),
+                "Gur dhvpx oebjn fox jumps of the lazy dog.")
+
+        output = self.gdb.c()
+        self.assertNotIn("Could not insert", output)
+        self.assertIn("rot13", output)
+        output = self.gdb.command("up")
+        self.assertIn("in main", output)
+        self.assertEqual(self.gdb.p_string("fox"),
+                "The quick browa sbk whzcf bs gur ynml qbt.")
+
     def test_registers(self):
         # Get to a point in the code where some registers have actually been
         # used.
@@ -551,7 +574,7 @@ class SpikeTarget(Target):
     directory = "spike"
     ram = 0x80010000
     ram_size = 5 * 1024 * 1024
-    instruction_hardware_breakpoint_count = 0
+    instruction_hardware_breakpoint_count = 4
     reset_vector = 0x1000
 
 class Spike64Target(SpikeTarget):

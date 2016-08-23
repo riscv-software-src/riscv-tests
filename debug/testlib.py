@@ -186,6 +186,11 @@ class Gdb(object):
         value = int(output.split('=')[-1].strip(), 0)
         return value
 
+    def p_string(self, obj):
+        output = self.command("p %s" % obj)
+        value = shlex.split(output.split('=')[-1].strip())[1]
+        return value
+
     def stepi(self):
         output = self.command("stepi")
         assert "Cannot" not in output
