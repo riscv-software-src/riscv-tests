@@ -1,17 +1,17 @@
 import os.path
-import pexpect
 import shlex
 import subprocess
 import tempfile
-import testlib
 import unittest
 import time
+
+import pexpect
 
 # Note that gdb comes with its own testsuite. I was unable to figure out how to
 # run that testsuite against the spike simulator.
 
 def find_file(path):
-    for directory in (os.getcwd(), os.path.dirname(testlib.__file__)):
+    for directory in (os.getcwd(), os.path.dirname(__file__)):
         fullpath = os.path.join(directory, path)
         if os.path.exists(fullpath):
             return fullpath
