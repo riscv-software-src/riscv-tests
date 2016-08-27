@@ -42,12 +42,6 @@ RVTEST_CODE_BEGIN
   beqz a0, finish # if no user mode, skip the rest of these checks
 #endif
 
-  # Make sure writing the cycle counter causes an exception.
-  # Don't run in supervisor, as we don't delegate illegal instruction traps.
-#ifdef __MACHINE_MODE
-  TEST_CASE(10, a0, 255, li a0, 255; csrrw a0, cycle, x0);
-#endif
-
   # jump to user land
   li t0, SSTATUS_SPP
   csrc sstatus, t0
@@ -55,6 +49,12 @@ RVTEST_CODE_BEGIN
   csrw sepc, t0
   sret
   1:
+
+  # Make sure writing the cycle counter causes an exception.
+  # Don't run in supervisor, as we don't delegate illegal instruction traps.
+#ifdef __MACHINE_MODE
+  TEST_CASE(10, a0, 255, li a0, 255; csrrw a0, cycle, x0);
+#endif
 
   # Make sure reading status in user mode causes an exception.
   # Don't run in supervisor, as we don't delegate illegal instruction traps.

@@ -16,24 +16,23 @@ RVTEST_CODE_BEGIN
   # Set up breakpoint to trap on M-mode fetches.
   li TESTNUM, 2
 
-  # Skip tdrselect if hard-wired.
-  li a0, 1<<(_RISCV_SZLONG-1)
-  csrw tdrselect, a0
-  csrr a1, tdrselect
-  bne a0, a1, pass
+  # Skip tselect if hard-wired.
+  csrw tselect, x0
+  csrr a1, tselect
+  bne x0, a1, pass
 
   # Make sure there's a breakpoint there.
-  csrr a0, tdrdata1
+  csrr a0, tdata1
   srli a0, a0, _RISCV_SZLONG-4
-  li a1, 1
+  li a1, 2
   bne a0, a1, pass
 
   la a2, 1f
-  csrw tdrdata2, a2
-  li a0, BPCONTROL_M | BPCONTROL_X
-  csrw tdrdata1, a0
+  csrw tdata2, a2
+  li a0, MCONTROL_M | MCONTROL_EXECUTE
+  csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
-  csrr a1, tdrdata1
+  csrr a1, tdata1
   andi a1, a1, 0x7ff
   bne a0, a1, 2f
   .align 2
@@ -48,14 +47,14 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode reads.
   li TESTNUM, 4
-  li a0, BPCONTROL_M | BPCONTROL_R
-  csrw tdrdata1, a0
+  li a0, MCONTROL_M | MCONTROL_LOAD
+  csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
-  csrr a1, tdrdata1
+  csrr a1, tdata1
   andi a1, a1, 0x7ff
   bne a0, a1, 2f
   la a2, data1
-  csrw tdrdata2, a2
+  csrw tdata2, a2
 
   # Trap handler should skip this instruction.
   lw a2, (a2)
@@ -68,10 +67,10 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode stores.
   li TESTNUM, 6
-  li a0, BPCONTROL_M | BPCONTROL_W
-  csrw tdrdata1, a0
+  li a0, MCONTROL_M | MCONTROL_STORE
+  csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
-  csrr a1, tdrdata1
+  csrr a1, tdata1
   andi a1, a1, 0x7ff
   bne a0, a1, 2f
 
@@ -84,21 +83,21 @@ RVTEST_CODE_BEGIN
   bnez a2, fail
 
   # Try to set up a second breakpoint.
-  li a0, (1<<(_RISCV_SZLONG-1)) + 1
-  csrw tdrselect, a0
-  csrr a1, tdrselect
+  li a0, 1
+  csrw tselect, a0
+  csrr a1, tselect
   bne a0, a1, pass
 
   # Make sure there's a breakpoint there.
-  csrr a0, tdrdata1
+  csrr a0, tdata1
   srli a0, a0, _RISCV_SZLONG-4
-  li a1, 1
+  li a1, 2
   bne a0, a1, pass
 
-  li a0, BPCONTROL_M | BPCONTROL_R
-  csrw tdrdata1, a0
+  li a0, MCONTROL_M | MCONTROL_LOAD
+  csrw tdata1, a0
   la a3, data2
-  csrw tdrdata2, a3
+  csrw tdata2, a3
 
   # Make sure the second breakpoint triggers.
   li TESTNUM, 8
