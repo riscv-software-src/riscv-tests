@@ -217,10 +217,11 @@ void vm_boot(uintptr_t test_addr)
     (1 << CAUSE_FAULT_FETCH) |
     (1 << CAUSE_FAULT_LOAD) |
     (1 << CAUSE_FAULT_STORE));
-  // on ERET, user mode w/interrupts on; FPU on; accelerator on; VM on
+  // on ERET, user mode; FPU on; accelerator on; VM on
   int vm_choice = sizeof(long) == 8 ? VM_SV39 : VM_SV32;
-  write_csr(mstatus, MSTATUS_UIE | MSTATUS_FS | MSTATUS_XS |
+  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS |
                      (vm_choice * (MSTATUS_VM & ~(MSTATUS_VM<<1))));
+  write_csr(mie, 0);
 
   random = 1 + (random % MAX_TEST_PAGES);
   freelist_head = pa2kva((void*)&freelist_nodes[0]);
