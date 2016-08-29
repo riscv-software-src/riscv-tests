@@ -14,7 +14,7 @@
 extern volatile uint64_t tohost;
 extern volatile uint64_t fromhost;
 
-static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
+static uintptr_t handle_frontend_syscall(uintptr_t which, uint64_t arg0, uint64_t arg1, uint64_t arg2)
 {
   volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
   magic_mem[0] = which;
@@ -33,7 +33,7 @@ static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 }
 
 #define NUM_COUNTERS 2
-static long counters[NUM_COUNTERS];
+static uintptr_t counters[NUM_COUNTERS];
 static char* counter_names[NUM_COUNTERS];
 
 static int handle_stats(int enable)
@@ -41,7 +41,7 @@ static int handle_stats(int enable)
   int i = 0;
 #define READ_CTR(name) do { \
     while (i >= NUM_COUNTERS) ; \
-    long csr = read_csr(name); \
+    uintptr_t csr = read_csr(name); \
     if (!enable) { csr -= counters[i]; counter_names[i] = #name; } \
     counters[i++] = csr; \
   } while (0)
@@ -53,13 +53,13 @@ static int handle_stats(int enable)
   return 0;
 }
 
-void __attribute__((noreturn)) tohost_exit(long code)
+void __attribute__((noreturn)) tohost_exit(uintptr_t code)
 {
   tohost = (code << 1) | 1;
   while (1);
 }
 
-long handle_trap(long cause, long epc, long regs[32])
+uintptr_t handle_trap(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
 {
   if (cause != CAUSE_MACHINE_ECALL)
     tohost_exit(1337);
@@ -73,12 +73,12 @@ long handle_trap(long cause, long epc, long regs[32])
   return epc + ((*(unsigned short*)epc & 3) == 3 ? 4 : 2);
 }
 
-static long syscall(long num, long arg0, long arg1, long arg2)
+static uintptr_t syscall(uintptr_t num, uintptr_t arg0, uintptr_t arg1, uintptr_t arg2)
 {
-  register long a7 asm("a7") = num;
-  register long a0 asm("a0") = arg0;
-  register long a1 asm("a1") = arg1;
-  register long a2 asm("a2") = arg2;
+  register uintptr_t a7 asm("a7") = num;
+  register uintptr_t a0 asm("a0") = arg0;
+  register uintptr_t a1 asm("a1") = arg1;
+  register uintptr_t a2 asm("a2") = arg2;
   asm volatile ("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
   return a0;
 }
@@ -96,7 +96,7 @@ void setStats(int enable)
 
 void printstr(const char* s)
 {
-  syscall(SYS_write, 1, (long)s, strlen(s));
+  syscall(SYS_write, 1, (uintptr_t)s, strlen(s));
 }
 
 void __attribute__((weak)) thread_entry(int cid, int nc)
@@ -153,7 +153,7 @@ int putchar(int ch)
 
   if (ch == '\n' || buflen == sizeof(buf))
   {
-    syscall(SYS_write, 1, (long)buf, buflen);
+    syscall(SYS_write, 1, (uintptr_t)buf, buflen);
     buflen = 0;
   }
 
