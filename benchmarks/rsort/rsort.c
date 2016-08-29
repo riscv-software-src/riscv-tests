@@ -26,6 +26,12 @@
 #define LOG_BASE 8
 #define BASE (1 << LOG_BASE)
 
+#if 0
+# define fetch_add(ptr, inc) __sync_fetch_and_add(ptr, inc)
+#else
+# define fetch_add(ptr, inc) ((*(ptr) += (inc)) - (inc))
+#endif
+
 void sort(size_t n, type* arrIn, type* scratchIn)
 {
   size_t log_exp = 0;
@@ -46,20 +52,20 @@ void sort(size_t n, type* arrIn, type* scratchIn)
       type a1 = p[1];
       type a2 = p[2];
       type a3 = p[3];
-      __sync_fetch_and_add(&bucket[(a0 >> log_exp) % BASE], 1);
-      __sync_fetch_and_add(&bucket[(a1 >> log_exp) % BASE], 1);
-      __sync_fetch_and_add(&bucket[(a2 >> log_exp) % BASE], 1);
-      __sync_fetch_and_add(&bucket[(a3 >> log_exp) % BASE], 1);
+      fetch_add(&bucket[(a0 >> log_exp) % BASE], 1);
+      fetch_add(&bucket[(a1 >> log_exp) % BASE], 1);
+      fetch_add(&bucket[(a2 >> log_exp) % BASE], 1);
+      fetch_add(&bucket[(a3 >> log_exp) % BASE], 1);
     }
     for ( ; p < &arr[n]; p++)
       bucket[(*p >> log_exp) % BASE]++;
 
     size_t prev = bucket[0];
-    prev += __sync_fetch_and_add(&bucket[1], prev);
+    prev += fetch_add(&bucket[1], prev);
     for (b = &bucket[2]; b < bucket + BASE; b += 2)
     {
-      prev += __sync_fetch_and_add(&b[0], prev);
-      prev += __sync_fetch_and_add(&b[1], prev);
+      prev += fetch_add(&b[0], prev);
+      prev += fetch_add(&b[1], prev);
     }
     static_assert(BASE % 2 == 0);
 
@@ -73,10 +79,10 @@ void sort(size_t n, type* arrIn, type* scratchIn)
       size_t* pb1 = &bucket[(a1 >> log_exp) % BASE];
       size_t* pb2 = &bucket[(a2 >> log_exp) % BASE];
       size_t* pb3 = &bucket[(a3 >> log_exp) % BASE];
-      type* s0 = scratch + __sync_fetch_and_add(pb0, -1);
-      type* s1 = scratch + __sync_fetch_and_add(pb1, -1);
-      type* s2 = scratch + __sync_fetch_and_add(pb2, -1);
-      type* s3 = scratch + __sync_fetch_and_add(pb3, -1);
+      type* s0 = scratch + fetch_add(pb0, -1);
+      type* s1 = scratch + fetch_add(pb1, -1);
+      type* s2 = scratch + fetch_add(pb2, -1);
+      type* s3 = scratch + fetch_add(pb3, -1);
       s0[-1] = a0;
       s1[-1] = a1;
       s2[-1] = a2;
