@@ -53,8 +53,8 @@ RVTEST_CODE_BEGIN
   TEST_IMM_SRC1_BYPASS( 22, 1, srai, 0xfffffffffffe0000, 0xffffffff80000000, 14 );
   TEST_IMM_SRC1_BYPASS( 23, 2, srai, 0xffffffffffffffff, 0xffffffff80000001, 31 );
 
-  TEST_IMM_ZEROSRC1( 24, srai, 0, 32 );
-  TEST_IMM_ZERODEST( 25, srai, 33, 50 );
+  TEST_IMM_ZEROSRC1( 24, srai, 0, 4 );
+  TEST_IMM_ZERODEST( 25, srai, 33, 10 );
 
   TEST_PASSFAIL
 

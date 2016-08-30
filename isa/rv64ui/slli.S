@@ -35,6 +35,12 @@ RVTEST_CODE_BEGIN
   TEST_IMM_OP( 15, slli, 0x0000084848484000, 0x0000000021212121, 14 );
   TEST_IMM_OP( 16, slli, 0x1090909080000000, 0x0000000021212121, 31 );
 
+#ifdef __riscv64
+  TEST_RR_OP( 50, sll, 0x8000000000000000, 0x0000000000000001, 63 );
+  TEST_RR_OP( 51, sll, 0xffffff8000000000, 0xffffffffffffffff, 39 );
+  TEST_RR_OP( 52, sll, 0x0909080000000000, 0x0000000021212121, 43 );
+#endif
+
   #-------------------------------------------------------------
   # Source/Destination tests
   #-------------------------------------------------------------
@@ -53,8 +59,8 @@ RVTEST_CODE_BEGIN
   TEST_IMM_SRC1_BYPASS( 22, 1, slli, 0x0000000000004000, 0x0000000000000001, 14 );
   TEST_IMM_SRC1_BYPASS( 23, 2, slli, 0x0000000080000000, 0x0000000000000001, 31 );
 
-  TEST_IMM_ZEROSRC1( 24, slli, 0, 32 );
-  TEST_IMM_ZERODEST( 25, slli, 33, 50 );
+  TEST_IMM_ZEROSRC1( 24, slli, 0, 31 );
+  TEST_IMM_ZERODEST( 25, slli, 33, 20 );
 
   TEST_PASSFAIL
 
