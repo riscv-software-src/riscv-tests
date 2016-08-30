@@ -15,7 +15,7 @@ rv32ui_sc_tests = \
 	or ori \
 	sb sh sw \
 	sll slli \
-	slt slti \
+	slt slti sltiu sltu \
 	sra srai \
 	srl srli \
 	sub \
