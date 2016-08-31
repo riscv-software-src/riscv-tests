@@ -41,7 +41,7 @@ RVTEST_CODE_BEGIN
   # Source/Destination tests
   #-------------------------------------------------------------
 
-  TEST_IMM_SRC1_EQ_DEST( 17, sltiu, 1, 11, 13 );
+  TEST_IMM_SRC1_EQ_DEST( 17, slti, 1, 11, 13 );
 
   #-------------------------------------------------------------
   # Bypassing tests
