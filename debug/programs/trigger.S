@@ -3,11 +3,11 @@
 #undef MCONTROL_TYPE
 #undef MCONTROL_DMODE
 #ifdef __riscv64
-# define MCONTROL_TYPE    (0xfU<<((64)-4))
-# define MCONTROL_DMODE   (1U<<((64)-5))
+# define MCONTROL_TYPE    (0xf<<(64-4))
+# define MCONTROL_DMODE   (1<<(64-5))
 #else
-# define MCONTROL_TYPE    (0xfU<<((32)-4))
-# define MCONTROL_DMODE   (1U<<((32)-5))
+# define MCONTROL_TYPE    (0xf<<(32-4))
+# define MCONTROL_DMODE   (1<<(32-5))
 #endif
 
         .global         main
@@ -25,10 +25,10 @@ read_loop:
         blt     t0, t2, read_loop
 
         la      a0, data
-        li      t0, 0
+        li      t0, 1
 write_loop:
-        addi    t0, t0, 1
         sw      t0, 0(a0)
+        addi    t0, t0, 1
         addi    a0, a0, 4
         blt     t0, t2, write_loop
 

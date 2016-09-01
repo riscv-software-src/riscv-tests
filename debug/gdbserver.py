@@ -393,6 +393,14 @@ class TriggerTest(DeleteServer):
         self.assertIn("Breakpoint", output)
         self.assertIn("_exit", output)
 
+    def test_execute_immediate(self):
+        """Test an execute breakpoint on the first instruction executed out of
+        debug mode."""
+        main = self.gdb.p("$pc")
+        self.gdb.command("hbreak *0x%x" % (main + 4))
+        self.gdb.c()
+        self.assertEqual(self.gdb.p("$pc"), main+4)
+
     def test_load_address(self):
         self.gdb.command("rwatch *((&data)+1)");
         output = self.gdb.c()
@@ -400,6 +408,15 @@ class TriggerTest(DeleteServer):
         self.assertEqual(self.gdb.p("$a0"),
                 self.gdb.p("(&data)+1"))
         self.exit()
+
+    def test_load_address_immediate(self):
+        """Test a load address breakpoint on the first instruction executed out
+        of debug mode."""
+        write_loop = self.gdb.p("&write_loop")
+        self.gdb.command("rwatch data");
+        self.gdb.c()
+        self.assertEqual(self.gdb.p("$pc"), write_loop)
+        self.assertEqual(self.gdb.p("$a0"), self.gdb.p("(&data)+1"))
 
     def test_store_address(self):
         self.gdb.command("watch *((&data)+3)");
