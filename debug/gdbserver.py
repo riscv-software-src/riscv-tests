@@ -318,27 +318,6 @@ class DebugTest(DeleteServer):
         # tests may fail.
         self.gdb.command("D")
 
-    def test_address_trigger(self):
-        self.gdb.b("main:start")
-        self.gdb.c()
-        self.gdb.command("watch fox[13]");
-
-        output = self.gdb.c()
-        self.assertNotIn("Could not insert", output)
-        self.assertIn("rot13", output)
-        output = self.gdb.command("up")
-        self.assertIn("in main", output)
-        self.assertEqual(self.gdb.p_string("fox"),
-                "Gur dhvpx oebjn fox jumps of the lazy dog.")
-
-        output = self.gdb.c()
-        self.assertNotIn("Could not insert", output)
-        self.assertIn("rot13", output)
-        output = self.gdb.command("up")
-        self.assertIn("in main", output)
-        self.assertEqual(self.gdb.p_string("fox"),
-                "The quick browa sbk whzcf bs gur ynml qbt.")
-
     def test_registers(self):
         # Get to a point in the code where some registers have actually been
         # used.
@@ -398,6 +377,45 @@ class StepTest(DeleteServer):
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
             self.assertEqual("%x" % pc, "%x" % (expected + main))
+
+class TriggerTest(DeleteServer):
+    def setUp(self):
+        self.binary = target.compile("programs/trigger.S")
+        self.server = target.server()
+        self.gdb = gdb(target, self.server.port, self.binary)
+        self.gdb.load()
+        self.gdb.b("_exit")
+        self.gdb.b("main")
+        self.gdb.c()
+
+    def exit(self):
+        output = self.gdb.c()
+        self.assertIn("Breakpoint", output)
+        self.assertIn("_exit", output)
+
+    def test_load_address(self):
+        self.gdb.command("rwatch *((&data)+1)");
+        output = self.gdb.c()
+        self.assertIn("read_loop", output)
+        self.assertEqual(self.gdb.p("$a0"),
+                self.gdb.p("(&data)+1"))
+        self.exit()
+
+    def test_store_address(self):
+        self.gdb.command("watch *((&data)+3)");
+        output = self.gdb.c()
+        self.assertIn("write_loop", output)
+        self.assertEqual(self.gdb.p("$a0"),
+                self.gdb.p("(&data)+3"))
+        self.exit()
+
+    def test_dmode(self):
+        self.gdb.command("hbreak handle_trap")
+        self.gdb.p("$pc=write_valid")
+        output = self.gdb.c()
+        self.assertIn("handle_trap", output)
+        self.assertIn("mcause=2", output)
+        self.assertIn("mepc=%d" % self.gdb.p("&write_invalid_illegal"), output)
 
 class RegsTest(DeleteServer):
     def setUp(self):
