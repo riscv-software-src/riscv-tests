@@ -9,7 +9,7 @@ import time
 import random
 import binascii
 
-import .testlib
+import testlib
 
 
 MSTATUS_UIE = 0x00000001
