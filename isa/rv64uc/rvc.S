@@ -25,6 +25,10 @@ RVTEST_CODE_BEGIN
   li a2, 1
   RVC_TEST_CASE (2, a1, 2, \
         j 1f; \
+        .align 3; \
+        data: \
+          .dword 0xfedcba9876543210; \
+          .dword 0xfedcba9876543210; \
         .align 12; \
         .skip 4094; \
       1: addi a1, a2, 1)
@@ -146,9 +150,5 @@ RVTEST_CODE_END
 
   .data
 RVTEST_DATA_BEGIN
-
-data:
-  .dword 0xfedcba9876543210
-  .dword 0xfedcba9876543210
 
 RVTEST_DATA_END
