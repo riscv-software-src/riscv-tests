@@ -58,6 +58,7 @@ class Spike(object):
         if with_gdb:
             self.port = unused_port()
             cmd += ['--gdb-port', str(self.port)]
+        cmd.append("-m32")
         cmd.append('pk')
         if binary:
             cmd.append(binary)
