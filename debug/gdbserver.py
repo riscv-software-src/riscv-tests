@@ -393,7 +393,7 @@ class TriggerTest(DeleteServer):
         self.assertIn("Breakpoint", output)
         self.assertIn("_exit", output)
 
-    def test_execute_immediate(self):
+    def test_execute_instant(self):
         """Test an execute breakpoint on the first instruction executed out of
         debug mode."""
         main = self.gdb.p("$pc")
@@ -409,14 +409,17 @@ class TriggerTest(DeleteServer):
                 self.gdb.p("(&data)+1"))
         self.exit()
 
-    def test_load_address_immediate(self):
+    def test_load_address_instant(self):
         """Test a load address breakpoint on the first instruction executed out
         of debug mode."""
-        write_loop = self.gdb.p("&write_loop")
+        self.gdb.command("b just_before_read_loop")
+        self.gdb.c()
+        read_loop = self.gdb.p("&read_loop")
         self.gdb.command("rwatch data");
         self.gdb.c()
-        self.assertEqual(self.gdb.p("$pc"), write_loop)
-        self.assertEqual(self.gdb.p("$a0"), self.gdb.p("(&data)+1"))
+        # Accept hitting the breakpoint before or after the load instruction.
+        self.assertIn(self.gdb.p("$pc"), [read_loop, read_loop + 4])
+        self.assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
     def test_store_address(self):
         self.gdb.command("watch *((&data)+3)");
@@ -425,6 +428,18 @@ class TriggerTest(DeleteServer):
         self.assertEqual(self.gdb.p("$a0"),
                 self.gdb.p("(&data)+3"))
         self.exit()
+
+    def test_store_address_instant(self):
+        """Test a store address breakpoint on the first instruction executed out
+        of debug mode."""
+        self.gdb.command("b just_before_write_loop")
+        self.gdb.c()
+        write_loop = self.gdb.p("&write_loop")
+        self.gdb.command("watch data");
+        self.gdb.c()
+        # Accept hitting the breakpoint before or after the store instruction.
+        self.assertIn(self.gdb.p("$pc"), [write_loop, write_loop + 4])
+        self.assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
     def test_dmode(self):
         self.gdb.command("hbreak handle_trap")

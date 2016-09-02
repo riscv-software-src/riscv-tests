@@ -17,14 +17,16 @@ main:
 
         la      a0, data
         li      t0, 0
+just_before_read_loop:
         li      t2, 16
 read_loop:
         lw      t1, 0(a0)
-        addi    a0, a0, 4
         addi    t0, t0, 1
+        addi    a0, a0, 4
         blt     t0, t2, read_loop
 
         la      a0, data
+just_before_write_loop:
         li      t0, 1
 write_loop:
         sw      t0, 0(a0)
