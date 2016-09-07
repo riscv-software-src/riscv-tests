@@ -35,6 +35,7 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_S(18, fcvt.wu.s, 0x10,          0, -3e9, rtz);
   TEST_FP_INT_OP_S(19, fcvt.wu.s, 0x00, 3000000000,  3e9, rtz);
 
+#ifndef __riscv32
   TEST_FP_INT_OP_S(22,  fcvt.l.s, 0x01,         -1, -1.1, rtz);
   TEST_FP_INT_OP_S(23,  fcvt.l.s, 0x00,         -1, -1.0, rtz);
   TEST_FP_INT_OP_S(24,  fcvt.l.s, 0x01,          0, -0.9, rtz);
@@ -49,29 +50,36 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_S(36, fcvt.lu.s, 0x00,          1,  1.0, rtz);
   TEST_FP_INT_OP_S(37, fcvt.lu.s, 0x01,          1,  1.1, rtz);
   TEST_FP_INT_OP_S(38, fcvt.lu.s, 0x10,          0, -3e9, rtz);
+#endif
 
   # test negative NaN, negative infinity conversion
   TEST_CASE( 42, x1, 0x000000007fffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.w.s x1, f1)
-  TEST_CASE( 43, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.l.s x1, f1)
   TEST_CASE( 44, x1, 0xffffffff80000000, la x1, tdat  ; flw f1,  8(x1); fcvt.w.s x1, f1)
+#ifndef __riscv32
+  TEST_CASE( 43, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.l.s x1, f1)
   TEST_CASE( 45, x1, 0x8000000000000000, la x1, tdat  ; flw f1,  8(x1); fcvt.l.s x1, f1)
+#endif
 
   # test positive NaN, positive infinity conversion
   TEST_CASE( 52, x1, 0x000000007fffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.w.s x1, f1)
-  TEST_CASE( 53, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.l.s x1, f1)
   TEST_CASE( 54, x1, 0x000000007fffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.w.s x1, f1)
+#ifndef __riscv32
+  TEST_CASE( 53, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.l.s x1, f1)
   TEST_CASE( 55, x1, 0x7fffffffffffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.l.s x1, f1)
+#endif
 
   # test NaN, infinity conversions to unsigned integer
   TEST_CASE( 62, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.wu.s x1, f1)
   TEST_CASE( 63, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.wu.s x1, f1)
   TEST_CASE( 64, x1,                  0, la x1, tdat  ; flw f1,  8(x1); fcvt.wu.s x1, f1)
   TEST_CASE( 65, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.wu.s x1, f1)
+#ifndef __riscv32
   TEST_CASE( 66, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  0(x1); fcvt.lu.s x1, f1)
   TEST_CASE( 67, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1,  4(x1); fcvt.lu.s x1, f1)
   TEST_CASE( 68, x1,                  0, la x1, tdat  ; flw f1,  8(x1); fcvt.lu.s x1, f1)
   TEST_CASE( 69, x1, 0xffffffffffffffff, la x1, tdat  ; flw f1, 12(x1); fcvt.lu.s x1, f1)
-   
+#endif
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
