@@ -29,6 +29,7 @@ bmarks = \
 	spmv \
 	mt-vvadd \
 	mt-matmul \
+	memcpy \
 
 bmarks_host = \
 	median \
