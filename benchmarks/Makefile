@@ -30,6 +30,7 @@ bmarks = \
 	mt-vvadd \
 	mt-matmul \
 	memcpy \
+	dma-memcpy \
 
 bmarks_host = \
 	median \
