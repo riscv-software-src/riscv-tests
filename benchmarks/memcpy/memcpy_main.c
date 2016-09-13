@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "util.h"
 #include "memcpy.h"
 
@@ -14,12 +15,13 @@ void thread_entry(int cid, int nc)
 	int copy_size = START_SIZE;
 
 	fill(a, MAX_SIZE / sizeof(uint64_t));
-	asm volatile ("fence");
 
 	while (copy_size <= MAX_SIZE) {
+		// These two make sure the cache starts in approx. same state
 		memcpy(b, a, MAX_SIZE);
+		memset(b, 0, MAX_SIZE);
 		printf("%d: ", copy_size);
-		stats(fast_memcpy(b, a, copy_size), 3);
+		stats(asm volatile ("fence"); fast_memcpy(b, a, copy_size) ; asm volatile ("fence"), 3);
 		verify(copy_size / sizeof(int), b, a);
 		copy_size *= 2;
 	}
