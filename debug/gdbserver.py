@@ -3,14 +3,13 @@
 import os
 import sys
 import argparse
-import unittest
 import tempfile
 import time
 import random
 import binascii
+import traceback
 
 import testlib
-
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -32,31 +31,32 @@ MSTATUS_VM = 0x1F000000
 MSTATUS32_SD = 0x80000000
 MSTATUS64_SD = 0x8000000000000000
 
+# pylint: disable=abstract-method
+
 def gdb(
         target=None,
         port=None,
         binary=None
         ):
 
-    gdb = None
+    g = None
     if parsed.gdb:
-        gdb = testlib.Gdb(parsed.gdb)
+        g = testlib.Gdb(parsed.gdb)
     else:
-        gdb = testlib.Gdb()
+        g = testlib.Gdb()
 
     if binary:
-        gdb.command("file %s" % binary)
+        g.command("file %s" % binary)
     if target:
-        gdb.command("set arch riscv:rv%d" % target.xlen)
-        gdb.command("set remotetimeout %d" % target.timeout_sec)
+        g.command("set arch riscv:rv%d" % target.xlen)
+        g.command("set remotetimeout %d" % target.timeout_sec)
     if port:
-        gdb.command("target extended-remote localhost:%d" % port)
+        g.command("target extended-remote localhost:%d" % port)
 
-    gdb.p("$priv=3")
+    g.p("$priv=3")
 
-    return gdb
+    return g
 
-        
 def ihex_line(address, record_type, data):
     assert len(data) < 128
     line = ":%02X%04X%02X" % (len(data), address, record_type)
@@ -85,240 +85,381 @@ def ihex_parse(line):
 def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
 
-class DeleteServer(unittest.TestCase):
-    def tearDown(self):
-        del self.server
+def header(title):
+    dashes = '-' * (36 - len(title))
+    before = dashes[:len(dashes)/2]
+    after = dashes[len(dashes)/2:]
+    print "%s[ %s ]%s" % (before, title, after)
 
-class SimpleRegisterTest(DeleteServer):
+class GdbTest(object):
+    compiled = {}
+
+    def __init__(self, target):
+        self.target = target
+        self.server = None
+        self.binary = None
+        self.gdb = None
+
     def setUp(self):
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port)
+        pass
 
-        # 0x13 is nop
-        self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 8))
-        self.gdb.p("$pc=0x%x" % target.ram)
+    def run(self):
+        """
+        If compile_args is set, compile a program and set self.binary.
 
+        Call setUp().
+
+        Then call test() and return the result, displaying relevant information
+        if an exception is raised.
+        """
+        self.server = self.target.server()
+
+        print "Running", type(self).__name__, "...",
+        sys.stdout.flush()
+
+        start = time.time()
+
+        compile_args = getattr(self, 'compile_args', None)
+        if compile_args:
+            if compile_args not in GdbTest.compiled:
+                try:
+                    # pylint: disable=star-args
+                    GdbTest.compiled[compile_args] = \
+                            self.target.compile(*compile_args)
+                except Exception: # pylint: disable=broad-except
+                    print "exception while compiling in %.2fs" % (
+                            time.time() - start)
+                    print "=" * 40
+                    header("Traceback")
+                    traceback.print_exc(file=sys.stdout)
+                    print "/" * 40
+                    return "exception"
+        self.binary = GdbTest.compiled.get(compile_args)
+
+        self.gdb = gdb(self.target, self.server.port, self.binary)
+
+        try:
+            self.setUp()
+            result = self.test()    # pylint: disable=no-member
+        except Exception as e: # pylint: disable=broad-except
+            if isinstance(e, TestFailed):
+                result = "fail"
+            else:
+                result = "exception"
+            print "%s in %.2fs" % (result, time.time() - start)
+            print "=" * 40
+            if isinstance(e, TestFailed):
+                header("Message")
+                print e.message
+            header("Traceback")
+            traceback.print_exc(file=sys.stdout)
+            header("gdb.log")
+            print open("gdb.log", "r").read()
+            header(self.server.logname)
+            print open(self.server.logname, "r").read()
+            print "/" * 40
+            return result
+
+        finally:
+            del self.server
+            del self.gdb
+
+        if not result:
+            result = 'pass'
+        print "%s in %.2fs" % (result, time.time() - start)
+        return result
+
+class TestFailed(Exception):
+    def __init__(self, message):
+        Exception.__init__(self)
+        self.message = message
+
+def run_all_tests(target, tests):
+    results = {}
+    module = sys.modules[__name__]
+    for name in dir(module):
+        definition = getattr(module, name)
+        if type(definition) == type and hasattr(definition, 'test') and \
+                (not tests or any(test in name for test in tests)):
+            instance = definition(target)
+            result = instance.run()
+            results.setdefault(result, []).append(name)
+
+    print ":" * 40
+
+    good_results = set(('pass', 'not_applicable'))
+
+    result = 0
+    for key, value in results.iteritems():
+        print "%d tests returned %s" % (len(value), key)
+        if key not in good_results:
+            result = 1
+            for test in value:
+                print "   ", test
+
+    return result
+
+def assertEqual(a, b):
+    if a != b:
+        raise TestFailed("%r != %r" % (a, b))
+
+def assertNotEqual(a, b):
+    if a == b:
+        raise TestFailed("%r == %r" % (a, b))
+
+def assertIn(a, b):
+    if a not in b:
+        raise TestFailed("%r not in %r" % (a, b))
+
+def assertNotIn(a, b):
+    if a in b:
+        raise TestFailed("%r in %r" % (a, b))
+
+def assertGreater(a, b):
+    if not a > b:
+        raise TestFailed("%r not greater than %r" % (a, b))
+
+def assertTrue(a):
+    if not a:
+        raise TestFailed("%r is not True" % a)
+
+class SimpleRegisterTest(GdbTest):
     def check_reg(self, name):
-        a = random.randrange(1<<target.xlen)
-        b = random.randrange(1<<target.xlen)
+        a = random.randrange(1<<self.target.xlen)
+        b = random.randrange(1<<self.target.xlen)
         self.gdb.p("$%s=0x%x" % (name, a))
         self.gdb.stepi()
-        self.assertEqual(self.gdb.p("$%s" % name), a)
+        assertEqual(self.gdb.p("$%s" % name), a)
         self.gdb.p("$%s=0x%x" % (name, b))
         self.gdb.stepi()
-        self.assertEqual(self.gdb.p("$%s" % name), b)
+        assertEqual(self.gdb.p("$%s" % name), b)
 
-    def test_s0(self):
-        # S0 is saved/restored in DSCRATCH
+    def setUp(self):
+        # 0x13 is nop
+        self.gdb.command("p *((int*) 0x%x)=0x13" % self.target.ram)
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 4))
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 8))
+        self.gdb.p("$pc=0x%x" % self.target.ram)
+
+class SimpleS0Test(SimpleRegisterTest):
+    def test(self):
         self.check_reg("s0")
 
-    def test_s1(self):
-        # S1 is saved/restored in Debug RAM
+class SimpleS1Test(SimpleRegisterTest):
+    def test(self):
         self.check_reg("s1")
 
-    def test_t0(self):
-        # T0 is not saved/restored at all
-        self.check_reg("t2")
+class SimpleT0Test(SimpleRegisterTest):
+    def test(self):
+        self.check_reg("t0")
 
-    def test_t2(self):
-        # T2 is not saved/restored at all
-        self.check_reg("t2")
+class SimpleT1Test(SimpleRegisterTest):
+    def test(self):
+        self.check_reg("t1")
 
-class SimpleMemoryTest(DeleteServer):
-    def setUp(self):
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port)
-
+class SimpleMemoryTest(GdbTest):
     def access_test(self, size, data_type):
-        self.assertEqual(self.gdb.p("sizeof(%s)" % data_type),
-                size)
+        assertEqual(self.gdb.p("sizeof(%s)" % data_type), size)
         a = 0x86753095555aaaa & ((1<<(size*8))-1)
         b = 0xdeadbeef12345678 & ((1<<(size*8))-1)
-        self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, target.ram, a))
-        self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, target.ram + size, b))
-        self.assertEqual(self.gdb.p("*((%s*)0x%x)" % (data_type, target.ram)), a)
-        self.assertEqual(self.gdb.p("*((%s*)0x%x)" % (data_type, target.ram + size)), b)
+        self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, self.target.ram, a))
+        self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, self.target.ram + size,
+            b))
+        assertEqual(self.gdb.p("*((%s*)0x%x)" % (data_type, self.target.ram)),
+                a)
+        assertEqual(self.gdb.p("*((%s*)0x%x)" % (
+            data_type, self.target.ram + size)), b)
 
-    def test_8(self):
+class MemTest8(SimpleMemoryTest):
+    def test(self):
         self.access_test(1, 'char')
 
-    def test_16(self):
+class MemTest16(SimpleMemoryTest):
+    def test(self):
         self.access_test(2, 'short')
 
-    def test_32(self):
+class MemTest32(SimpleMemoryTest):
+    def test(self):
         self.access_test(4, 'int')
 
-    def test_64(self):
+class MemTest64(SimpleMemoryTest):
+    def test(self):
         self.access_test(8, 'long long')
 
-    def test_block(self):
+class MemTestBlock(GdbTest):
+    def test(self):
         length = 1024
         line_length = 16
         a = tempfile.NamedTemporaryFile(suffix=".ihex")
         data = ""
         for i in range(length / line_length):
-            line_data = "".join(["%c" % random.randrange(256) for _ in range(line_length)])
+            line_data = "".join(["%c" % random.randrange(256)
+                for _ in range(line_length)])
             data += line_data
             a.write(ihex_line(i * line_length, 0, line_data))
         a.flush()
 
-        self.gdb.command("restore %s 0x%x" % (a.name, target.ram))
+        self.gdb.command("restore %s 0x%x" % (a.name, self.target.ram))
         for offset in range(0, length, 19*4) + [length-4]:
-            value = self.gdb.p("*((int*)0x%x)" % (target.ram + offset))
+            value = self.gdb.p("*((int*)0x%x)" % (self.target.ram + offset))
             written = ord(data[offset]) | \
                     (ord(data[offset+1]) << 8) | \
                     (ord(data[offset+2]) << 16) | \
                     (ord(data[offset+3]) << 24)
-            self.assertEqual(value, written)
+            assertEqual(value, written)
 
         b = tempfile.NamedTemporaryFile(suffix=".ihex")
-        self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name, target.ram,
-            target.ram + length))
+        self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name,
+            self.target.ram, self.target.ram + length))
         for line in b:
             record_type, address, line_data = ihex_parse(line)
-            if (record_type == 0):
-                self.assertEqual(readable_binary_string(line_data),
-                        readable_binary_string(data[address:address+len(line_data)]))
+            if record_type == 0:
+                assertEqual(readable_binary_string(line_data),
+                        readable_binary_string(
+                            data[address:address+len(line_data)]))
 
-class InstantHaltTest(DeleteServer):
-    def setUp(self):
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port)
-         
-    def test_instant_halt(self):
-        self.assertEqual(target.reset_vector, self.gdb.p("$pc"))
+class InstantHaltTest(GdbTest):
+    def test(self):
+        assertEqual(self.target.reset_vector, self.gdb.p("$pc"))
         # mcycle and minstret have no defined reset value.
         mstatus = self.gdb.p("$mstatus")
-        self.assertEqual(mstatus & (MSTATUS_MIE | MSTATUS_MPRV |
+        assertEqual(mstatus & (MSTATUS_MIE | MSTATUS_MPRV |
             MSTATUS_VM), 0)
 
-    def test_change_pc(self):
+class InstantChangePc(GdbTest):
+    def test(self):
         """Change the PC right as we come out of reset."""
         # 0x13 is nop
-        self.gdb.command("p *((int*) 0x%x)=0x13" % target.ram)
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 4))
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (target.ram + 8))
-        self.gdb.p("$pc=0x%x" % target.ram)
+        self.gdb.command("p *((int*) 0x%x)=0x13" % self.target.ram)
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 4))
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 8))
+        self.gdb.p("$pc=0x%x" % self.target.ram)
         self.gdb.stepi()
-        self.assertEqual((target.ram + 4), self.gdb.p("$pc"))
+        assertEqual((self.target.ram + 4), self.gdb.p("$pc"))
         self.gdb.stepi()
-        self.assertEqual((target.ram + 8), self.gdb.p("$pc"))
+        assertEqual((self.target.ram + 8), self.gdb.p("$pc"))
 
-class DebugTest(DeleteServer):
+class DebugTest(GdbTest):
+    # Include malloc so that gdb can make function calls. I suspect this malloc
+    # will silently blow through the memory set aside for it, so be careful.
+    compile_args = ("programs/debug.c", "programs/checksum.c",
+            "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+
     def setUp(self):
-        # Include malloc so that gdb can make function calls. I suspect this
-        # malloc will silently blow through the memory set aside for it, so be
-        # careful.
-        self.binary = target.compile("programs/debug.c", "programs/checksum.c",
-                "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("_exit")
 
-    def exit(self, expected_result = 0xc86455d4):
+    def exit(self, expected_result=0xc86455d4):
         output = self.gdb.c()
-        self.assertIn("Breakpoint", output)
-        self.assertIn("_exit", output)
-        self.assertEqual(self.gdb.p("status"), expected_result)
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
+        assertEqual(self.gdb.p("status"), expected_result)
 
-    def test_function_call(self):
+class DebugFunctionCall(DebugTest):
+    def test(self):
         self.gdb.b("main:start")
         self.gdb.c()
-        self.assertEqual(self.gdb.p('fib(6)'), 8)
-        self.assertEqual(self.gdb.p('fib(7)'), 13)
+        assertEqual(self.gdb.p('fib(6)'), 8)
+        assertEqual(self.gdb.p('fib(7)'), 13)
         self.exit()
 
-    def test_change_string(self):
+class DebugChangeString(DebugTest):
+    def test(self):
         text = "This little piggy went to the market."
         self.gdb.b("main:start")
         self.gdb.c()
         self.gdb.p('fox = "%s"' % text)
         self.exit(0x43b497b8)
 
-    def test_turbostep(self):
+class DebugTurbostep(DebugTest):
+    def test(self):
         """Single step a bunch of times."""
         self.gdb.b("main:start")
         self.gdb.c()
-        self.gdb.command("p i=0");
+        self.gdb.command("p i=0")
         last_pc = None
         advances = 0
         jumps = 0
         for _ in range(100):
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
-            self.assertNotEqual(last_pc, pc)
-            if (last_pc and pc > last_pc and pc - last_pc <= 4):
+            assertNotEqual(last_pc, pc)
+            if last_pc and pc > last_pc and pc - last_pc <= 4:
                 advances += 1
             else:
                 jumps += 1
             last_pc = pc
         # Some basic sanity that we're not running between breakpoints or
         # something.
-        self.assertGreater(jumps, 10)
-        self.assertGreater(advances, 50)
+        assertGreater(jumps, 10)
+        assertGreater(advances, 50)
 
-    def test_exit(self):
+class DebugExit(DebugTest):
+    def test(self):
         self.exit()
 
-    def test_symbols(self):
+class DebugSymbols(DebugTest):
+    def test(self):
         self.gdb.b("main")
         self.gdb.b("rot13")
         output = self.gdb.c()
-        self.assertIn(", main ", output)
+        assertIn(", main ", output)
         output = self.gdb.c()
-        self.assertIn(", rot13 ", output)
+        assertIn(", rot13 ", output)
 
-    def test_breakpoint(self):
+class DebugBreakpoint(DebugTest):
+    def test(self):
         self.gdb.b("rot13")
         # The breakpoint should be hit exactly 2 times.
-        for i in range(2):
+        for _ in range(2):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            self.assertIn("Breakpoint ", output)
-            #TODO self.assertIn("rot13 ", output)
+            assertIn("Breakpoint ", output)
+            assertIn("rot13 ", output)
         self.exit()
 
-    def test_hwbp_1(self):
-        if target.instruction_hardware_breakpoint_count < 1:
-            return
+class Hwbp1(DebugTest):
+    def test(self):
+        if self.target.instruction_hardware_breakpoint_count < 1:
+            return 'not_applicable'
 
         self.gdb.hbreak("rot13")
         # The breakpoint should be hit exactly 2 times.
-        for i in range(2):
+        for _ in range(2):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            self.assertIn("Breakpoint ", output)
-            #TODO self.assertIn("rot13 ", output)
+            assertIn("Breakpoint ", output)
+            assertIn("rot13 ", output)
         self.exit()
 
-    def test_hwbp_2(self):
-        if target.instruction_hardware_breakpoint_count < 2:
-            return
+class Hwbp2(DebugTest):
+    def test(self):
+        if self.target.instruction_hardware_breakpoint_count < 2:
+            return 'not_applicable'
 
         self.gdb.hbreak("main")
         self.gdb.hbreak("rot13")
         # We should hit 3 breakpoints.
-        for i in range(3):
+        for expected in ("main", "rot13", "rot13"):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            self.assertIn("Breakpoint ", output)
-            #TODO self.assertIn("rot13 ", output)
+            assertIn("Breakpoint ", output)
+            assertIn("%s " % expected, output)
         self.exit()
 
-    def test_too_many_hwbp(self):
+class TooManyHwbp(DebugTest):
+    def run(self):
         for i in range(30):
             self.gdb.hbreak("*rot13 + %d" % (i * 4))
 
         output = self.gdb.c()
-        self.assertIn("Cannot insert hardware breakpoint", output)
+        assertIn("Cannot insert hardware breakpoint", output)
         # Clean up, otherwise the hardware breakpoints stay set and future
         # tests may fail.
         self.gdb.command("D")
 
-    def test_registers(self):
+class Registers(DebugTest):
+    def test(self):
         # Get to a point in the code where some registers have actually been
         # used.
         self.gdb.b("rot13")
@@ -327,62 +468,61 @@ class DebugTest(DeleteServer):
         # Try both forms to test gdb.
         for cmd in ("info all-registers", "info registers all"):
             output = self.gdb.command(cmd)
-            self.assertNotIn("Could not", output)
+            assertNotIn("Could not", output)
             for reg in ('zero', 'ra', 'sp', 'gp', 'tp'):
-                self.assertIn(reg, output)
+                assertIn(reg, output)
 
         #TODO
         # mcpuid is one of the few registers that should have the high bit set
         # (for rv64).
         # Leave this commented out until gdb and spike agree on the encoding of
         # mcpuid (which is going to be renamed to misa in any case).
-        #self.assertRegexpMatches(output, ".*mcpuid *0x80")
+        #assertRegexpMatches(output, ".*mcpuid *0x80")
 
         #TODO:
         # The instret register should always be changing.
         #last_instret = None
         #for _ in range(5):
         #    instret = self.gdb.p("$instret")
-        #    self.assertNotEqual(instret, last_instret)
+        #    assertNotEqual(instret, last_instret)
         #    last_instret = instret
         #    self.gdb.stepi()
 
         self.exit()
 
-    def test_interrupt(self):
-        """Sending gdb ^C while the program is running should cause it to halt."""
+class UserInterrupt(DebugTest):
+    def test(self):
+        """Sending gdb ^C while the program is running should cause it to
+        halt."""
         self.gdb.b("main:start")
         self.gdb.c()
-        self.gdb.p("i=123");
+        self.gdb.p("i=123")
         self.gdb.c(wait=False)
         time.sleep(0.1)
         output = self.gdb.interrupt()
-        #TODO: assert "main" in output
-        self.assertGreater(self.gdb.p("j"), 10)
-        self.gdb.p("i=0");
+        assert "main" in output
+        assertGreater(self.gdb.p("j"), 10)
+        self.gdb.p("i=0")
         self.exit()
 
-class StepTest(DeleteServer):
+class StepTest(GdbTest):
+    compile_args = ("programs/step.S", )
+
     def setUp(self):
-        self.binary = target.compile("programs/step.S")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("main")
         self.gdb.c()
 
-    def test_step(self):
-        main = self.gdb.p("$pc")
+    def test(self):
+        main_address = self.gdb.p("$pc")
         for expected in (4, 8, 0xc, 0x10, 0x18, 0x1c, 0x28, 0x20, 0x2c, 0x2c):
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
-            self.assertEqual("%x" % pc, "%x" % (expected + main))
+            assertEqual("%x" % pc, "%x" % (expected + main_address))
 
-class TriggerTest(DeleteServer):
+class TriggerTest(GdbTest):
+    compile_args = ("programs/trigger.S", )
     def setUp(self):
-        self.binary = target.compile("programs/trigger.S")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("_exit")
         self.gdb.b("main")
@@ -390,76 +530,81 @@ class TriggerTest(DeleteServer):
 
     def exit(self):
         output = self.gdb.c()
-        self.assertIn("Breakpoint", output)
-        self.assertIn("_exit", output)
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
 
-    def test_execute_instant(self):
+class TriggerExecuteInstant(TriggerTest):
+    def test(self):
         """Test an execute breakpoint on the first instruction executed out of
         debug mode."""
-        main = self.gdb.p("$pc")
-        self.gdb.command("hbreak *0x%x" % (main + 4))
+        main_address = self.gdb.p("$pc")
+        self.gdb.command("hbreak *0x%x" % (main_address + 4))
         self.gdb.c()
-        self.assertEqual(self.gdb.p("$pc"), main+4)
+        assertEqual(self.gdb.p("$pc"), main_address+4)
 
-    def test_load_address(self):
-        self.gdb.command("rwatch *((&data)+1)");
+class TriggerLoadAddress(TriggerTest):
+    def test(self):
+        self.gdb.command("rwatch *((&data)+1)")
         output = self.gdb.c()
-        self.assertIn("read_loop", output)
-        self.assertEqual(self.gdb.p("$a0"),
+        assertIn("read_loop", output)
+        assertEqual(self.gdb.p("$a0"),
                 self.gdb.p("(&data)+1"))
         self.exit()
 
-    def test_load_address_instant(self):
+class TriggerLoadAddressInstant(TriggerTest):
+    def test(self):
         """Test a load address breakpoint on the first instruction executed out
         of debug mode."""
         self.gdb.command("b just_before_read_loop")
         self.gdb.c()
         read_loop = self.gdb.p("&read_loop")
-        self.gdb.command("rwatch data");
+        self.gdb.command("rwatch data")
         self.gdb.c()
         # Accept hitting the breakpoint before or after the load instruction.
-        self.assertIn(self.gdb.p("$pc"), [read_loop, read_loop + 4])
-        self.assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
+        assertIn(self.gdb.p("$pc"), [read_loop, read_loop + 4])
+        assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
-    def test_store_address(self):
-        self.gdb.command("watch *((&data)+3)");
+class TriggerStoreAddress(TriggerTest):
+    def test(self):
+        self.gdb.command("watch *((&data)+3)")
         output = self.gdb.c()
-        self.assertIn("write_loop", output)
-        self.assertEqual(self.gdb.p("$a0"),
+        assertIn("write_loop", output)
+        assertEqual(self.gdb.p("$a0"),
                 self.gdb.p("(&data)+3"))
         self.exit()
 
-    def test_store_address_instant(self):
+class TriggerStoreAddressInstance(TriggerTest):
+    def test(self):
         """Test a store address breakpoint on the first instruction executed out
         of debug mode."""
         self.gdb.command("b just_before_write_loop")
         self.gdb.c()
         write_loop = self.gdb.p("&write_loop")
-        self.gdb.command("watch data");
+        self.gdb.command("watch data")
         self.gdb.c()
         # Accept hitting the breakpoint before or after the store instruction.
-        self.assertIn(self.gdb.p("$pc"), [write_loop, write_loop + 4])
-        self.assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
+        assertIn(self.gdb.p("$pc"), [write_loop, write_loop + 4])
+        assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
-    def test_dmode(self):
+class TriggerDmode(TriggerTest):
+    def test(self):
         self.gdb.command("hbreak handle_trap")
         self.gdb.p("$pc=write_valid")
         output = self.gdb.c()
-        self.assertIn("handle_trap", output)
-        self.assertIn("mcause=2", output)
-        self.assertIn("mepc=%d" % self.gdb.p("&write_invalid_illegal"), output)
+        assertIn("handle_trap", output)
+        assertIn("mcause=2", output)
+        assertIn("mepc=%d" % self.gdb.p("&write_invalid_illegal"), output)
 
-class RegsTest(DeleteServer):
+class RegsTest(GdbTest):
+    compile_args = ("programs/regs.S", )
     def setUp(self):
-        self.binary = target.compile("programs/regs.S")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
         self.gdb.b("main")
         self.gdb.b("handle_trap")
         self.gdb.c()
 
-    def test_write_gprs(self):
+class WriteGprs(RegsTest):
+    def test(self):
         regs = [("x%d" % n) for n in range(2, 32)]
 
         self.gdb.p("$pc=write_regs")
@@ -468,87 +613,86 @@ class RegsTest(DeleteServer):
         self.gdb.p("$x1=data")
         self.gdb.command("b all_done")
         output = self.gdb.c()
-        self.assertIn("Breakpoint ", output)
+        assertIn("Breakpoint ", output)
 
         # Just to get this data in the log.
         self.gdb.command("x/30gx data")
         self.gdb.command("info registers")
         for n in range(len(regs)):
-            self.assertEqual(self.gdb.x("data+%d" % (8*n), 'g'),
-                    ((0xdeadbeef<<n)+17) & ((1<<target.xlen)-1))
+            assertEqual(self.gdb.x("data+%d" % (8*n), 'g'),
+                    ((0xdeadbeef<<n)+17) & ((1<<self.target.xlen)-1))
 
-    def test_write_csrs(self):
+class WriteCsrs(RegsTest):
+    def test(self):
         # As much a test of gdb as of the simulator.
         self.gdb.p("$mscratch=0")
         self.gdb.stepi()
-        self.assertEqual(self.gdb.p("$mscratch"), 0)
+        assertEqual(self.gdb.p("$mscratch"), 0)
         self.gdb.p("$mscratch=123")
         self.gdb.stepi()
-        self.assertEqual(self.gdb.p("$mscratch"), 123)
+        assertEqual(self.gdb.p("$mscratch"), 123)
 
         self.gdb.command("p $pc=write_regs")
         self.gdb.command("p $a0=data")
         self.gdb.command("b all_done")
         self.gdb.command("c")
 
-        self.assertEqual(123, self.gdb.p("$mscratch"))
-        self.assertEqual(123, self.gdb.p("$x1"))
-        self.assertEqual(123, self.gdb.p("$csr832"))
+        assertEqual(123, self.gdb.p("$mscratch"))
+        assertEqual(123, self.gdb.p("$x1"))
+        assertEqual(123, self.gdb.p("$csr832"))
 
-class DownloadTest(DeleteServer):
+class DownloadTest(GdbTest):
     def setUp(self):
-        length = min(2**20, target.ram_size - 2048)
-        download_c = tempfile.NamedTemporaryFile(prefix="download_", suffix=".c")
+        length = min(2**20, self.target.ram_size - 2048)
+        download_c = tempfile.NamedTemporaryFile(prefix="download_",
+                suffix=".c")
         download_c.write("#include <stdint.h>\n")
-        download_c.write("unsigned int crc32a(uint8_t *message, unsigned int size);\n")
+        download_c.write(
+                "unsigned int crc32a(uint8_t *message, unsigned int size);\n")
         download_c.write("uint32_t length = %d;\n" % length)
         download_c.write("uint8_t d[%d] = {\n" % length)
         self.crc = 0
         for i in range(length / 16):
-            download_c.write("  /* 0x%04x */ " % (i * 16));
+            download_c.write("  /* 0x%04x */ " % (i * 16))
             for _ in range(16):
                 value = random.randrange(1<<8)
                 download_c.write("%d, " % value)
                 self.crc = binascii.crc32("%c" % value, self.crc)
-            download_c.write("\n");
-        download_c.write("};\n");
-        download_c.write("uint8_t *data = &d[0];\n");
+            download_c.write("\n")
+        download_c.write("};\n")
+        download_c.write("uint8_t *data = &d[0];\n")
         download_c.write("uint32_t main() { return crc32a(data, length); }\n")
         download_c.flush()
 
         if self.crc < 0:
             self.crc += 2**32
 
-        self.binary = target.compile(download_c.name, "programs/checksum.c")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
-        
-    def test_download(self):
-        output = self.gdb.load()
+        self.binary = self.target.compile(download_c.name,
+                "programs/checksum.c")
+        self.gdb.command("file %s" % self.binary)
+
+    def test(self):
+        self.gdb.load()
         self.gdb.command("b _exit")
         self.gdb.c()
-        self.assertEqual(self.gdb.p("status"), self.crc)
+        assertEqual(self.gdb.p("status"), self.crc)
 
-class MprvTest(DeleteServer):
+class MprvTest(GdbTest):
+    compile_args = ("programs/mprv.S", )
     def setUp(self):
-        self.binary = target.compile("programs/mprv.S")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
 
-    def test_mprv(self):
+    def test(self):
         """Test that the debugger can access memory when MPRV is set."""
         self.gdb.c(wait=False)
         time.sleep(0.5)
         self.gdb.interrupt()
         output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
-        self.assertIn("0xbead", output)
+        assertIn("0xbead", output)
 
-class PrivTest(DeleteServer):
+class PrivTest(GdbTest):
+    compile_args = ("programs/priv.S", )
     def setUp(self):
-        self.binary = target.compile("programs/priv.S")
-        self.server = target.server()
-        self.gdb = gdb(target, self.server.port, self.binary)
         self.gdb.load()
 
         misa = self.gdb.p("$misa")
@@ -561,43 +705,48 @@ class PrivTest(DeleteServer):
             self.supported.add(2)
         self.supported.add(3)
 
-    def test_rw(self):
+class PrivRw(PrivTest):
+    def test(self):
         """Test reading/writing priv."""
         for privilege in range(4):
             self.gdb.p("$priv=%d" % privilege)
             self.gdb.stepi()
             actual = self.gdb.p("$priv")
-            self.assertIn(actual, self.supported)
+            assertIn(actual, self.supported)
             if privilege in self.supported:
-                self.assertEqual(actual, privilege)
+                assertEqual(actual, privilege)
 
-    def test_change(self):
+class PrivChange(PrivTest):
+    def test(self):
         """Test that the core's privilege level actually changes."""
 
         if 0 not in self.supported:
-            # TODO: return not applicable
-            return
+            return 'not_applicable'
 
         self.gdb.b("main")
         self.gdb.c()
 
         # Machine mode
         self.gdb.p("$priv=3")
-        main = self.gdb.p("$pc")
+        main_address = self.gdb.p("$pc")
         self.gdb.stepi()
-        self.assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main+4))
+        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
 
         # User mode
         self.gdb.p("$priv=0")
         self.gdb.stepi()
         # Should have taken an exception, so be nowhere near main.
         pc = self.gdb.p("$pc")
-        self.assertTrue(pc < main or pc > main + 0x100)
+        assertTrue(pc < main_address or pc > main_address + 0x100)
 
 class Target(object):
+    name = "name"
+    xlen = 0
     directory = None
     timeout_sec = 2
-    
+    temporary_files = []
+    temporary_binary = None
+
     def server(self):
         raise NotImplementedError
 
@@ -610,6 +759,7 @@ class Target(object):
             self.temporary_binary = tempfile.NamedTemporaryFile(
                     prefix=binary_name + "_")
             binary_name = self.temporary_binary.name
+            Target.temporary_files.append(self.temporary_binary)
         testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
                     "-I", "../env",
@@ -659,12 +809,12 @@ class FreedomE300SimTarget(Target):
     ram = 0x80000000
     ram_size = 256 * 1024 * 1024
     instruction_hardware_breakpoint_count = 2
-       
+
     def server(self):
         sim = testlib.VcsSim(simv=parsed.run, debug=False)
         openocd = testlib.Openocd(cmd=parsed.cmd,
                             config="targets/%s/openocd.cfg" % self.name,
-                            otherProcess = sim)
+                            otherProcess=sim)
         time.sleep(20)
         return openocd
 
@@ -678,7 +828,7 @@ class FreedomU500Target(Target):
     def server(self):
         return testlib.Openocd(cmd=parsed.cmd,
                 config="targets/%s/openocd.cfg" % self.name)
-    
+
 class FreedomU500SimTarget(Target):
     name = "freedom-u500-sim"
     xlen = 64
@@ -686,12 +836,12 @@ class FreedomU500SimTarget(Target):
     ram = 0x80000000
     ram_size = 256 * 1024 * 1024
     instruction_hardware_breakpoint_count = 2
-       
+
     def server(self):
         sim = testlib.VcsSim(simv=parsed.run, debug=False)
         openocd = testlib.Openocd(cmd=parsed.cmd,
                             config="targets/%s/openocd.cfg" % self.name,
-                            otherProcess = sim)
+                            otherProcess=sim)
         time.sleep(20)
         return openocd
 
@@ -703,19 +853,21 @@ targets = [
         FreedomE300SimTarget,
         FreedomU500SimTarget]
 
+parsed = None
 def main():
     parser = argparse.ArgumentParser(
             epilog="""
             Example command line from the real world:
             Run all RegsTest cases against a physical FPGA, with custom openocd command:
-            ./gdbserver.py --freedom-e-300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" -- -vf RegsTest
+            ./gdbserver.py --freedom-e300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" RegsTest
             """)
     group = parser.add_mutually_exclusive_group(required=True)
     for t in targets:
         group.add_argument("--%s" % t.name, action="store_const", const=t,
                 dest="target")
     parser.add_argument("--run",
-                        help="The command to use to start the actual target (e.g. simulation)")
+            help="The command to use to start the actual target (e.g. "
+            "simulation)")
     parser.add_argument("--cmd",
             help="The command to use to start the debug server.")
     parser.add_argument("--gdb",
@@ -732,17 +884,18 @@ def main():
             "the same time. This may make it harder to debug a failure if it "
             "does occur.")
 
-    parser.add_argument("unittest", nargs="*")
-    global parsed
+    parser.add_argument("test", nargs='*',
+            help="Run only tests that are named here.")
+
+    # TODO: remove global
+    global parsed   # pylint: disable=global-statement
     parsed = parser.parse_args()
 
-    global target
     target = parsed.target()
-
     if parsed.xlen:
         target.xlen = parsed.xlen
 
-    unittest.main(argv=[sys.argv[0]] + parsed.unittest)
+    return run_all_tests(target, parsed.test)
 
 # TROUBLESHOOTING TIPS
 # If a particular test fails, run just that one test, eg.:

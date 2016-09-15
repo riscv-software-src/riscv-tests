@@ -1,8 +1,6 @@
 import os.path
 import shlex
 import subprocess
-import tempfile
-import unittest
 import time
 
 import pexpect
@@ -17,7 +15,7 @@ def find_file(path):
             return fullpath
     return None
 
-def compile(args, xlen=32):
+def compile(args, xlen=32): # pylint: disable=redefined-builtin
     cc = os.path.expandvars("$RISCV/bin/riscv%d-unknown-elf-gcc" % xlen)
     cmd = [cc, "-g"]
     for arg in args:
@@ -34,20 +32,23 @@ def unused_port():
     # http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
     import socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("",0))
+    s.bind(("", 0))
     port = s.getsockname()[1]
     s.close()
     return port
 
 class Spike(object):
-    def __init__(self, cmd, binary=None, halted=False, with_gdb=True, timeout=None,
-            xlen=64):
-        """Launch spike. Return tuple of its process and the port it's running on."""
+    logname = "spike.log"
+
+    def __init__(self, cmd, binary=None, halted=False, with_gdb=True,
+            timeout=None, xlen=64):
+        """Launch spike. Return tuple of its process and the port it's running
+        on."""
         if cmd:
             cmd = shlex.split(cmd)
         else:
             cmd = ["spike"]
-        if (xlen == 32):
+        if xlen == 32:
             cmd += ["--isa", "RV32"]
 
         if timeout:
@@ -62,11 +63,11 @@ class Spike(object):
         cmd.append('pk')
         if binary:
             cmd.append(binary)
-        logfile = open("spike.log", "w")
+        logfile = open(self.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
-                stderr=logfile)
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                stdout=logfile, stderr=logfile)
 
     def __del__(self):
         try:
@@ -83,7 +84,7 @@ class VcsSim(object):
         if simv:
             cmd = shlex.split(simv)
         else:
-            cmd =  ["simv"]
+            cmd = ["simv"]
         cmd += ["+jtag_vpi_enable"]
         if debug:
             cmd[0] = cmd[0] + "-debug"
@@ -92,17 +93,17 @@ class VcsSim(object):
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
         listenfile = open("simv.log", "r")
-        listenfile.seek(0,2)
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
-                                        stderr=logfile)
+        listenfile.seek(0, 2)
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                stdout=logfile, stderr=logfile)
         done = False
-        while (not done):
+        while not done:
             line = listenfile.readline()
-            if (not line):
+            if not line:
                 time.sleep(1)
-            if ("Listening on port 5555" in line):
+            if "Listening on port 5555" in line:
                 done = True
-            
+
     def __del__(self):
         try:
             self.process.kill()
@@ -110,8 +111,9 @@ class VcsSim(object):
         except OSError:
             pass
 
-        
 class Openocd(object):
+    logname = "openocd.log"
+
     def __init__(self, cmd=None, config=None, debug=False, otherProcess=None):
 
         # keep handles to other processes -- don't let them be
@@ -126,10 +128,10 @@ class Openocd(object):
             cmd += ["-f", find_file(config)]
         if debug:
             cmd.append("-d")
-        logfile = open("openocd.log", "w")
+        logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile,
-                stderr=logfile)
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                stdout=logfile, stderr=logfile)
         # TODO: Pick a random port
         self.port = 3333
 
@@ -144,7 +146,7 @@ class Gdb(object):
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(cmd)
-        self.child.logfile = file("gdb.log", "w")
+        self.child.logfile = open("gdb.log", "w")
         self.child.logfile.write("+ %s\n" % cmd)
         self.wait()
         self.command("set confirm off")
@@ -155,12 +157,12 @@ class Gdb(object):
 
     def wait(self):
         """Wait for prompt."""
-        self.child.expect("\(gdb\)")
+        self.child.expect(r"\(gdb\)")
 
     def command(self, command, timeout=-1):
         self.child.sendline(command)
         self.child.expect("\n", timeout=timeout)
-        self.child.expect("\(gdb\)", timeout=timeout)
+        self.child.expect(r"\(gdb\)", timeout=timeout)
         return self.child.before.strip()
 
     def c(self, wait=True):
@@ -173,8 +175,8 @@ class Gdb(object):
             self.child.expect("Continuing")
 
     def interrupt(self):
-        self.child.send("\003");
-        self.child.expect("\(gdb\)")
+        self.child.send("\003")
+        self.child.expect(r"\(gdb\)", timeout=60)
         return self.child.before.strip()
 
     def x(self, address, size='w'):
