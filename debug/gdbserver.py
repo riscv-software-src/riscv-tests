@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import os
-import sys
 import argparse
+import binascii
+import os
+import random
+import re
+import sys
 import tempfile
 import time
-import random
-import binascii
 import traceback
 
 import testlib
@@ -223,6 +224,10 @@ def assertTrue(a):
     if not a:
         raise TestFailed("%r is not True" % a)
 
+def assertRegexpMatches(text, regexp):
+    if not re.search(regexp, text):
+        raise TestFailed("can't find %r in %r" % (regexp, text))
+
 class SimpleRegisterTest(GdbTest):
     def check_reg(self, name):
         a = random.randrange(1<<self.target.xlen)
@@ -428,7 +433,7 @@ class Hwbp1(DebugTest):
         for _ in range(2):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            assertIn("Breakpoint ", output)
+            assertRegexpMatches(output, r"[bB]reakpoint")
             assertIn("rot13 ", output)
         self.exit()
 
@@ -443,7 +448,7 @@ class Hwbp2(DebugTest):
         for expected in ("main", "rot13", "rot13"):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            assertIn("Breakpoint ", output)
+            assertRegexpMatches(output, r"[bB]reakpoint")
             assertIn("%s " % expected, output)
         self.exit()
 
@@ -534,9 +539,9 @@ class TriggerTest(GdbTest):
         assertIn("_exit", output)
 
 class TriggerExecuteInstant(TriggerTest):
+    """Test an execute breakpoint on the first instruction executed out of
+    debug mode."""
     def test(self):
-        """Test an execute breakpoint on the first instruction executed out of
-        debug mode."""
         main_address = self.gdb.p("$pc")
         self.gdb.command("hbreak *0x%x" % (main_address + 4))
         self.gdb.c()
@@ -552,9 +557,9 @@ class TriggerLoadAddress(TriggerTest):
         self.exit()
 
 class TriggerLoadAddressInstant(TriggerTest):
+    """Test a load address breakpoint on the first instruction executed out of
+    debug mode."""
     def test(self):
-        """Test a load address breakpoint on the first instruction executed out
-        of debug mode."""
         self.gdb.command("b just_before_read_loop")
         self.gdb.c()
         read_loop = self.gdb.p("&read_loop")
@@ -573,7 +578,7 @@ class TriggerStoreAddress(TriggerTest):
                 self.gdb.p("(&data)+3"))
         self.exit()
 
-class TriggerStoreAddressInstance(TriggerTest):
+class TriggerStoreAddressInstant(TriggerTest):
     def test(self):
         """Test a store address breakpoint on the first instruction executed out
         of debug mode."""
