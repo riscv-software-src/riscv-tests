@@ -593,6 +593,10 @@ class TriggerStoreAddressInstant(TriggerTest):
 
 class TriggerDmode(TriggerTest):
     def test(self):
+        return 'not_applicable'
+        # pylint: disable=unreachable
+        # Temporarily not applicable until spike is fixed to match the spec
+        # change.
         self.gdb.command("hbreak handle_trap")
         self.gdb.p("$pc=write_valid")
         output = self.gdb.c()
