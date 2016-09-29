@@ -40,6 +40,15 @@ handle_reset:
   # initialize stack pointer
   la sp, stack_top
 
+  # Clear all hardware triggers
+  li    t0, ~0
+1:
+  addi  t0, t0, 1
+  csrw  CSR_TSELECT, t0
+  csrw  CSR_TDATA1, zero
+  csrr  t1, CSR_TSELECT
+  beq   t0, t1, 1b
+
   # perform the rest of initialization in C
   j _init
 
