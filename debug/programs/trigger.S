@@ -1,5 +1,15 @@
 #include "../../env/encoding.h"
 
+#ifdef __riscv64
+# define LREG ld
+# define SREG sd
+# define REGBYTES 8
+#else
+# define LREG lw
+# define SREG sw
+# define REGBYTES 4
+#endif
+
 #undef MCONTROL_TYPE
 #undef MCONTROL_DMODE
 #ifdef __riscv64
@@ -36,49 +46,59 @@ write_loop:
 
         j       main_exit
 
-write_valid:
-        li      t0, 0
-        li      t2, MCONTROL_DMODE
-        li      t3, MCONTROL_TYPE
-write_valid_loop:
-        csrw    CSR_TSELECT, t0
-        csrr    t1, CSR_TSELECT
-        bne     t0, t1, main_exit
-        addi    t0, t0, 1
-        csrr    t1, CSR_TDATA1
-        and     t4, t1, t3
-        beqz    t4, main_error  # type is 0
-        and     t1, t1, t2
-        bnez    t1, write_valid_loop
-        # Found an entry with dmode=0
-        csrw    CSR_TDATA1, zero        # this should succeed
+write_store_trigger:
+        li      a0, (1<<6) | (1<<1)
+        li      a1, 0xdeadbee0
+        jal     write_triggers
+        la      a0, data
+        jal     read_triggers
 
-write_invalid:
-        li      t0, 0
-        li      t2, MCONTROL_DMODE
-        li      t3, MCONTROL_TYPE
-write_invalid_loop:
-        csrw    CSR_TSELECT, t0
-        csrr    t1, CSR_TSELECT
-        bne     t0, t1, main_exit
-        addi    t0, t0, 1
-        csrr    t1, CSR_TDATA1
-        and     t4, t1, t3
-        beqz    t4, main_error  # type is 0
-        and     t1, t1, t2
-        beqz    t1, write_invalid_loop
-        # Found an entry with dmode=1
-write_invalid_illegal:
-        csrw    CSR_TDATA1, zero        # this should fail
+write_load_trigger:
+        li      a0, (1<<6) | (1<<0)
+        li      a1, 0xfeedac00
+        jal     write_triggers
+        la      a0, data
+        jal     read_triggers
 
+// Clear triggers so the next test can use them.
+clear_triggers:
+        li      a0, 0
+        jal     write_triggers
 
 main_exit:
         li      a0, 0
         j       _exit
 
-main_error:
-        li      a0, 1
-        j       _exit
+write_triggers:
+        // a0: value to write to each tdata1
+        // a1: value to write to each tdata2
+        li      t0, 0
+2:
+        csrw    CSR_TSELECT, t0
+        csrr    t1, CSR_TSELECT
+        bne     t0, t1, 1f
+        addi    t0, t0, 1
+        csrw    CSR_TDATA2, a1
+        csrw    CSR_TDATA1, a0
+        j       2b
+1:      ret
+
+read_triggers:
+        // a0: address where data should be written
+        li      t0, 0
+2:
+        csrw    CSR_TSELECT, t0
+        csrr    t1, CSR_TSELECT
+        bne     t0, t1, 1f
+        addi    t0, t0, 1
+        csrr    t1, CSR_TDATA1
+        SREG    t1, 0(a0)
+        csrr    t1, CSR_TDATA2
+        SREG    t1, REGBYTES(a0)
+        addi    a0, a0, 2*REGBYTES
+        j       2b
+1:      SREG    zero, 0(a0)
+        ret
 
         .data
 data:   .word   0x40

@@ -175,7 +175,9 @@ class TestFailed(Exception):
         Exception.__init__(self)
         self.message = message
 
-def run_all_tests(target, tests):
+def run_all_tests(target, tests, fail_fast):
+    good_results = set(('pass', 'not_applicable'))
+
     results = {}
     module = sys.modules[__name__]
     for name in dir(module):
@@ -185,10 +187,10 @@ def run_all_tests(target, tests):
             instance = definition(target)
             result = instance.run()
             results.setdefault(result, []).append(name)
+            if result not in good_results and fail_fast:
+                break
 
     print ":" * 40
-
-    good_results = set(('pass', 'not_applicable'))
 
     result = 0
     for key, value in results.iteritems():
@@ -592,17 +594,47 @@ class TriggerStoreAddressInstant(TriggerTest):
         assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
 class TriggerDmode(TriggerTest):
+    def check_triggers(self, tdata1_lsbs, tdata2):
+        dmode = 1 << (self.target.xlen-5)
+
+        triggers = []
+
+        if self.target.xlen == 32:
+            xlen_type = 'int'
+        elif self.target.xlen == 64:
+            xlen_type = 'long long'
+        else:
+            raise NotImplementedError
+
+        dmode_count = 0
+        i = 0
+        for i in range(16):
+            tdata1 = self.gdb.p("((%s *)&data)[%d]" % (xlen_type, 2*i))
+            if tdata1 == 0:
+                break
+            tdata2 = self.gdb.p("((%s *)&data)[%d]" % (xlen_type, 2*i+1))
+
+            if tdata1 & dmode:
+                dmode_count += 1
+            else:
+                assertEqual(tdata1 & 0xffff, tdata1_lsbs)
+                assertEqual(tdata2, tdata2)
+
+        assertGreater(i, 1)
+        assertEqual(dmode_count, 1)
+
+        return triggers
+
     def test(self):
-        return 'not_applicable'
-        # pylint: disable=unreachable
-        # Temporarily not applicable until spike is fixed to match the spec
-        # change.
-        self.gdb.command("hbreak handle_trap")
-        self.gdb.p("$pc=write_valid")
+        self.gdb.command("hbreak write_load_trigger")
+        self.gdb.b("clear_triggers")
+        self.gdb.p("$pc=write_store_trigger")
         output = self.gdb.c()
-        assertIn("handle_trap", output)
-        assertIn("mcause=2", output)
-        assertIn("mepc=%d" % self.gdb.p("&write_invalid_illegal"), output)
+        assertIn("write_load_trigger", output)
+        self.check_triggers((1<<6) | (1<<1), 0xdeadbee0)
+        output = self.gdb.c()
+        assertIn("clear_triggers", output)
+        self.check_triggers((1<<6) | (1<<0), 0xfeedac00)
 
 class RegsTest(GdbTest):
     compile_args = ("programs/regs.S", )
@@ -893,6 +925,9 @@ def main():
             "the same time. This may make it harder to debug a failure if it "
             "does occur.")
 
+    parser.add_argument("--fail-fast", "-f", action="store_true",
+            help="Exit as soon as any test fails.")
+
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
 
@@ -904,7 +939,7 @@ def main():
     if parsed.xlen:
         target.xlen = parsed.xlen
 
-    return run_all_tests(target, parsed.test)
+    return run_all_tests(target, parsed.test, parsed.fail_fast)
 
 # TROUBLESHOOTING TIPS
 # If a particular test fails, run just that one test, eg.:
