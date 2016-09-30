@@ -1,4 +1,5 @@
 import os.path
+import re
 import shlex
 import subprocess
 import time
@@ -143,6 +144,11 @@ class Openocd(object):
         except OSError:
             pass
 
+class CannotAccess(Exception):
+    def __init__(self, address):
+        Exception.__init__(self)
+        self.address = address
+
 class Gdb(object):
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
@@ -187,6 +193,9 @@ class Gdb(object):
 
     def p(self, obj):
         output = self.command("p/x %s" % obj)
+        m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
+        if m:
+            raise CannotAccess(int(m.group(1), 0))
         value = int(output.split('=')[-1].strip(), 0)
         return value
 
@@ -197,7 +206,6 @@ class Gdb(object):
 
     def stepi(self):
         output = self.command("stepi")
-        assert "Cannot" not in output
         return output
 
     def load(self):
