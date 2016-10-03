@@ -293,6 +293,16 @@ class MemTest64(SimpleMemoryTest):
     def test(self):
         self.access_test(8, 'long long')
 
+class MemTestReadInvalid(SimpleMemoryTest):
+    def test(self):
+        # This test relies on 'gdb_report_data_abort enable' being executed in
+        # the openocd.cfg file.
+        try:
+            self.gdb.p("*((int*)0xdeadbeef)")
+            assert False, "Access should have failed."
+        except testlib.CannotAccess as e:
+            assertEqual(e.address, 0xdeadbeef)
+
 class MemTestBlock(GdbTest):
     def test(self):
         length = 1024
