@@ -413,16 +413,14 @@ test_ ## testnum: \
   li a2, flags; \
   bne a0, a3, fail; \
   bne a1, a2, fail; \
-  j 2f; \
+  .pushsection .data; \
   .align 2; \
-  .data; \
   test_ ## testnum ## _data: \
   .float val1; \
   .float val2; \
   .float val3; \
   .result; \
-  .text; \
-2:
+  .popsection
 
 #define TEST_FP_OP_D_INTERNAL( testnum, flags, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
@@ -437,16 +435,14 @@ test_ ## testnum: \
   li a2, flags; \
   bne a0, a3, fail; \
   bne a1, a2, fail; \
-  j 2f; \
-  .data; \
+  .pushsection .data; \
   .align 3; \
   test_ ## testnum ## _data: \
   .double val1; \
   .double val2; \
   .double val3; \
   .result; \
-  .text; \
-2:
+  .popsection
 
 #define TEST_FCVT_S_D( testnum, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, 0, double result, val1, 0.0, 0.0, \
@@ -522,11 +518,11 @@ test_ ## testnum: \
   fsflags x0; \
   fmv.x.s a0, f0; \
   bne a0, a3, fail; \
-  j 1f; \
+  .pushsection .data; \
   .align 2; \
   test_ ## testnum ## _data: \
   .float result; \
-1:
+  .popsection
 
 #define TEST_INT_FP_OP_D( testnum, inst, result, val1 ) \
 test_ ## testnum: \
@@ -538,11 +534,11 @@ test_ ## testnum: \
   fsflags x0; \
   fmv.x.d a0, f0; \
   bne a0, a3, fail; \
-  j 1f; \
+  .pushsection .data; \
   .align 3; \
   test_ ## testnum ## _data: \
   .double result; \
-1:
+  .popsection
 
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in TESTNUM)
