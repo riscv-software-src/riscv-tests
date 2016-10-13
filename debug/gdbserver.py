@@ -299,9 +299,21 @@ class MemTestReadInvalid(SimpleMemoryTest):
         # the openocd.cfg file.
         try:
             self.gdb.p("*((int*)0xdeadbeef)")
-            assert False, "Access should have failed."
+            assert False, "Read should have failed."
         except testlib.CannotAccess as e:
             assertEqual(e.address, 0xdeadbeef)
+        self.gdb.p("*((int*)0x%x)" % self.target.ram)
+
+class MemTestWriteInvalid(SimpleMemoryTest):
+    def test(self):
+        # This test relies on 'gdb_report_data_abort enable' being executed in
+        # the openocd.cfg file.
+        try:
+            self.gdb.p("*((int*)0xdeadbeef)=8675309")
+            assert False, "Write should have failed."
+        except testlib.CannotAccess as e:
+            assertEqual(e.address, 0xdeadbeef)
+        self.gdb.p("*((int*)0x%x)=6874742" % self.target.ram)
 
 class MemTestBlock(GdbTest):
     def test(self):
