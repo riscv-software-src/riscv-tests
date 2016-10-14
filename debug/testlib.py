@@ -137,6 +137,21 @@ class Openocd(object):
         # TODO: Pick a random port
         self.port = 3333
 
+        # Wait for OpenOCD to have made it through riscv_examine(). When using
+        # OpenOCD to communicate with a simulator this may take a long time,
+        # and gdb will time out when trying to connect if we attempt too early.
+        start = time.time()
+        messaged = False
+        while True:
+            log = open(Openocd.logname).read()
+            if "Examined RISCV core" in log:
+                break
+            if not self.process.poll() is None:
+                raise Exception("OpenOCD exited before completing riscv_examine()")
+            if not messaged and time.time() - start > 1:
+                messaged = True
+                print "Waiting for OpenOCD to examine RISCV core..."
+
     def __del__(self):
         try:
             self.process.kill()
