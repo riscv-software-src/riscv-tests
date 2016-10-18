@@ -2,15 +2,15 @@
 
 import argparse
 import binascii
-import os
 import random
-import re
 import sys
 import tempfile
 import time
-import traceback
 
+import targets
 import testlib
+from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
+from testlib import assertGreater, assertTrue, assertRegexpMatches
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -86,149 +86,19 @@ def ihex_parse(line):
 def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
 
-def header(title):
-    dashes = '-' * (36 - len(title))
-    before = dashes[:len(dashes)/2]
-    after = dashes[len(dashes)/2:]
-    print "%s[ %s ]%s" % (before, title, after)
-
-class GdbTest(object):
-    compiled = {}
-
+class GdbTest(testlib.BaseTest):
     def __init__(self, target):
-        self.target = target
-        self.server = None
-        self.binary = None
+        testlib.BaseTest.__init__(self, target)
         self.gdb = None
 
-    def setUp(self):
-        pass
-
-    def run(self):
-        """
-        If compile_args is set, compile a program and set self.binary.
-
-        Call setUp().
-
-        Then call test() and return the result, displaying relevant information
-        if an exception is raised.
-        """
-        self.server = self.target.server()
-
-        print "Running", type(self).__name__, "...",
-        sys.stdout.flush()
-
-        start = time.time()
-
-        compile_args = getattr(self, 'compile_args', None)
-        if compile_args:
-            if compile_args not in GdbTest.compiled:
-                try:
-                    # pylint: disable=star-args
-                    GdbTest.compiled[compile_args] = \
-                            self.target.compile(*compile_args)
-                except Exception: # pylint: disable=broad-except
-                    print "exception while compiling in %.2fs" % (
-                            time.time() - start)
-                    print "=" * 40
-                    header("Traceback")
-                    traceback.print_exc(file=sys.stdout)
-                    print "/" * 40
-                    return "exception"
-        self.binary = GdbTest.compiled.get(compile_args)
-
+    def classSetup(self):
+        testlib.BaseTest.classSetup(self)
+        self.logs.append("gdb.log")
         self.gdb = gdb(self.target, self.server.port, self.binary)
 
-        try:
-            self.setUp()
-            result = self.test()    # pylint: disable=no-member
-        except Exception as e: # pylint: disable=broad-except
-            if isinstance(e, TestFailed):
-                result = "fail"
-            else:
-                result = "exception"
-            print "%s in %.2fs" % (result, time.time() - start)
-            print "=" * 40
-            if isinstance(e, TestFailed):
-                header("Message")
-                print e.message
-            header("Traceback")
-            traceback.print_exc(file=sys.stdout)
-            header("gdb.log")
-            print open("gdb.log", "r").read()
-            header(self.server.logname)
-            print open(self.server.logname, "r").read()
-            print "/" * 40
-            return result
-
-        finally:
-            del self.server
-            del self.gdb
-
-        if not result:
-            result = 'pass'
-        print "%s in %.2fs" % (result, time.time() - start)
-        return result
-
-class TestFailed(Exception):
-    def __init__(self, message):
-        Exception.__init__(self)
-        self.message = message
-
-def run_all_tests(target, tests, fail_fast):
-    good_results = set(('pass', 'not_applicable'))
-
-    results = {}
-    module = sys.modules[__name__]
-    for name in dir(module):
-        definition = getattr(module, name)
-        if type(definition) == type and hasattr(definition, 'test') and \
-                (not tests or any(test in name for test in tests)):
-            instance = definition(target)
-            result = instance.run()
-            results.setdefault(result, []).append(name)
-            if result not in good_results and fail_fast:
-                break
-
-    print ":" * 40
-
-    result = 0
-    for key, value in results.iteritems():
-        print "%d tests returned %s" % (len(value), key)
-        if key not in good_results:
-            result = 1
-            for test in value:
-                print "   ", test
-
-    return result
-
-def assertEqual(a, b):
-    if a != b:
-        raise TestFailed("%r != %r" % (a, b))
-
-def assertNotEqual(a, b):
-    if a == b:
-        raise TestFailed("%r == %r" % (a, b))
-
-def assertIn(a, b):
-    if a not in b:
-        raise TestFailed("%r not in %r" % (a, b))
-
-def assertNotIn(a, b):
-    if a in b:
-        raise TestFailed("%r in %r" % (a, b))
-
-def assertGreater(a, b):
-    if not a > b:
-        raise TestFailed("%r not greater than %r" % (a, b))
-
-def assertTrue(a):
-    if not a:
-        raise TestFailed("%r is not True" % a)
-
-def assertRegexpMatches(text, regexp):
-    if not re.search(regexp, text):
-        raise TestFailed("can't find %r in %r" % (regexp, text))
+    def classTeardown(self):
+        del self.gdb
+        testlib.BaseTest.classTeardown(self)
 
 class SimpleRegisterTest(GdbTest):
     def check_reg(self, name):
@@ -241,7 +111,7 @@ class SimpleRegisterTest(GdbTest):
         self.gdb.stepi()
         assertEqual(self.gdb.p("$%s" % name), b)
 
-    def setUp(self):
+    def setup(self):
         # 0x13 is nop
         self.gdb.command("p *((int*) 0x%x)=0x13" % self.target.ram)
         self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 4))
@@ -374,7 +244,7 @@ class DebugTest(GdbTest):
     compile_args = ("programs/debug.c", "programs/checksum.c",
             "programs/tiny-malloc.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
 
-    def setUp(self):
+    def setup(self):
         self.gdb.load()
         self.gdb.b("_exit")
 
@@ -537,7 +407,7 @@ class UserInterrupt(DebugTest):
 class StepTest(GdbTest):
     compile_args = ("programs/step.S", )
 
-    def setUp(self):
+    def setup(self):
         self.gdb.load()
         self.gdb.b("main")
         self.gdb.c()
@@ -551,7 +421,7 @@ class StepTest(GdbTest):
 
 class TriggerTest(GdbTest):
     compile_args = ("programs/trigger.S", )
-    def setUp(self):
+    def setup(self):
         self.gdb.load()
         self.gdb.b("_exit")
         self.gdb.b("main")
@@ -660,7 +530,7 @@ class TriggerDmode(TriggerTest):
 
 class RegsTest(GdbTest):
     compile_args = ("programs/regs.S", )
-    def setUp(self):
+    def setup(self):
         self.gdb.load()
         self.gdb.b("main")
         self.gdb.b("handle_trap")
@@ -705,7 +575,8 @@ class WriteCsrs(RegsTest):
         assertEqual(123, self.gdb.p("$csr832"))
 
 class DownloadTest(GdbTest):
-    def setUp(self):
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
         length = min(2**20, self.target.ram_size - 2048)
         download_c = tempfile.NamedTemporaryFile(prefix="download_",
                 suffix=".c")
@@ -742,7 +613,7 @@ class DownloadTest(GdbTest):
 
 class MprvTest(GdbTest):
     compile_args = ("programs/mprv.S", )
-    def setUp(self):
+    def setup(self):
         self.gdb.load()
 
     def test(self):
@@ -755,7 +626,8 @@ class MprvTest(GdbTest):
 
 class PrivTest(GdbTest):
     compile_args = ("programs/priv.S", )
-    def setUp(self):
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
         self.gdb.load()
 
         misa = self.gdb.p("$misa")
@@ -802,166 +674,32 @@ class PrivChange(PrivTest):
         pc = self.gdb.p("$pc")
         assertTrue(pc < main_address or pc > main_address + 0x100)
 
-class Target(object):
-    name = "name"
-    xlen = 0
-    directory = None
-    timeout_sec = 2
-    temporary_files = []
-    temporary_binary = None
-
-    def server(self):
-        raise NotImplementedError
-
-    def compile(self, *sources):
-        binary_name = "%s_%s-%d" % (
-                self.name,
-                os.path.basename(os.path.splitext(sources[0])[0]),
-                self.xlen)
-        if parsed.isolate:
-            self.temporary_binary = tempfile.NamedTemporaryFile(
-                    prefix=binary_name + "_")
-            binary_name = self.temporary_binary.name
-            Target.temporary_files.append(self.temporary_binary)
-        testlib.compile(sources +
-                ("programs/entry.S", "programs/init.c",
-                    "-I", "../env",
-                    "-T", "targets/%s/link.lds" % (self.directory or self.name),
-                    "-nostartfiles",
-                    "-mcmodel=medany",
-                    "-o", binary_name),
-                xlen=self.xlen)
-        return binary_name
-
-class SpikeTarget(Target):
-    directory = "spike"
-    ram = 0x80010000
-    ram_size = 5 * 1024 * 1024
-    instruction_hardware_breakpoint_count = 4
-    reset_vector = 0x1000
-
-class Spike64Target(SpikeTarget):
-    name = "spike64"
-    xlen = 64
-
-    def server(self):
-        return testlib.Spike(parsed.cmd, halted=True)
-
-class Spike32Target(SpikeTarget):
-    name = "spike32"
-    xlen = 32
-
-    def server(self):
-        return testlib.Spike(parsed.cmd, halted=True, xlen=32)
-
-class FreedomE300Target(Target):
-    name = "freedom-e300"
-    xlen = 32
-    ram = 0x80000000
-    ram_size = 16 * 1024
-    instruction_hardware_breakpoint_count = 2
-
-    def server(self):
-        return testlib.Openocd(cmd=parsed.cmd,
-                config="targets/%s/openocd.cfg" % self.name)
-
-class FreedomE300SimTarget(Target):
-    name = "freedom-e300-sim"
-    xlen = 32
-    timeout_sec = 240
-    ram = 0x80000000
-    ram_size = 256 * 1024 * 1024
-    instruction_hardware_breakpoint_count = 2
-
-    def server(self):
-        sim = testlib.VcsSim(simv=parsed.run, debug=False)
-        openocd = testlib.Openocd(cmd=parsed.cmd,
-                            config="targets/%s/openocd.cfg" % self.name,
-                            otherProcess=sim)
-        time.sleep(20)
-        return openocd
-
-class FreedomU500Target(Target):
-    name = "freedom-u500"
-    xlen = 64
-    ram = 0x80000000
-    ram_size = 16 * 1024
-    instruction_hardware_breakpoint_count = 2
-
-    def server(self):
-        return testlib.Openocd(cmd=parsed.cmd,
-                config="targets/%s/openocd.cfg" % self.name)
-
-class FreedomU500SimTarget(Target):
-    name = "freedom-u500-sim"
-    xlen = 64
-    timeout_sec = 240
-    ram = 0x80000000
-    ram_size = 256 * 1024 * 1024
-    instruction_hardware_breakpoint_count = 2
-
-    def server(self):
-        sim = testlib.VcsSim(simv=parsed.run, debug=False)
-        openocd = testlib.Openocd(cmd=parsed.cmd,
-                            config="targets/%s/openocd.cfg" % self.name,
-                            otherProcess=sim)
-        time.sleep(20)
-        return openocd
-
-targets = [
-        Spike32Target,
-        Spike64Target,
-        FreedomE300Target,
-        FreedomU500Target,
-        FreedomE300SimTarget,
-        FreedomU500SimTarget]
-
 parsed = None
 def main():
     parser = argparse.ArgumentParser(
+            description="Test that gdb can talk to a RISC-V target.",
             epilog="""
             Example command line from the real world:
             Run all RegsTest cases against a physical FPGA, with custom openocd command:
-            ./gdbserver.py --freedom-e300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" RegsTest
+            ./gdbserver.py --freedom-e300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" Simple
             """)
-    group = parser.add_mutually_exclusive_group(required=True)
-    for t in targets:
-        group.add_argument("--%s" % t.name, action="store_const", const=t,
-                dest="target")
-    parser.add_argument("--run",
-            help="The command to use to start the actual target (e.g. "
-            "simulation)")
-    parser.add_argument("--cmd",
-            help="The command to use to start the debug server.")
+    targets.add_target_options(parser)
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
 
-    xlen_group = parser.add_mutually_exclusive_group()
-    xlen_group.add_argument("--32", action="store_const", const=32, dest="xlen",
-            help="Force the target to be 32-bit.")
-    xlen_group.add_argument("--64", action="store_const", const=64, dest="xlen",
-            help="Force the target to be 64-bit.")
-
-    parser.add_argument("--isolate", action="store_true",
-            help="Try to run in such a way that multiple instances can run at "
-            "the same time. This may make it harder to debug a failure if it "
-            "does occur.")
-
-    parser.add_argument("--fail-fast", "-f", action="store_true",
-            help="Exit as soon as any test fails.")
-
-    parser.add_argument("test", nargs='*',
-            help="Run only tests that are named here.")
+    testlib.add_test_run_options(parser)
 
     # TODO: remove global
     global parsed   # pylint: disable=global-statement
     parsed = parser.parse_args()
 
-    target = parsed.target()
+    target = parsed.target(parsed.cmd, parsed.run, parsed.isolate)
     if parsed.xlen:
         target.xlen = parsed.xlen
 
-    return run_all_tests(target, parsed.test, parsed.fail_fast)
+    module = sys.modules[__name__]
+
+    return testlib.run_all_tests(module, target, parsed.test, parsed.fail_fast)
 
 # TROUBLESHOOTING TIPS
 # If a particular test fails, run just that one test, eg.:
