@@ -129,13 +129,19 @@ class Openocd(object):
             cmd += ["-f", find_file(config)]
         if debug:
             cmd.append("-d")
+
+        # Assign port
+        self.port = unused_port()
+        print "Using port %d for gdb server" % self.port
+        # This command needs to come before any config scripts on the command
+        # line, since they are executed in order.
+        cmd[1:1] = ["--command", "gdb_port %d" % self.port]
+
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
-        # TODO: Pick a random port
-        self.port = 3333
 
         # Wait for OpenOCD to have made it through riscv_examine(). When using
         # OpenOCD to communicate with a simulator this may take a long time,
