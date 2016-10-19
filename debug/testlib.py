@@ -108,7 +108,7 @@ class VcsSim(object):
             if match:
                 done = True
                 self.port = int(match.group(1))
-                print "Using port %d for JTAG VPI" % self.port
+                os.environ['JTAG_VPI_PORT'] = str(self.port)
 
     def __del__(self):
         try:
@@ -132,19 +132,15 @@ class Openocd(object):
 
         # Assign port
         self.port = unused_port()
-        print "Using port %d for gdb server" % self.port
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
         cmd[1:1] = ["--command", "gdb_port %d" % self.port]
-
-        env = os.environ.copy()
-        env['JTAG_VPI_PORT'] = str(otherProcess.port)
 
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                stdout=logfile, stderr=logfile, env=env)
+                stdout=logfile, stderr=logfile)
 
         # Wait for OpenOCD to have made it through riscv_examine(). When using
         # OpenOCD to communicate with a simulator this may take a long time,
@@ -171,7 +167,8 @@ class Openocd(object):
 
 class OpenocdCli(object):
     def __init__(self, port=4444):
-        self.child = pexpect.spawn("sh -c 'telnet localhost %d | tee openocd-cli.log'" % port)
+        self.child = pexpect.spawn(
+                "sh -c 'telnet localhost %d | tee openocd-cli.log'" % port)
         self.child.expect("> ")
 
     def command(self, cmd):
