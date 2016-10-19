@@ -7,7 +7,7 @@ import sys
 
 import targets
 import testlib
-from testlib import assertGreater
+from testlib import assertRegexpMatches
 
 class OpenOcdTest(testlib.BaseTest):
     def __init__(self, target):
@@ -23,8 +23,10 @@ class OpenOcdTest(testlib.BaseTest):
 
 class RegTest(OpenOcdTest):
     def test(self):
+        self.cli.command("halt")
         output = self.cli.command("reg")
-        assertGreater(len(output), 1)
+        assertRegexpMatches(output, r"x18 \(/%d\): 0x[0-9A-F]+" %
+                self.target.xlen)
 
 def main():
     parser = argparse.ArgumentParser(
