@@ -7,7 +7,7 @@ import sys
 
 import targets
 import testlib
-from testlib import assertRegexpMatches
+from testlib import assertIn, assertEqual
 
 class OpenOcdTest(testlib.BaseTest):
     def __init__(self, target):
@@ -20,13 +20,42 @@ class OpenOcdTest(testlib.BaseTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
         self.cli = testlib.OpenocdCli()
+        self.cli.command("halt")
 
 class RegTest(OpenOcdTest):
     def test(self):
-        self.cli.command("halt")
-        output = self.cli.command("reg")
-        assertRegexpMatches(output, r"x18 \(/%d\): 0x[0-9A-F]+" %
-                self.target.xlen)
+        regs = self.cli.reg()
+        assertIn("x18", regs)
+
+class StepTest(OpenOcdTest):
+    def test(self):
+        # 0x13 is nop
+        for address in range(self.target.ram, self.target.ram + 16, 4):
+            self.cli.command("mww 0x%x 0x13" % address)
+
+        self.cli.command("step 0x%x" % self.target.ram)
+        for i in range(4):
+            pc = self.cli.reg("pc")
+            assertEqual(pc, self.target.ram + 4 * (i+1))
+            self.cli.command("step")
+
+class ResumeTest(OpenOcdTest):
+    def test(self):
+        # 0x13 is nop
+        for address in range(self.target.ram, self.target.ram + 32, 4):
+            self.cli.command("mww 0x%x 0x13" % address)
+
+        self.cli.command("bp 0x%x 4" % (self.target.ram + 12))
+        self.cli.command("bp 0x%x 4" % (self.target.ram + 24))
+
+        self.cli.command("resume 0x%x" % self.target.ram)
+        assertEqual(self.cli.reg("pc"), self.target.ram + 12)
+
+        self.cli.command("resume")
+        assertEqual(self.cli.reg("pc"), self.target.ram + 24)
+
+        self.cli.command("resume 0x%x" % self.target.ram)
+        assertEqual(self.cli.reg("pc"), self.target.ram + 12)
 
 def main():
     parser = argparse.ArgumentParser(

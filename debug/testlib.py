@@ -173,9 +173,23 @@ class OpenocdCli(object):
 
     def command(self, cmd):
         self.child.sendline(cmd)
+        self.child.expect(cmd)
         self.child.expect("\n")
         self.child.expect("> ")
-        return self.child.before.strip()
+        return self.child.before.strip("\t\r\n \0")
+
+    def reg(self, reg=''):
+        output = self.command("reg %s" % reg)
+        matches = re.findall(r"(\w+) \(/\d+\): (0x[0-9A-F]+)", output)
+        values = {r: int(v, 0) for r, v in matches}
+        if reg:
+            return values[reg]
+        return values
+
+    def load_image(self, image):
+        output = self.command("load_image %s" % image)
+        if 'invalid ELF file, only 32bits files are supported' in output:
+            raise TestNotApplicable(output)
 
 class CannotAccess(Exception):
     def __init__(self, address):
@@ -372,6 +386,8 @@ class BaseTest(object):
         try:
             self.setup()
             result = self.test()    # pylint: disable=no-member
+        except TestNotApplicable:
+            result = "not_applicable"
         except Exception as e: # pylint: disable=broad-except
             if isinstance(e, TestFailed):
                 result = "fail"
@@ -399,6 +415,11 @@ class BaseTest(object):
         return result
 
 class TestFailed(Exception):
+    def __init__(self, message):
+        Exception.__init__(self)
+        self.message = message
+
+class TestNotApplicable(Exception):
     def __init__(self, message):
         Exception.__init__(self)
         self.message = message
