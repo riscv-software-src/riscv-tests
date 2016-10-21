@@ -22,16 +22,26 @@ class OpenOcdTest(testlib.BaseTest):
         self.cli = testlib.OpenocdCli()
         self.cli.command("halt")
 
+    def write_nops(self, count):
+        for address in range(self.target.ram, self.target.ram + 4 * count, 4):
+            # 0x13 is nop
+            self.cli.command("mww 0x%x 0x13" % address)
+
 class RegTest(OpenOcdTest):
     def test(self):
+        self.write_nops(4)
+
         regs = self.cli.reg()
         assertIn("x18", regs)
 
+        self.cli.command("reg x18 0x11782")
+        self.cli.command("step 0x%x" % self.target.ram)
+
+        assertEqual(self.cli.reg("x18"), 0x11782)
+
 class StepTest(OpenOcdTest):
     def test(self):
-        # 0x13 is nop
-        for address in range(self.target.ram, self.target.ram + 16, 4):
-            self.cli.command("mww 0x%x 0x13" % address)
+        self.write_nops(4)
 
         self.cli.command("step 0x%x" % self.target.ram)
         for i in range(4):
@@ -41,9 +51,7 @@ class StepTest(OpenOcdTest):
 
 class ResumeTest(OpenOcdTest):
     def test(self):
-        # 0x13 is nop
-        for address in range(self.target.ram, self.target.ram + 32, 4):
-            self.cli.command("mww 0x%x 0x13" % address)
+        self.write_nops(16)
 
         self.cli.command("bp 0x%x 4" % (self.target.ram + 12))
         self.cli.command("bp 0x%x 4" % (self.target.ram + 24))
