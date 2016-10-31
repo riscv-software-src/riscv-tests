@@ -41,6 +41,7 @@ class Target(object):
         testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
                     "-I", "../env",
+                    "-march=RV%dIMAF" % self.xlen,
                     "-T", "targets/%s/link.lds" % (self.directory or self.name),
                     "-nostartfiles",
                     "-mcmodel=medany",

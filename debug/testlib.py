@@ -238,6 +238,13 @@ class Gdb(object):
         value = int(output.split(':')[1].strip(), 0)
         return value
 
+    def p_raw(self, obj):
+        output = self.command("p %s" % obj)
+        m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
+        if m:
+            raise CannotAccess(int(m.group(1), 0))
+        return output.split('=')[-1].strip()
+
     def p(self, obj):
         output = self.command("p/x %s" % obj)
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
@@ -443,6 +450,10 @@ def assertNotIn(a, b):
 def assertGreater(a, b):
     if not a > b:
         raise TestFailed("%r not greater than %r" % (a, b))
+
+def assertLess(a, b):
+    if not a < b:
+        raise TestFailed("%r not less than %r" % (a, b))
 
 def assertTrue(a):
     if not a:

@@ -9,8 +9,8 @@ import time
 
 import targets
 import testlib
-from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
-from testlib import assertGreater, assertTrue, assertRegexpMatches
+from testlib import assertEqual, assertNotEqual, assertIn
+from testlib import assertGreater, assertTrue, assertRegexpMatches, assertLess
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -133,6 +133,23 @@ class SimpleT0Test(SimpleRegisterTest):
 class SimpleT1Test(SimpleRegisterTest):
     def test(self):
         self.check_reg("t1")
+
+class SimpleF18Test(SimpleRegisterTest):
+    def check_reg(self, name):
+        a = random.random()
+        b = random.random()
+        self.gdb.p_raw("$%s=%f" % (name, a))
+        self.gdb.stepi()
+        assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - a), .001)
+        self.gdb.p_raw("$%s=%f" % (name, b))
+        self.gdb.stepi()
+        assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
+
+    def test(self):
+        misa = self.gdb.p("$misa")
+        if not misa & (1<<(ord('F')-ord('A'))):
+            return 'not_applicable'
+        self.check_reg("f18")
 
 class SimpleMemoryTest(GdbTest):
     def access_test(self, size, data_type):
@@ -367,7 +384,6 @@ class Registers(DebugTest):
         # Try both forms to test gdb.
         for cmd in ("info all-registers", "info registers all"):
             output = self.gdb.command(cmd)
-            assertNotIn("Could not", output)
             for reg in ('zero', 'ra', 'sp', 'gp', 'tp'):
                 assertIn(reg, output)
 
