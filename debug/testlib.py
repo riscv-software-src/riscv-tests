@@ -130,11 +130,10 @@ class Openocd(object):
         if debug:
             cmd.append("-d")
 
-        # Assign port
-        self.port = unused_port()
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
-        cmd[1:1] = ["--command", "gdb_port %d" % self.port]
+        # Tell OpenOCD to bind to an unused port.
+        cmd[1:1] = ["--command", "gdb_port %d" % 0]
 
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
@@ -157,6 +156,31 @@ class Openocd(object):
             if not messaged and time.time() - start > 1:
                 messaged = True
                 print "Waiting for OpenOCD to examine RISCV core..."
+
+        self.port = self._get_gdb_server_port()
+
+    def _get_gdb_server_port(self):
+        """Get port that OpenOCD's gdb server is listening on."""
+        MAX_ATTEMPTS = 5
+        PORT_REGEX = re.compile(r'(?P<port>\d+) \(LISTEN\)')
+        for _ in range(MAX_ATTEMPTS):
+            with open(os.devnull, 'w') as devnull:
+                output = subprocess.check_output([
+                    'lsof',
+                    '-a',  # Take the AND of the following selectors
+                    '-p{}'.format(self.process.pid),  # Filter on PID
+                    '-iTCP',  # Filter only TCP sockets
+                ], stderr=devnull)
+            matches = list(PORT_REGEX.finditer(output))
+            if len(matches) > 1:
+                raise Exception(
+                    "OpenOCD listening on multiple ports. Cannot uniquely "
+                    "identify gdb server port.")
+            elif matches:
+                [match] = matches
+                return int(match.group('port'))
+            time.sleep(1)
+        raise Exception("Timed out waiting for gdb server to obtain port.")
 
     def __del__(self):
         try:
