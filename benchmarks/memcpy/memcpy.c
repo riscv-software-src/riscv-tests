@@ -9,9 +9,9 @@ void fill(int *arr, size_t n)
 	}
 }
 
-#pragma GCC optimize ("unroll-loops")
+//#pragma GCC optimize ("unroll-loops")
 
-#define UNROLL 4
+#define UNROLL 8
 
 void fast_memcpy(void *dst, void *src, size_t len)
 {
@@ -23,8 +23,16 @@ void fast_memcpy(void *dst, void *src, size_t len)
 		size_t lenu = ((n / UNROLL) * UNROLL) * sizeof(uintptr_t);
 
 		while (d < (uintptr_t *)(dst + lenu)) {
-			for (int i = 0; i < UNROLL; i++)
-				d[i] = s[i];
+			//for (int i = 0; i < UNROLL; i++)
+			//	d[i] = s[i];
+			d[0] = s[0];
+			d[1] = s[1];
+			d[2] = s[2];
+			d[3] = s[3];
+			d[4] = s[4];
+			d[5] = s[5];
+			d[6] = s[6];
+			d[7] = s[7];
 			d += UNROLL;
 			s += UNROLL;
 		}

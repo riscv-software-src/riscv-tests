@@ -3,8 +3,8 @@
 #include "util.h"
 #include "memcpy.h"
 
-#define MAX_SIZE 4 * 4096
-#define START_SIZE 256
+#define MAX_SIZE 256 * 1024
+#define START_SIZE 1024
 
 int a[MAX_SIZE / sizeof(int)];
 int b[MAX_SIZE / sizeof(int)];
