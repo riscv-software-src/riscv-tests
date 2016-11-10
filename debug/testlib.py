@@ -161,7 +161,7 @@ class Openocd(object):
 
     def _get_gdb_server_port(self):
         """Get port that OpenOCD's gdb server is listening on."""
-        MAX_ATTEMPTS = 5
+        MAX_ATTEMPTS = 50
         PORT_REGEX = re.compile(r'(?P<port>\d+) \(LISTEN\)')
         for _ in range(MAX_ATTEMPTS):
             with open(os.devnull, 'w') as devnull:
@@ -179,7 +179,7 @@ class Openocd(object):
             elif matches:
                 [match] = matches
                 return int(match.group('port'))
-            time.sleep(1)
+            time.sleep(0.1)
         raise Exception("Timed out waiting for gdb server to obtain port.")
 
     def __del__(self):
