@@ -18,13 +18,6 @@ RVTEST_CODE_BEGIN
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
     sw a0, 0(a3); \
-    nop; nop; nop; nop; \
-    nop; nop; nop; nop; \
-    nop; nop; nop; nop; \
-    nop; nop; nop; nop; \
-    nop; nop; nop; nop; \
-    nop; nop; nop; nop; \
-    nop; nop; nop; nop; \
     amoadd.w	a4, a1, 0(a3); \
   )
 
@@ -33,15 +26,6 @@ RVTEST_CODE_BEGIN
   # try again after a cache miss
   TEST_CASE(4, a4, 0x000000007ffff800, \
     li  a1, 0xffffffff80000000; \
-    li  a4, 16384; \
-    add a5, a3, a4; \
-    lw  x0, 0(a5); \
-    add a5, a5, a4; \
-    lw  x0, 0(a5); \
-    add a5, a5, a4; \
-    lw  x0, 0(a5); \
-    add a5, a5, a4; \
-    lw  x0, 0(a5); \
     amoadd.w a4, a1, 0(a3); \
   )
 
@@ -62,4 +46,3 @@ RVTEST_DATA_END
     .align 3
 amo_operand:
     .dword 0
-    .skip 65536
