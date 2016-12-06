@@ -6,11 +6,10 @@
 #define MAX_SIZE 256 * 1024
 #define START_SIZE 1024
 
-int a[MAX_SIZE / sizeof(int)];
-int b[MAX_SIZE / sizeof(int)];
-
 void thread_entry(int cid, int nc)
 {
+	int a[MAX_SIZE / sizeof(int)];
+	int b[MAX_SIZE / sizeof(int)];
 
 	int copy_size = START_SIZE;
 
