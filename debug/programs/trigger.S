@@ -1,6 +1,6 @@
 #include "../../env/encoding.h"
 
-#ifdef __riscv64
+#if __riscv_xlen == 64
 # define LREG ld
 # define SREG sd
 # define REGBYTES 8
@@ -12,7 +12,7 @@
 
 #undef MCONTROL_TYPE
 #undef MCONTROL_DMODE
-#ifdef __riscv64
+#if __riscv_xlen == 64
 # define MCONTROL_TYPE    (0xf<<(64-4))
 # define MCONTROL_DMODE   (1<<(64-5))
 #else

@@ -18,7 +18,7 @@ RVTEST_CODE_BEGIN
   #-------------------------------------------------------------
 
 #define TEST_SRL(n, v, a) \
-  TEST_IMM_OP(n, srli, ((v) & ((1 << (_RISCV_SZLONG-1) << 1) - 1)) >> (a), v, a)
+  TEST_IMM_OP(n, srli, ((v) & ((1 << (__riscv_xlen-1) << 1) - 1)) >> (a), v, a)
 
   TEST_SRL( 2,  0xffffffff80000000, 0  );
   TEST_SRL( 3,  0xffffffff80000000, 1  );

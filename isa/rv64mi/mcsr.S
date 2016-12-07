@@ -14,7 +14,7 @@ RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
   # Check that mcpuid reports the correct XLEN
-#ifdef __riscv64
+#if __riscv_xlen == 64
   TEST_CASE(2, a0, 0x2, csrr a0, misa; srl a0, a0, 62)
 #else
   TEST_CASE(2, a0, 0x1, csrr a0, misa; srl a0, a0, 30)

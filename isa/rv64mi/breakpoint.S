@@ -23,7 +23,7 @@ RVTEST_CODE_BEGIN
 
   # Make sure there's a breakpoint there.
   csrr a0, tdata1
-  srli a0, a0, _RISCV_SZLONG-4
+  srli a0, a0, __riscv_xlen - 4
   li a1, 2
   bne a0, a1, pass
 
@@ -90,7 +90,7 @@ RVTEST_CODE_BEGIN
 
   # Make sure there's a breakpoint there.
   csrr a0, tdata1
-  srli a0, a0, _RISCV_SZLONG-4
+  srli a0, a0, __riscv_xlen - 4
   li a1, 2
   bne a0, a1, pass
 

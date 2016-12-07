@@ -2,7 +2,7 @@
 
 #include "encoding.h"
 
-#ifdef __riscv64
+#if __riscv_xlen == 64
 # define LREG ld
 # define SREG sd
 # define REGBYTES 8
@@ -56,7 +56,7 @@ _start:
 
   # make sure XLEN agrees with compilation choice
   csrr t0, misa
-#ifdef __riscv64
+#if __riscv_xlen == 64
   bltz t0, 1f
 #else
   bgez t0, 1f

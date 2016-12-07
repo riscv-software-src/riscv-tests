@@ -31,7 +31,7 @@ RVTEST_CODE_BEGIN
   MISALIGNED_LDST_TEST(5,  lw,  s0, 2)
   MISALIGNED_LDST_TEST(6,  lw,  s0, 3)
 
-#ifdef __riscv64
+#if __riscv_xlen == 64
   MISALIGNED_LDST_TEST(7,  lwu, s0, 1)
   MISALIGNED_LDST_TEST(8,  lwu, s0, 2)
   MISALIGNED_LDST_TEST(9,  lwu, s0, 3)
@@ -53,7 +53,7 @@ RVTEST_CODE_BEGIN
   MISALIGNED_LDST_TEST(24,  sw,  s0, 2)
   MISALIGNED_LDST_TEST(25,  sw,  s0, 3)
 
-#ifdef __riscv64
+#if __riscv_xlen == 64
   MISALIGNED_LDST_TEST(26, sd, s0, 1)
   MISALIGNED_LDST_TEST(27, sd, s0, 2)
   MISALIGNED_LDST_TEST(28, sd, s0, 3)

@@ -40,18 +40,18 @@ RVTEST_CODE_BEGIN
 
   la a1, data
   RVC_TEST_CASE (6, a2, 0xfffffffffedcba99, c.lw a0, 4(a1); addi a0, a0, 1; c.sw a0, 4(a1); c.lw a2, 4(a1))
-#ifdef __riscv64
+#if __riscv_xlen == 64
   RVC_TEST_CASE (7, a2, 0xfedcba9976543211, c.ld a0, 0(a1); addi a0, a0, 1; c.sd a0, 0(a1); c.ld a2, 0(a1))
 #endif
 
   RVC_TEST_CASE (8, a0, -15, ori a0, x0, 1; c.addi a0, -16)
   RVC_TEST_CASE (9, a5, -16, ori a5, x0, 1; c.li a5, -16)
-#ifdef __riscv64
+#if __riscv_xlen == 64
   RVC_TEST_CASE (10, a0, 0x76543210, ld a0, (a1); c.addiw a0, -1)
 #endif
 
   RVC_TEST_CASE (11, s0, 0xffffffffffffffe1, c.lui s0, 0xfffe1; c.srai s0, 12)
-#ifdef __riscv64
+#if __riscv_xlen == 64
   RVC_TEST_CASE (12, s0, 0x000fffffffffffe1, c.lui s0, 0xfffe1; c.srli s0, 12)
 #else
   RVC_TEST_CASE (12, s0, 0x000fffe1, c.lui s0, 0xfffe1; c.srli s0, 12)
@@ -61,7 +61,7 @@ RVTEST_CODE_BEGIN
   RVC_TEST_CASE (16, s1, 18, li s1, 20; li a0, 6; c.xor s1, a0)
   RVC_TEST_CASE (17, s1, 22, li s1, 20; li a0, 6; c.or s1, a0)
   RVC_TEST_CASE (18, s1,  4, li s1, 20; li a0, 6; c.and s1, a0)
-#ifdef __riscv64
+#if __riscv_xlen == 64
   RVC_TEST_CASE (19, s1, 0xffffffff80000000, li s1, 0x7fffffff; li a0, -1; c.subw s1, a0)
   RVC_TEST_CASE (20, s1, 0xffffffff80000000, li s1, 0x7fffffff; li a0, 1; c.addw s1, a0)
 #endif
@@ -123,7 +123,7 @@ RVTEST_CODE_BEGIN
       2:j fail; \
       1:sub ra, ra, t0)
 
-#ifdef __riscv32
+#if __riscv_xlen == 32
   RVC_TEST_CASE (37, ra, -2, \
         la t0, 1f; \
         li ra, 0; \
@@ -136,7 +136,7 @@ RVTEST_CODE_BEGIN
 
   la sp, data
   RVC_TEST_CASE (40, a2, 0xfffffffffedcba99, c.lwsp a0, 12(sp); addi a0, a0, 1; c.swsp a0, 12(sp); c.lwsp a2, 12(sp))
-#ifdef __riscv64
+#if __riscv_xlen == 64
   RVC_TEST_CASE (41, a2, 0xfedcba9976543211, c.ldsp a0, 8(sp); addi a0, a0, 1; c.sdsp a0, 8(sp); c.ldsp a2, 8(sp))
 #endif
 
