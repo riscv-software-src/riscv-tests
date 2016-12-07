@@ -52,7 +52,7 @@
   RVTEST_ENABLE_SUPERVISOR;                                             \
   .endm
 
-#ifdef __riscv64
+#if __riscv_xlen == 64
 # define CHECK_XLEN csrr a0, misa; bltz a0, 1f; RVTEST_PASS; 1:
 #else
 # define CHECK_XLEN csrr a0, misa; bgez a0, 1f; RVTEST_PASS; 1:

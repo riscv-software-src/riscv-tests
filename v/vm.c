@@ -62,7 +62,7 @@ void wtf()
 #define l1pt pt[0]
 #define user_l2pt pt[1]
 #define kernel_l2pt pt[2]
-#ifdef __riscv64
+#if __riscv_xlen == 64
 # define NPT 5
 # define user_l3pt pt[3]
 # define kernel_l3pt pt[4]
@@ -204,7 +204,7 @@ void vm_boot(uintptr_t test_addr)
   l1pt[PTES_PER_PT-1] = ((pte_t)kernel_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
   // map user to lowermost megapage
   l1pt[0] = ((pte_t)user_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
-#ifdef __riscv64
+#if __riscv_xlen == 64
   kernel_l2pt[PTES_PER_PT-1] = ((pte_t)kernel_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
   user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
 #endif

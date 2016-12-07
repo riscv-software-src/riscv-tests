@@ -150,7 +150,7 @@
 
 #ifdef __riscv
 
-#ifdef __riscv64
+#if __riscv_xlen == 64
 # define MSTATUS_SD MSTATUS64_SD
 # define SSTATUS_SD SSTATUS64_SD
 # define RISCV_PGLEVEL_BITS 9
