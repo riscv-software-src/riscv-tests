@@ -64,6 +64,7 @@ class SpikeTarget(Target):
 class Spike64Target(SpikeTarget):
     name = "spike64"
     xlen = 64
+    use_fpu = True
 
     def server(self):
         return testlib.Spike(self.cmd, halted=True)
