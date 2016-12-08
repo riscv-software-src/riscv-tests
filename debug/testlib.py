@@ -27,9 +27,17 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
             cmd.append(found)
         else:
             cmd.append(arg)
-    cmd = " ".join(cmd)
-    result = os.system(cmd)
-    assert result == 0, "%r failed" % cmd
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    if process.returncode:
+        print
+        header("Compile failed")
+        print "+", " ".join(cmd)
+        print stdout,
+        print stderr,
+        header("")
+        raise Exception("Compile failed!")
 
 def unused_port():
     # http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
@@ -175,7 +183,8 @@ class Openocd(object):
                 except subprocess.CalledProcessError:
                     output = ""
             matches = list(PORT_REGEX.finditer(output))
-            matches = [m for m in matches if m.group('port') not in ('6666', '4444')]
+            matches = [m for m in matches
+                    if m.group('port') not in ('6666', '4444')]
             if len(matches) > 1:
                 print output
                 raise Exception(
@@ -345,10 +354,13 @@ def add_test_run_options(parser):
             help="Run only tests that are named here.")
 
 def header(title, dash='-'):
-    dashes = dash * (36 - len(title))
-    before = dashes[:len(dashes)/2]
-    after = dashes[len(dashes)/2:]
-    print "%s[ %s ]%s" % (before, title, after)
+    if title:
+        dashes = dash * (36 - len(title))
+        before = dashes[:len(dashes)/2]
+        after = dashes[len(dashes)/2:]
+        print "%s[ %s ]%s" % (before, title, after)
+    else:
+        print dash * 40
 
 class BaseTest(object):
     compiled = {}
