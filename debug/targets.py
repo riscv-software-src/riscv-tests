@@ -11,6 +11,7 @@ class Target(object):
     temporary_files = []
     temporary_binary = None
     openocd_config = []
+    use_fpu = False
 
     def __init__(self, cmd, run, isolate):
         self.cmd = cmd
@@ -38,10 +39,13 @@ class Target(object):
                     prefix=binary_name + "_")
             binary_name = self.temporary_binary.name
             Target.temporary_files.append(self.temporary_binary)
+        march = "RV%dIMA" % self.xlen
+        if self.use_fpu:
+            march += "FD"
         testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
                     "-I", "../env",
-                    "-march=RV%dIMAFD" % self.xlen,
+                    "-march=%s" % march,
                     "-T", "targets/%s/link.lds" % (self.directory or self.name),
                     "-nostartfiles",
                     "-mcmodel=medany",
