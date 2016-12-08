@@ -374,18 +374,9 @@ class BaseTest(object):
         compile_args = getattr(self, 'compile_args', None)
         if compile_args:
             if compile_args not in BaseTest.compiled:
-                try:
-                    # pylint: disable=star-args
-                    BaseTest.compiled[compile_args] = \
-                            self.target.compile(*compile_args)
-                except Exception: # pylint: disable=broad-except
-                    print "exception while compiling in %.2fs" % (
-                            time.time() - self.start)
-                    print "=" * 40
-                    header("Traceback")
-                    traceback.print_exc(file=sys.stdout)
-                    print "/" * 40
-                    return "exception"
+                # pylint: disable=star-args
+                BaseTest.compiled[compile_args] = \
+                        self.target.compile(*compile_args)
         self.binary = BaseTest.compiled.get(compile_args)
 
     def classSetup(self):
