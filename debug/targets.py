@@ -49,6 +49,7 @@ class Target(object):
                     "-T", "targets/%s/link.lds" % (self.directory or self.name),
                     "-nostartfiles",
                     "-mcmodel=medany",
+                    "-DXLEN=%d" % self.xlen,
                     "-o", binary_name),
                 xlen=self.xlen)
         return binary_name
