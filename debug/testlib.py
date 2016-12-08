@@ -165,14 +165,19 @@ class Openocd(object):
         PORT_REGEX = re.compile(r'(?P<port>\d+) \(LISTEN\)')
         for _ in range(MAX_ATTEMPTS):
             with open(os.devnull, 'w') as devnull:
-                output = subprocess.check_output([
-                    'lsof',
-                    '-a',  # Take the AND of the following selectors
-                    '-p{}'.format(self.process.pid),  # Filter on PID
-                    '-iTCP',  # Filter only TCP sockets
-                ], stderr=devnull)
+                try:
+                    output = subprocess.check_output([
+                        'lsof',
+                        '-a',  # Take the AND of the following selectors
+                        '-p{}'.format(self.process.pid),  # Filter on PID
+                        '-iTCP',  # Filter only TCP sockets
+                    ], stderr=devnull)
+                except subprocess.CalledProcessError:
+                    output = ""
             matches = list(PORT_REGEX.finditer(output))
+            matches = [m for m in matches if m.group('port') not in ('6666', '4444')]
             if len(matches) > 1:
+                print output
                 raise Exception(
                     "OpenOCD listening on multiple ports. Cannot uniquely "
                     "identify gdb server port.")
