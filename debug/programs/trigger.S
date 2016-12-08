@@ -1,6 +1,6 @@
 #include "../../env/encoding.h"
 
-#if __riscv_xlen == 64
+#if XLEN == 64
 # define LREG ld
 # define SREG sd
 # define REGBYTES 8

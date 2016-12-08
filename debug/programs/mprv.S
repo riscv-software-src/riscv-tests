@@ -12,7 +12,7 @@ main:
 
         # update mstatus
         csrr    t1, CSR_MSTATUS
-#if __riscv_xlen == 32
+#if XLEN == 32
         li      t0, (MSTATUS_MPRV | (VM_SV32 << 24))
 #else
         li      t0, (MSTATUS_MPRV | (VM_SV39 << 24))
@@ -38,7 +38,7 @@ data:
 
         .balign 0x1000
 page_table:
-#if __riscv_xlen == 32
+#if XLEN == 32
         .word   ((0x80000000 >> 2) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_G | PTE_U)
 #else
         .word   ((0x80000000 >> 2) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_G | PTE_U)
