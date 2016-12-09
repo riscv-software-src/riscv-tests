@@ -271,6 +271,16 @@ class DebugTest(GdbTest):
         assertIn("_exit", output)
         assertEqual(self.gdb.p("status"), expected_result)
 
+class DebugCompareSections(DebugTest):
+    def test(self):
+        output = self.gdb.command("compare-sections")
+        matched = 0
+        for line in output.splitlines():
+            if line.startswith("Section"):
+                assert line.endswith("matched.")
+                matched += 1
+        assertGreater(matched, 1)
+
 class DebugFunctionCall(DebugTest):
     def test(self):
         self.gdb.b("main:start")
