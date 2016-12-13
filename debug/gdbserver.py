@@ -591,8 +591,8 @@ class WriteCsrs(RegsTest):
         self.gdb.stepi()
         assertEqual(self.gdb.p("$mscratch"), 123)
 
-        self.gdb.command("p $pc=write_regs")
-        self.gdb.command("p $a0=data")
+        self.gdb.p("$pc=write_regs")
+        self.gdb.p("$x1=data")
         self.gdb.command("b all_done")
         self.gdb.command("c")
 
