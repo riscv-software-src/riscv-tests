@@ -39,9 +39,9 @@ class Target(object):
                     prefix=binary_name + "_")
             binary_name = self.temporary_binary.name
             Target.temporary_files.append(self.temporary_binary)
-        march = "RV%dIMA" % self.xlen
+        march = "rv%dima" % self.xlen
         if self.use_fpu:
-            march += "FD"
+            march += "fd"
         testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
                     "-I", "../env",
