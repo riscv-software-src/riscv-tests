@@ -140,8 +140,18 @@ class Openocd(object):
 
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
-        # Tell OpenOCD to bind to an unused port.
-        cmd[1:1] = ["--command", "gdb_port %d" % 0]
+        cmd[1:1] = [
+            # Tell OpenOCD to bind gdb to an unused, ephemeral port.
+            "--command",
+            "gdb_port 0",
+            # Disable tcl and telnet servers, since they are unused and because
+            # the port numbers will conflict if multiple OpenOCD processes are
+            # running on the same server.
+            "--command",
+            "tcl_port disabled",
+            "--command",
+            "telnet_port disabled",
+        ]
 
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
