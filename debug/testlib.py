@@ -327,23 +327,31 @@ class Gdb(object):
         assert "Hardware assisted breakpoint" in output
         return output
 
-def run_all_tests(module, target, tests, fail_fast):
+def run_all_tests(module, target, parsed):
     good_results = set(('pass', 'not_applicable'))
 
     start = time.time()
 
     results = {}
     count = 0
+
+    global gdb_cmd  # pylint: disable=global-statement
+    gdb_cmd = parsed.gdb
+
+    todo = [("ExamineTarget", ExamineTarget)]
     for name in dir(module):
         definition = getattr(module, name)
         if type(definition) == type and hasattr(definition, 'test') and \
-                (not tests or any(test in name for test in tests)):
-            instance = definition(target)
-            result = instance.run()
-            results.setdefault(result, []).append(name)
-            count += 1
-            if result not in good_results and fail_fast:
-                break
+                (not parsed.test or any(test in name for test in parsed.test)):
+            todo.append((name, definition))
+
+    for name, definition in todo:
+        instance = definition(target)
+        result = instance.run()
+        results.setdefault(result, []).append(name)
+        count += 1
+        if result not in good_results and parsed.fail_fast:
+            break
 
     header("ran %d tests in %.0fs" % (count, time.time() - start), dash=':')
 
@@ -362,6 +370,8 @@ def add_test_run_options(parser):
             help="Exit as soon as any test fails.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
+    parser.add_argument("--gdb",
+            help="The command to use to start gdb.")
 
 def header(title, dash='-'):
     if title:
@@ -372,9 +382,21 @@ def header(title, dash='-'):
     else:
         print dash * 40
 
+def print_log(path):
+    header(path)
+    lines = open(path, "r").readlines()
+    if len(lines) > 1000:
+        for l in lines[:500]:
+            sys.stdout.write(l)
+        print "..."
+        for l in lines[-500:]:
+            sys.stdout.write(l)
+    else:
+        for l in lines:
+            sys.stdout.write(l)
+
 class BaseTest(object):
     compiled = {}
-    logs = []
 
     def __init__(self, target):
         self.target = target
@@ -382,6 +404,7 @@ class BaseTest(object):
         self.target_process = None
         self.binary = None
         self.start = 0
+        self.logs = []
 
     def early_applicable(self):
         """Return a false value if the test has determined it cannot run
@@ -450,8 +473,7 @@ class BaseTest(object):
             header("Traceback")
             traceback.print_exc(file=sys.stdout)
             for log in self.logs:
-                header(log)
-                print open(log, "r").read()
+                print_log(log)
             print "/" * 40
             return result
 
@@ -462,6 +484,55 @@ class BaseTest(object):
             result = 'pass'
         print "%s in %.2fs" % (result, time.time() - self.start)
         return result
+
+gdb_cmd = None
+class GdbTest(BaseTest):
+    def __init__(self, target):
+        BaseTest.__init__(self, target)
+        self.gdb = None
+
+    def classSetup(self):
+        BaseTest.classSetup(self)
+        self.logs.append("gdb.log")
+
+        if gdb_cmd:
+            self.gdb = Gdb(gdb_cmd)
+        else:
+            self.gdb = Gdb()
+
+        if self.binary:
+            self.gdb.command("file %s" % self.binary)
+        if self.target:
+            self.gdb.command("set arch riscv:rv%d" % self.target.xlen)
+            self.gdb.command("set remotetimeout %d" % self.target.timeout_sec)
+        if self.server.port:
+            self.gdb.command(
+                    "target extended-remote localhost:%d" % self.server.port)
+
+        self.gdb.p("$priv=3")
+
+    def classTeardown(self):
+        del self.gdb
+        BaseTest.classTeardown(self)
+
+class ExamineTarget(GdbTest):
+    def test(self):
+        self.target.misa = self.gdb.p("$misa")
+
+        txt = "RV"
+        if (self.target.misa >> 30) == 1:
+            txt += "32"
+        elif (self.target.misa >> 62) == 2:
+            txt += "64"
+        elif (self.target.misa >> 126) == 3:
+            txt += "128"
+        else:
+            txt += "??"
+
+        for i in range(26):
+            if self.target.misa & (1<<i):
+                txt += chr(i + ord('A'))
+        print txt,
 
 class TestFailed(Exception):
     def __init__(self, message):

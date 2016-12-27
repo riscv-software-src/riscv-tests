@@ -101,6 +101,7 @@ read_triggers:
         ret
 
         .data
+        .align  3
 data:   .word   0x40
         .word   0x41
         .word   0x42

@@ -11,6 +11,7 @@ import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn
 from testlib import assertGreater, assertTrue, assertRegexpMatches, assertLess
+from testlib import GdbTest
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -33,30 +34,6 @@ MSTATUS32_SD = 0x80000000
 MSTATUS64_SD = 0x8000000000000000
 
 # pylint: disable=abstract-method
-
-def gdb(
-        target=None,
-        port=None,
-        binary=None
-        ):
-
-    g = None
-    if parsed.gdb:
-        g = testlib.Gdb(parsed.gdb)
-    else:
-        g = testlib.Gdb()
-
-    if binary:
-        g.command("file %s" % binary)
-    if target:
-        g.command("set arch riscv:rv%d" % target.xlen)
-        g.command("set remotetimeout %d" % target.timeout_sec)
-    if port:
-        g.command("target extended-remote localhost:%d" % port)
-
-    g.p("$priv=3")
-
-    return g
 
 def ihex_line(address, record_type, data):
     assert len(data) < 128
@@ -85,20 +62,6 @@ def ihex_parse(line):
 
 def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
-
-class GdbTest(testlib.BaseTest):
-    def __init__(self, target):
-        testlib.BaseTest.__init__(self, target)
-        self.gdb = None
-
-    def classSetup(self):
-        testlib.BaseTest.classSetup(self)
-        self.logs.append("gdb.log")
-        self.gdb = gdb(self.target, self.server.port, self.binary)
-
-    def classTeardown(self):
-        del self.gdb
-        testlib.BaseTest.classTeardown(self)
 
 class SimpleRegisterTest(GdbTest):
     def check_reg(self, name):
@@ -145,10 +108,10 @@ class SimpleF18Test(SimpleRegisterTest):
         self.gdb.stepi()
         assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
 
+    def early_applicable(self):
+        return self.target.extensionSupported('F')
+
     def test(self):
-        misa = self.gdb.p("$misa")
-        if not misa & (1<<(ord('F')-ord('A'))):
-            return 'not_applicable'
         self.check_reg("f18")
 
 class SimpleMemoryTest(GdbTest):
@@ -440,10 +403,14 @@ class StepTest(GdbTest):
 
     def test(self):
         main_address = self.gdb.p("$pc")
-        for expected in (4, 8, 0xc, 0x10, 0x18, 0x1c, 0x28, 0x20, 0x2c, 0x2c):
+        if self.target.extensionSupported("c"):
+            sequence = (4, 8, 0xc, 0xe, 0x14, 0x18, 0x22, 0x1c, 0x24, 0x24)
+        else:
+            sequence = (4, 8, 0xc, 0x10, 0x18, 0x1c, 0x28, 0x20, 0x2c, 0x2c)
+        for expected in sequence:
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
-            assertEqual("%x" % pc, "%x" % (expected + main_address))
+            assertEqual("%x" % (pc - main_address), "%x" % expected)
 
 class TriggerTest(GdbTest):
     compile_args = ("programs/trigger.S", )
@@ -656,7 +623,7 @@ class PrivTest(GdbTest):
         # pylint: disable=attribute-defined-outside-init
         self.gdb.load()
 
-        misa = self.gdb.p("$misa")
+        misa = self.target.misa
         self.supported = set()
         if misa & (1<<20):
             self.supported.add(0)
@@ -710,8 +677,6 @@ def main():
             ./gdbserver.py --freedom-e300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" Simple
             """)
     targets.add_target_options(parser)
-    parser.add_argument("--gdb",
-            help="The command to use to start gdb.")
 
     testlib.add_test_run_options(parser)
 
@@ -725,7 +690,7 @@ def main():
 
     module = sys.modules[__name__]
 
-    return testlib.run_all_tests(module, target, parsed.test, parsed.fail_fast)
+    return testlib.run_all_tests(module, target, parsed)
 
 # TROUBLESHOOTING TIPS
 # If a particular test fails, run just that one test, eg.:

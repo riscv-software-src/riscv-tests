@@ -12,6 +12,7 @@ class Target(object):
     temporary_binary = None
     openocd_config = []
     use_fpu = False
+    misa = None
 
     def __init__(self, cmd, run, isolate):
         self.cmd = cmd
@@ -42,6 +43,8 @@ class Target(object):
         march = "rv%dima" % self.xlen
         if self.use_fpu:
             march += "fd"
+        if self.extensionSupported("c"):
+            march += "c"
         testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
                     "-I", "../env",
@@ -53,6 +56,10 @@ class Target(object):
                     "-o", binary_name),
                 xlen=self.xlen)
         return binary_name
+
+    def extensionSupported(self, letter):
+        # target.misa is set by testlib.ExamineTarget
+        return self.misa & (1 << (ord(letter.upper()) - ord('A')))
 
 class SpikeTarget(Target):
     # pylint: disable=abstract-method

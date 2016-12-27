@@ -79,7 +79,7 @@ def main():
 
     module = sys.modules[__name__]
 
-    return testlib.run_all_tests(module, target, parsed.test, parsed.fail_fast)
+    return testlib.run_all_tests(module, target, parsed)
 
 if __name__ == '__main__':
     sys.exit(main())
