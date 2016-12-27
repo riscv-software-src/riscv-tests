@@ -16,4 +16,4 @@ pylint:
 	    > $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
 
 clean:
-	rm -f *.log
+	rm -f *.log *.pyc
