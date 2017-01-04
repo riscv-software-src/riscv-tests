@@ -43,10 +43,10 @@ vpath %.S $(src_dir)
 	$(RISCV_OBJDUMP) $< > $@
 
 %.out: %
-	$(RISCV_SIM) $< 2> $@
+	$(RISCV_SIM) --isa=rv64gc $< 2> $@
 
 %.out32: %
-	$(RISCV_SIM) --isa=RV32 $< 2> $@
+	$(RISCV_SIM) --isa=rv32gc $< 2> $@
 
 define compile_template
 
