@@ -27,9 +27,9 @@ debug-check:
 	$(MAKE) -C debug -f $(debug_src_dir)/Makefile src_dir=$(debug_src_dir) XLEN=$(XLEN)
 
 clean:
-	$(MAKE) -C isa -f $(isa_src_dir)/Makefile src_dir=$(isa_src_dir) clean
-	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile src_dir=$(bmarkdir) clean
-	$(MAKE) -C debug -f $(bmarkdir)/Makefile src_dir=$(debug_src_dir) clean
+	[ ! -d isa ]        || $(MAKE) -C isa -f $(isa_src_dir)/Makefile src_dir=$(isa_src_dir) clean
+	[ ! -d benchmarks ] || $(MAKE) -C benchmarks -f $(bmarkdir)/Makefile src_dir=$(bmarkdir) clean
+	[ ! -d debug ]      || $(MAKE) -C debug -f $(debug_src_dir)/Makefile src_dir=$(debug_src_dir) clean
 
 .PHONY: benchmarks isa clean
 
