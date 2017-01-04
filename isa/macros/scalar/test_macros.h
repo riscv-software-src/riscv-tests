@@ -90,34 +90,6 @@ test_ ## testnum: \
     )
 
 #-----------------------------------------------------------------------
-# Tests for vector config instructions
-#-----------------------------------------------------------------------
-
-#define TEST_VSETCFGIVL( testnum, nxpr, nfpr, bank, vl, result ) \
-    TEST_CASE( testnum, x1, result, \
-      li x1, (bank << 12); \
-      vsetcfg x1,nxpr,nfpr; \
-      li x1, vl; \
-      vsetvl x1,x1; \
-    )
-
-#define TEST_VVCFG( testnum, nxpr, nfpr, bank, vl, result ) \
-    TEST_CASE( testnum, x1, result, \
-      li x1, (bank << 12) | (nfpr << 6) | nxpr; \
-      vsetcfg x1; \
-      li x1, vl; \
-      vsetvl x1,x1; \
-    )
-
-#define TEST_VSETVL( testnum, nxpr, nfpr, bank, vl, result ) \
-    TEST_CASE( testnum, x1, result, \
-      li x1, (bank << 12); \
-      vsetcfg x1,nxpr,nfpr; \
-      li x1, vl; \
-      vsetvl x1, x1; \
-    )
-
-#-----------------------------------------------------------------------
 # Tests for an instruction with register operands
 #-----------------------------------------------------------------------
 
