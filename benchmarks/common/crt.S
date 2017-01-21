@@ -65,7 +65,7 @@ _start:
   j tohost_exit
 1:
 
-#ifdef __riscv_hard_float
+#ifdef __riscv_flen
   # initialize FPU if we have one
   andi t0, t0, 1 << ('f' - 'a')
   beqz t0, 1f
