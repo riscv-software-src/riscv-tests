@@ -11,6 +11,8 @@
 #define SYS_exit 93
 #define SYS_stats 1234
 
+#undef strcmp
+
 extern volatile uint64_t tohost;
 extern volatile uint64_t fromhost;
 
