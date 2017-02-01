@@ -17,13 +17,26 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
-  TEST_FP_CMP_OP_D( 2, feq.d, 1, -1.36, -1.36)
-  TEST_FP_CMP_OP_D( 3, fle.d, 1, -1.36, -1.36)
-  TEST_FP_CMP_OP_D( 4, flt.d, 0, -1.36, -1.36)
+  TEST_FP_CMP_OP_D( 2, feq.d, 0x00, 1, -1.36, -1.36)
+  TEST_FP_CMP_OP_D( 3, fle.d, 0x00, 1, -1.36, -1.36)
+  TEST_FP_CMP_OP_D( 4, flt.d, 0x00, 0, -1.36, -1.36)
 
-  TEST_FP_CMP_OP_D( 5, feq.d, 0, -1.37, -1.36)
-  TEST_FP_CMP_OP_D( 6, fle.d, 1, -1.37, -1.36)
-  TEST_FP_CMP_OP_D( 7, flt.d, 1, -1.37, -1.36)
+  TEST_FP_CMP_OP_D( 5, feq.d, 0x00, 0, -1.37, -1.36)
+  TEST_FP_CMP_OP_D( 6, fle.d, 0x00, 1, -1.37, -1.36)
+  TEST_FP_CMP_OP_D( 7, flt.d, 0x00, 1, -1.37, -1.36)
+
+  # Only sNaN should signal invalid for feq.
+  TEST_FP_CMP_OP_D( 8, feq.d, 0x00, 0, NaN, 0)
+  TEST_FP_CMP_OP_D( 9, feq.d, 0x00, 0, NaN, NaN)
+  TEST_FP_CMP_OP_D(10, feq.d, 0x10, 0, 0d:7ff0000000000001, 0)
+
+  # qNaN should signal invalid for fle/flt.
+  TEST_FP_CMP_OP_D(11, flt.d, 0x10, 0, NaN, 0)
+  TEST_FP_CMP_OP_D(12, flt.d, 0x10, 0, NaN, NaN)
+  TEST_FP_CMP_OP_D(13, flt.d, 0x10, 0, 0d:7ff0000000000001, 0)
+  TEST_FP_CMP_OP_D(14, fle.d, 0x10, 0, NaN, 0)
+  TEST_FP_CMP_OP_D(15, fle.d, 0x10, 0, NaN, NaN)
+  TEST_FP_CMP_OP_D(16, fle.d, 0x10, 0, 0d:7ff0000000000001, 0)
 
   TEST_PASSFAIL
 

@@ -466,12 +466,12 @@ test_ ## testnum: \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
                     inst a0, f0, rm)
 
-#define TEST_FP_CMP_OP_S( testnum, inst, result, val1, val2 ) \
-  TEST_FP_OP_S_INTERNAL( testnum, 0, word result, val1, val2, 0.0, \
+#define TEST_FP_CMP_OP_S( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_S_INTERNAL( testnum, flags, word result, val1, val2, 0.0, \
                     inst a0, f0, f1)
 
-#define TEST_FP_CMP_OP_D( testnum, inst, result, val1, val2 ) \
-  TEST_FP_OP_D_INTERNAL( testnum, 0, dword result, val1, val2, 0.0, \
+#define TEST_FP_CMP_OP_D( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, val2, 0.0, \
                     inst a0, f0, f1)
 
 #define TEST_FCLASS_S(testnum, correct, input) \
