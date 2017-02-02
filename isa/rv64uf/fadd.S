@@ -30,7 +30,7 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_S(10,  fmul.s, 1,      3.14159265e-8, 3.14159265, 0.00000001 );
 
   # Is the canonical NaN generated for Inf - Inf?
-  TEST_FP_OP2_S(11,  fsub.s, 0x10,         0f:7fc00000, Inf, Inf);
+  TEST_FP_OP2_S(11,  fsub.s, 0x10, qNaNf, Inf, Inf);
 
   TEST_PASSFAIL
 
