@@ -567,6 +567,13 @@ class WriteCsrs(RegsTest):
         assertEqual(123, self.gdb.p("$x1"))
         assertEqual(123, self.gdb.p("$csr832"))
 
+class NonExistentCsr(RegsTest):
+    def test(self):
+        #Print old version of $misa at 0xF10 (moved to 0x301)
+        self.gdb.p("$csr3856")
+        #Expect this to return an error, not just a made-up value.
+        assertIn("Could not fetch register", output)
+
 class DownloadTest(GdbTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
