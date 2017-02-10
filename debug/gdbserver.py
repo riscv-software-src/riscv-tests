@@ -570,9 +570,18 @@ class WriteCsrs(RegsTest):
 class NonExistentCsr(RegsTest):
     def test(self):
         #Print old version of $misa at 0xF10 (moved to 0x301)
-        self.gdb.p("$csr3856")
-        #Expect this to return an error, not just a made-up value.
-        assertIn("Could not fetch register", output)
+        try:
+            self.gdb.p("$csr3856")
+            assert False, "Nonexistent CSR read should have failed."
+        except testlib.CannotAccessRegister as e:
+            assertEqual(e.regname, "csr3856")
+
+        #Try to write $misa in its old location
+        try:
+            self.gdb.p("$csr3856")
+            assert False, "Nonexistent CSR write should have failed."
+        except testlib.CannotAccessRegister as e:
+            assertEqual(e.regname, "csr3856")
 
 class DownloadTest(GdbTest):
     def setup(self):
