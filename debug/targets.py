@@ -92,6 +92,10 @@ class FreedomE300Target(Target):
     instruction_hardware_breakpoint_count = 2
     openocd_config = "targets/%s/openocd.cfg" % name
 
+class HiFive1Target(FreedomE300Target):
+    name = "HiFive1"
+    openocd_config = "targets/%s/openocd.cfg" % name
+
 class FreedomE300SimTarget(Target):
     name = "freedom-e300-sim"
     xlen = 32
@@ -130,7 +134,8 @@ targets = [
         FreedomE300Target,
         FreedomU500Target,
         FreedomE300SimTarget,
-        FreedomU500SimTarget]
+        FreedomU500SimTarget,
+        HiFive1Target]
 
 def add_target_options(parser):
     group = parser.add_mutually_exclusive_group(required=True)
