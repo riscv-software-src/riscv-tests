@@ -68,20 +68,21 @@ class SpikeTarget(Target):
     ram_size = 5 * 1024 * 1024
     instruction_hardware_breakpoint_count = 4
     reset_vector = 0x1000
+    openocd_config = "targets/%s/openocd.cfg" % directory
 
 class Spike64Target(SpikeTarget):
     name = "spike64"
     xlen = 64
     use_fpu = True
 
-    def server(self):
+    def target(self):
         return testlib.Spike(self.cmd, halted=True)
 
 class Spike32Target(SpikeTarget):
     name = "spike32"
     xlen = 32
 
-    def server(self):
+    def target(self):
         return testlib.Spike(self.cmd, halted=True, xlen=32)
 
 class FreedomE300Target(Target):

@@ -51,14 +51,14 @@ def unused_port():
 class Spike(object):
     logname = "spike.log"
 
-    def __init__(self, cmd, binary=None, halted=False, with_gdb=True,
+    def __init__(self, cmd, binary=None, halted=False, with_jtag_gdb=True,
             timeout=None, xlen=64):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         if cmd:
             cmd = shlex.split(cmd)
         else:
-            cmd = ["spike"]
+            cmd = ["spike", "-l"]
         if xlen == 32:
             cmd += ["--isa", "RV32"]
 
@@ -67,9 +67,9 @@ class Spike(object):
 
         if halted:
             cmd.append('-H')
-        if with_gdb:
-            self.port = unused_port()
-            cmd += ['--gdb-port', str(self.port)]
+        if with_jtag_gdb:
+            cmd += ['--rbb-port', '0']
+            os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
         cmd.append("-m32")
         cmd.append('pk')
         if binary:
@@ -79,6 +79,18 @@ class Spike(object):
         logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
+
+        if with_jtag_gdb:
+            self.port = None
+            for _ in range(30):
+                m = re.search(r"Listening for remote bitbang connection on port (\d+).",
+                        file(self.logname).read())
+                if m:
+                    self.port = int(m.group(1))
+                    os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
+                    break
+                time.sleep(0.11)
+            assert self.port, "Didn't get spike message about bitbang connection"
 
     def __del__(self):
         try:
@@ -132,15 +144,11 @@ class Openocd(object):
         if cmd:
             cmd = shlex.split(cmd)
         else:
-            cmd = ["openocd"]
-        if config:
-            cmd += ["-f", find_file(config)]
-        if debug:
-            cmd.append("-d")
+            cmd = ["openocd", "-d"]
 
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
-        cmd[1:1] = [
+        cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
             "--command",
             "gdb_port 0",
@@ -152,6 +160,11 @@ class Openocd(object):
             "--command",
             "telnet_port disabled",
         ]
+
+        if config:
+            cmd += ["-f", find_file(config)]
+        if debug:
+            cmd.append("-d")
 
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
