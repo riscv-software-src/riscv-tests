@@ -6,6 +6,7 @@ import random
 import sys
 import tempfile
 import time
+import os
 
 import targets
 import testlib
@@ -571,30 +572,31 @@ class DownloadTest(GdbTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
         length = min(2**20, self.target.ram_size - 2048)
-        download_c = tempfile.NamedTemporaryFile(prefix="download_",
-                suffix=".c")
-        download_c.write("#include <stdint.h>\n")
-        download_c.write(
+        self.download_c = tempfile.NamedTemporaryFile(prefix="download_",
+                suffix=".c", delete=False)
+        self.download_c.write("#include <stdint.h>\n")
+        self.download_c.write(
                 "unsigned int crc32a(uint8_t *message, unsigned int size);\n")
-        download_c.write("uint32_t length = %d;\n" % length)
-        download_c.write("uint8_t d[%d] = {\n" % length)
+        self.download_c.write("uint32_t length = %d;\n" % length)
+        self.download_c.write("uint8_t d[%d] = {\n" % length)
         self.crc = 0
         for i in range(length / 16):
-            download_c.write("  /* 0x%04x */ " % (i * 16))
+            self.download_c.write("  /* 0x%04x */ " % (i * 16))
             for _ in range(16):
                 value = random.randrange(1<<8)
-                download_c.write("%d, " % value)
+                self.download_c.write("0x%02x, " % value)
                 self.crc = binascii.crc32("%c" % value, self.crc)
-            download_c.write("\n")
-        download_c.write("};\n")
-        download_c.write("uint8_t *data = &d[0];\n")
-        download_c.write("uint32_t main() { return crc32a(data, length); }\n")
-        download_c.flush()
+            self.download_c.write("\n")
+        self.download_c.write("};\n")
+        self.download_c.write("uint8_t *data = &d[0];\n")
+        self.download_c.write(
+                "uint32_t main() { return crc32a(data, length); }\n")
+        self.download_c.flush()
 
         if self.crc < 0:
             self.crc += 2**32
 
-        self.binary = self.target.compile(download_c.name,
+        self.binary = self.target.compile(self.download_c.name,
                 "programs/checksum.c")
         self.gdb.command("file %s" % self.binary)
 
@@ -603,6 +605,7 @@ class DownloadTest(GdbTest):
         self.gdb.command("b _exit")
         self.gdb.c()
         assertEqual(self.gdb.p("status"), self.crc)
+        os.unlink(self.download_c.name)
 
 class MprvTest(GdbTest):
     compile_args = ("programs/mprv.S", )
