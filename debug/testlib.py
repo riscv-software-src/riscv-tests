@@ -83,14 +83,15 @@ class Spike(object):
         if with_jtag_gdb:
             self.port = None
             for _ in range(30):
-                m = re.search(r"Listening for remote bitbang connection on port (\d+).",
-                        file(self.logname).read())
+                m = re.search(r"Listening for remote bitbang connection on "
+                        r"port (\d+).", open(self.logname).read())
                 if m:
                     self.port = int(m.group(1))
                     os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
                     break
                 time.sleep(0.11)
-            assert self.port, "Didn't get spike message about bitbang connection"
+            assert self.port, "Didn't get spike message about bitbang " \
+                    "connection"
 
     def __del__(self):
         try:
