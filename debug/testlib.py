@@ -58,7 +58,7 @@ class Spike(object):
         if cmd:
             cmd = shlex.split(cmd)
         else:
-            cmd = ["spike", "-l"]
+            cmd = ["spike"]
         if xlen == 32:
             cmd += ["--isa", "RV32"]
 
@@ -281,9 +281,9 @@ class Gdb(object):
         self.child.expect(r"\(gdb\)", timeout=timeout)
         return self.child.before.strip()
 
-    def c(self, wait=True):
+    def c(self, wait=True, timeout=-1):
         if wait:
-            output = self.command("c")
+            output = self.command("c", timeout=timeout)
             assert "Continuing" in output
             return output
         else:

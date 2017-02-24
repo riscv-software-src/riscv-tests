@@ -580,6 +580,7 @@ class DownloadTest(GdbTest):
         self.download_c.write("uint32_t length = %d;\n" % length)
         self.download_c.write("uint8_t d[%d] = {\n" % length)
         self.crc = 0
+        assert length % 16 == 0
         for i in range(length / 16):
             self.download_c.write("  /* 0x%04x */ " % (i * 16))
             for _ in range(16):
@@ -603,7 +604,7 @@ class DownloadTest(GdbTest):
     def test(self):
         self.gdb.load()
         self.gdb.command("b _exit")
-        self.gdb.c()
+        self.gdb.c(timeout=60)
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 
