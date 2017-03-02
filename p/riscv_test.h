@@ -121,10 +121,10 @@ handle_exception:                                                       \
         j write_tohost;                                                 \
 reset_vector:                                                           \
         RISCV_MULTICORE_DISABLE;                                        \
-        CHECK_XLEN;                                                     \
         li TESTNUM, 0;                                                  \
         la t0, trap_vector;                                             \
         csrw mtvec, t0;                                                 \
+        CHECK_XLEN;                                                     \
         csrwi medeleg, 0;                                               \
         csrwi mideleg, 0;                                               \
         csrwi mie, 0;                                                   \
