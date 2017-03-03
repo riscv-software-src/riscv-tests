@@ -12,7 +12,7 @@ pylint:
 	pylint --rcfile=pylint.rc *.py
 
 %.log:
-	$(GDBSERVER_PY) --isolate --$(subst .log,,$@) --cmd $(RISCV_SIM) \
+	$(GDBSERVER_PY) --isolate --$(subst .log,,$@) \
 	    > $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
 
 clean:
