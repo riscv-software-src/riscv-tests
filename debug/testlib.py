@@ -163,7 +163,12 @@ class Openocd(object):
         ]
 
         if config:
-            cmd += ["-f", find_file(config)]
+            f = find_file(config)
+            if f is None:
+                print("Unable to read file " + config)
+                exit(1)
+
+            cmd += ["-f", f]
         if debug:
             cmd.append("-d")
 
