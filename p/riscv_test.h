@@ -37,11 +37,6 @@
   RVTEST_ENABLE_SUPERVISOR;                                             \
   .endm
 
-#define RVTEST_RV64SV                                                   \
-  .macro init;                                                          \
-  RVTEST_ENABLE_SUPERVISOR;                                             \
-  .endm
-
 #define RVTEST_RV32M                                                    \
   .macro init;                                                          \
   RVTEST_ENABLE_MACHINE;                                                \
@@ -57,6 +52,13 @@
 #else
 # define CHECK_XLEN csrr a0, misa; bgez a0, 1f; RVTEST_PASS; 1:
 #endif
+
+#define INIT_SPTBR                                                      \
+  csrr a0, misa;                                                        \
+  slli a0, a0, (__riscv_xlen - 1) - ('S' - 'A');                        \
+  bgez a0, 1f;                                                          \
+  csrwi sptbr, 0;                                                       \
+1:
 
 #define RVTEST_ENABLE_SUPERVISOR                                        \
   li a0, MSTATUS_MPP & (MSTATUS_MPP >> 1);                              \
@@ -121,6 +123,7 @@ handle_exception:                                                       \
         j write_tohost;                                                 \
 reset_vector:                                                           \
         RISCV_MULTICORE_DISABLE;                                        \
+        INIT_SPTBR;                                                     \
         li TESTNUM, 0;                                                  \
         la t0, trap_vector;                                             \
         csrw mtvec, t0;                                                 \
