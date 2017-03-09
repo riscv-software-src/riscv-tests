@@ -22,6 +22,7 @@ RVTEST_CODE_BEGIN
 
 #define MISALIGNED_LDST_TEST(testnum, insn, base, offset) \
   li TESTNUM, testnum; \
+  addi t1, base, offset; \
   insn x0, offset(base); \
   j fail \
 
@@ -69,6 +70,9 @@ RVTEST_CODE_BEGIN
 mtvec_handler:
   csrr t0, mcause
   bne t0, s1, fail
+
+  csrr t0, mbadaddr
+  bne t0, t1, fail
 
   csrr t0, mepc
   addi t0, t0, 8
