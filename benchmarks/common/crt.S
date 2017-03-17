@@ -111,7 +111,10 @@ _start:
   csrw mtvec, t0
 
   # initialize global pointer
+.option push
+.option norelax
   la gp, __global_pointer$
+.option pop
 
   la  tp, _end + 63
   and tp, tp, -64
