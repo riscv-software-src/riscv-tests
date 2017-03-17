@@ -35,7 +35,7 @@ handle_reset:
   csrwi mie, 0
 
   # initialize global pointer
-  la gp, _gp
+  la gp, __global_pointer$
 
   # initialize stack pointer
   la sp, stack_top
