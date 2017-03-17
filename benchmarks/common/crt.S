@@ -108,7 +108,7 @@ _start:
 1:
 
   # initialize global pointer
-  la gp, _gp
+  la gp, __global_pointer$
 
   la  tp, _end + 63
   and tp, tp, -64
