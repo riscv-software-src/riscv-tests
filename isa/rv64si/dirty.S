@@ -23,7 +23,7 @@ RVTEST_CODE_BEGIN
   or a2, a2, a0
   csrw sptbr, a1
   sfence.vma
-  li a1, (MSTATUS_MPP & ~(MSTATUS_MPP<<1)) * PRV_S
+  li a1, ((MSTATUS_MPP & ~(MSTATUS_MPP<<1)) * PRV_S) | MSTATUS_SUM
   csrs mstatus, a1
   la a1, 1f - DRAM_BASE
   csrw mepc, a1
