@@ -173,7 +173,7 @@ reset_vector:                                                           \
         li TESTNUM, 1;                                                  \
         ecall
 
-#define TESTNUM x28
+#define TESTNUM gp
 #define RVTEST_FAIL                                                     \
         fence;                                                          \
 1:      beqz TESTNUM, 1b;                                               \
