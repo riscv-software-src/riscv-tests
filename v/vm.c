@@ -228,6 +228,16 @@ void vm_boot(uintptr_t test_addr)
   write_csr(sptbr, ((uintptr_t)l1pt >> PGSHIFT) |
                    (vm_choice * (SPTBR_MODE & ~(SPTBR_MODE<<1))));
 
+  // Set up PMPs if present, ignoring illegal instruction trap if not.
+  uintptr_t pmpc = PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;
+  asm volatile ("la t0, 1f\n\t"
+                "csrw mtvec, t0\n\t"
+                "csrw %2, %3\n\t"
+                "csrw %0, %1\n\t"
+                "1:"
+                :: "i" (CSR_PMPCFG0), "r" (pmpc), "i" (CSR_PMPADDR0), "r" (-1)
+                : "t0");
+
   // set up supervisor trap handling
   write_csr(stvec, pa2kva(trap_entry));
   write_csr(sscratch, pa2kva(read_csr(mscratch)));
@@ -236,8 +246,8 @@ void vm_boot(uintptr_t test_addr)
     (1 << CAUSE_FAULT_FETCH) |
     (1 << CAUSE_FAULT_LOAD) |
     (1 << CAUSE_FAULT_STORE));
-  // FPU on; accelerator on
-  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS);
+  // FPU on; accelerator on; allow supervisor access to user memory access
+  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS | MSTATUS_SUM);
   write_csr(mie, 0);
 
   random = 1 + (random % MAX_TEST_PAGES);

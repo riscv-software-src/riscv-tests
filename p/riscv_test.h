@@ -54,10 +54,13 @@
 #endif
 
 #define INIT_SPTBR                                                      \
-  csrr a0, misa;                                                        \
-  slli a0, a0, (__riscv_xlen - 1) - ('S' - 'A');                        \
-  bgez a0, 1f;                                                          \
+  la t0, 1f;                                                            \
+  csrw mtvec, t0;                                                       \
   csrwi sptbr, 0;                                                       \
+  li t0, -1;        /* Set up a PMP to permit all accesses */           \
+  csrw CSR_PMPADDR0, t0;                                                \
+  li t0, PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;            \
+  csrw CSR_PMPCFG0, t0;                                                 \
 1:
 
 #define RVTEST_ENABLE_SUPERVISOR                                        \
