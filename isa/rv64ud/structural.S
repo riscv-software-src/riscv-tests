@@ -30,8 +30,8 @@ li x1, 0x3F800000
   nops          ;\
   fsgnj.s f3, f1, f1 ;\
   fmv.x.d  x4, f4    ;\
-  fmv.x.s  x3, f3    ;\
-  beq     x1, x3, 2f  ;\
+  fmv.x.s  x5, f3    ;\
+  beq     x1, x5, 2f  ;\
   RVTEST_FAIL ;\
 2:beq     x2, x4, 2f  ;\
   RVTEST_FAIL; \
