@@ -12,7 +12,7 @@
 # define REGBYTES 4
 #endif
 
-  .text
+  .section ".text.init"
   .globl _start
 _start:
   la t0, trap_entry

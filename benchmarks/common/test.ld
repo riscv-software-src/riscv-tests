@@ -22,7 +22,7 @@ SECTIONS
 
   /* text: test code section */
   . = 0x80000000;
-  .text.init : { crt.o(.text) }
+  .text.init : { *(.text.init) }
 
   .tohost ALIGN(0x1000) : { *(.tohost) }
 
@@ -48,14 +48,14 @@ SECTIONS
   .tdata :
   {
     _tls_data = .;
-    crt.o(.tdata.begin)
+    *(.tdata.begin)
     *(.tdata)
-    crt.o(.tdata.end)
+    *(.tdata.end)
   }
   .tbss :
   {
     *(.tbss)
-    crt.o(.tbss.end)
+    *(.tbss.end)
   }
 
   /* End of uninitalized data segement */

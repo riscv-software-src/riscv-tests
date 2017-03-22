@@ -36,20 +36,21 @@ bmarks = \
 
 RISCV_PREFIX ?= riscv$(XLEN)-unknown-elf-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
-RISCV_GCC_OPTS ?= -mcmodel=medany -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
+RISCV_GCC_OPTS ?= -DPREALLOCATE=1 -mcmodel=medany -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf
 RISCV_LINK ?= $(RISCV_GCC) -T $(src_dir)/common/test.ld $(incs)
-RISCV_LINK_MT ?= $(RISCV_GCC) -T $(src_dir)/common/test-mt.ld
-RISCV_LINK_OPTS ?= -static -nostdlib -nostartfiles -lgcc
+RISCV_LINK_OPTS ?= -static -nostdlib -nostartfiles -lgcc -T $(src_dir)/common/test.ld
 RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.data
 RISCV_SIM ?= spike --isa=rv$(XLEN)gc
-
-VPATH += $(addprefix $(src_dir)/, $(bmarks))
-VPATH += $(src_dir)/common
 
 incs  += -I$(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(bmarks))
 objs  :=
 
-include $(patsubst %, $(src_dir)/%/bmark.mk, $(bmarks))
+define compile_template
+$(1).riscv: $(wildcard $(src_dir)/$(1)/*) $(wildcard $(src_dir)/common/*)
+	$$(RISCV_GCC) $$(incs) $$(RISCV_GCC_OPTS) $$(RISCV_LINK_OPTS) -o $$@ $(wildcard $(src_dir)/$(1)/*.c) $(wildcard $(src_dir)/common/*.c) $(wildcard $(src_dir)/common/*.S)
+endef
+
+$(foreach bmark,$(bmarks),$(eval $(call compile_template,$(bmark))))
 
 #------------------------------------------------------------
 # Build and run benchmarks on riscv simulator
@@ -58,25 +59,14 @@ bmarks_riscv_bin  = $(addsuffix .riscv,  $(bmarks))
 bmarks_riscv_dump = $(addsuffix .riscv.dump, $(bmarks))
 bmarks_riscv_out  = $(addsuffix .riscv.out,  $(bmarks))
 
-bmarks_defs   = -DPREALLOCATE=1
-bmarks_cycles = 80000
-
 $(bmarks_riscv_dump): %.riscv.dump: %.riscv
 	$(RISCV_OBJDUMP) $< > $@
 
 $(bmarks_riscv_out): %.riscv.out: %.riscv
 	$(RISCV_SIM) $< > $@
 
-%.o: %.c
-	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(bmarks_defs) \
-	             -c $(incs) $< -o $@
-
-%.o: %.S
-	$(RISCV_GCC) $(RISCV_GCC_OPTS) $(bmarks_defs) -D__ASSEMBLY__=1 \
-	             -c $(incs) $< -o $@
-
 riscv: $(bmarks_riscv_dump)
-run-riscv: $(bmarks_riscv_out)
+run: $(bmarks_riscv_out)
 	echo; perl -ne 'print "  [$$1] $$ARGV \t$$2\n" if /\*{3}(.{8})\*{3}(.*)/' \
 	       $(bmarks_riscv_out); echo;
 
