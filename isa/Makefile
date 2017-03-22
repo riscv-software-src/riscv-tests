@@ -92,8 +92,6 @@ tests_out = $(addsuffix .out, $(spike_tests))
 tests32_out = $(addsuffix .out32, $(spike32_tests))
 
 run: $(tests_out) $(tests32_out)
-	echo; perl -ne 'print "  [$$1] $$ARGV \t$$2\n" if /\*{3}(.{8})\*{3}(.*)/' \
-	       $(tests_out) $(tests32_out); echo;
 
 junk += $(tests) $(tests_dump) $(tests_hex) $(tests_out) $(tests32_out)
 

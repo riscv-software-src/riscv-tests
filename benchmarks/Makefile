@@ -67,8 +67,6 @@ $(bmarks_riscv_out): %.riscv.out: %.riscv
 
 riscv: $(bmarks_riscv_dump)
 run: $(bmarks_riscv_out)
-	echo; perl -ne 'print "  [$$1] $$ARGV \t$$2\n" if /\*{3}(.{8})\*{3}(.*)/' \
-	       $(bmarks_riscv_out); echo;
 
 junk += $(bmarks_riscv_bin) $(bmarks_riscv_dump) $(bmarks_riscv_hex) $(bmarks_riscv_out)
 

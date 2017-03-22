@@ -67,6 +67,11 @@ static uint64_t lfsr(uint64_t x)
   return (x >> 1) | (bit << 62);
 }
 
+static uintptr_t insn_len(uintptr_t pc)
+{
+  return (*(unsigned short*)pc & 3) ? 4 : 2;
+}
+
 #ifdef __riscv
 #include "encoding.h"
 #endif
