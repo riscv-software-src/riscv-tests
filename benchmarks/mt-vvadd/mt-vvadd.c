@@ -12,9 +12,6 @@
 // generated using the vvadd_gendata.pl perl script and dumped
 // to a file named dataset.h 
 
-// to print out arrays, etc.
-//#define DEBUG
-
 //--------------------------------------------------------------------------
 // Includes 
 
@@ -57,10 +54,6 @@ void thread_entry(int cid, int nc)
    stats(vvadd(cid, nc, DATA_SIZE, input1_data, input2_data, results_data); barrier(nc), DATA_SIZE);
  
    if(cid == 0) {
-#ifdef DEBUG
-     printDoubleArray("out-of-place results: ", DATA_SIZE, results_data);
-     printDoubleArray("out-of-place verify : ", DATA_SIZE, verify_data);
-#endif
      int res = verifyDouble(DATA_SIZE, results_data, verify_data);
      if(res) exit(res);
    }
@@ -76,10 +69,6 @@ void thread_entry(int cid, int nc)
    stats(vvadd(cid, nc, DATA_SIZE, results_data, input2_data, results_data); barrier(nc), DATA_SIZE);
  
    if(cid == 0) {
-#ifdef DEBUG
-     printDoubleArray("in-place results: ", DATA_SIZE, results_data);
-     printDoubleArray("in-place verify : ", DATA_SIZE, verify_data);
-#endif
      int res = verifyDouble(DATA_SIZE, results_data, verify_data);
      if(res) exit(res);
    }

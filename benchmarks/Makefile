@@ -30,23 +30,9 @@ bmarks = \
 	mt-vvadd \
 	mt-matmul \
 
-bmarks_host = \
-	median \
-	qsort \
-	towers \
-	vvadd \
-	multiply \
-	spmv \
-	vec-vvadd \
-	vec-cmplxmult \
-	vec-matmul \
-
 #--------------------------------------------------------------------
 # Build rules
 #--------------------------------------------------------------------
-
-HOST_OPTS = -std=gnu99 -DPREALLOCATE=0 -DHOST_DEBUG=1
-HOST_COMP = gcc $(HOST_OPTS)
 
 RISCV_PREFIX ?= riscv$(XLEN)-unknown-elf-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
@@ -72,7 +58,7 @@ bmarks_riscv_bin  = $(addsuffix .riscv,  $(bmarks))
 bmarks_riscv_dump = $(addsuffix .riscv.dump, $(bmarks))
 bmarks_riscv_out  = $(addsuffix .riscv.out,  $(bmarks))
 
-bmarks_defs   = -DPREALLOCATE=1 -DHOST_DEBUG=0
+bmarks_defs   = -DPREALLOCATE=1
 bmarks_cycles = 80000
 
 $(bmarks_riscv_dump): %.riscv.dump: %.riscv
@@ -95,22 +81,6 @@ run-riscv: $(bmarks_riscv_out)
 	       $(bmarks_riscv_out); echo;
 
 junk += $(bmarks_riscv_bin) $(bmarks_riscv_dump) $(bmarks_riscv_hex) $(bmarks_riscv_out)
-
-#------------------------------------------------------------
-# Build and run benchmarks on host machine
-
-bmarks_host_bin = $(addsuffix .host, $(bmarks_host))
-bmarks_host_out = $(addsuffix .host.out, $(bmarks_host))
-
-$(bmarks_host_out): %.host.out: %.host
-	./$< > $@
-
-host: $(bmarks_host_bin)
-run-host: $(bmarks_host_out)
-	echo; perl -ne 'print "  [$$1] $$ARGV \t$$2\n" if /\*{3}(.{8})\*{3}(.*)/' \
-	       $(bmarks_host_out); echo;
-
-junk += $(bmarks_host_bin) $(bmarks_host_out)
 
 #------------------------------------------------------------
 # Default

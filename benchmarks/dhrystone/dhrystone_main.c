@@ -5,45 +5,13 @@
 //--------------------------------------------------------------------------
 //
 // This is the classic Dhrystone synthetic integer benchmark.
-// You should not change anything except the HOST_DEBUG and
-// PREALLOCATE macros for your timing run.
+//
 
 #pragma GCC optimize ("no-inline")
 
 #include "dhrystone.h"
 
-//--------------------------------------------------------------------------
-// Macros
-
-// Set HOST_DEBUG to 1 if you are going to compile this for a host
-// machine (ie Athena/Linux) for debug purposes and set HOST_DEBUG
-// to 0 if you are compiling with the smips-gcc toolchain.
-
-#ifndef HOST_DEBUG
-#define HOST_DEBUG 0
-#endif
-
-// Set PREALLOCATE to 1 if you want to preallocate the benchmark
-// function before starting stats. If you have instruction/data
-// caches and you don't want to count the overhead of misses, then
-// you will need to use preallocation.
-
-#ifndef PREALLOCATE
-#define PREALLOCATE 0
-#endif
-
-// Set SET_STATS to 1 if you want to carve out the piece that actually
-// does the computation.
-
-#ifndef SET_STATS
-#define SET_STATS 0
-#endif
-
-#if HOST_DEBUG
-# define debug_printf printf
-#else
 void debug_printf(const char* str, ...);
-#endif
 
 #include "util.h"
 
@@ -101,21 +69,7 @@ int main (int argc, char** argv)
   REG   int             Number_Of_Runs;
 
   /* Arguments */
-#if HOST_DEBUG
-  if (argc > 2)
-  {
-     printf("Usage: %s [number of loops]\n", argv[0]);
-     exit (1);
-  }
-  if (argc == 2)
-  {
-     Number_Of_Runs = atoi (argv[1]);
-  }
-  else if (Number_Of_Runs <= 0)
-#endif
-  {
-     Number_Of_Runs = NUMBER_OF_RUNS;
-  }
+  Number_Of_Runs = NUMBER_OF_RUNS;
 
   /* Initializations */
 

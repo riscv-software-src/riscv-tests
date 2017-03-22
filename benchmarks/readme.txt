@@ -37,13 +37,6 @@ points to make about the toolchain.
    about how to write assembly in C here:
    http://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
 
- + If you look at the example benchmarks you will see that I have two
-   important macros HOST_DEBUG and VERIFY. Use HOST_DEBUG to compile the
-   benchmark on your host workstation (ie use standard gcc on Athena/Linux
-   box) and then debug the benchmark. Since you are using standard gcc you
-   can use printf's to make sure that your benchmark actually works before
-   trying it out on your RISCV processor.
-
  + Debugging C compiled code on the RISCV processor is a real pain. It is
    hard to associate the assembly with the C code and there is no
    debugger. So if you encounter a bug in your processor when running a C

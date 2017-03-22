@@ -8,10 +8,7 @@
 // implementation is largely adapted from Numerical Recipes for C. The
 // input data (and reference data) should be generated using the
 // qsort_gendata.pl perl script and dumped to a file named
-// dataset1.h The smips-gcc toolchain does not support system calls
-// so printf's can only be used on a host system, not on the smips
-// processor simulator itself. You should not change anything except
-// the HOST_DEBUG and PREALLOCATE macros for your timing run.
+// dataset1.h.
 
 #include "util.h"
 #include <string.h>
@@ -76,10 +73,6 @@ void sort(size_t n, type arr[])
 
   for (;;)
   {
-#if HOST_DEBUG
-    printArray( "", n, arr );
-#endif
-
     // Insertion sort when subarray small enough.
     if ( ir-l < INSERTION_THRESHOLD )
     {
@@ -122,10 +115,6 @@ void sort(size_t n, type arr[])
       // Push pointers to larger subarray on stack,
       // process smaller subarray immediately.
 
-#if HOST_DEBUG
-      assert(stackp < stack+NSTACK);
-#endif
-
       if ( ir-i+1 >= j-l )
       {
         stackp[0] = ir;
@@ -147,10 +136,6 @@ void sort(size_t n, type arr[])
 
 int main( int argc, char* argv[] )
 {
-  // Output the input array
-  printArray( "input", DATA_SIZE, input_data );
-  printArray( "verify", DATA_SIZE, verify_data );
-
 #if PREALLOCATE
   // If needed we preallocate everything in the caches
   sort(DATA_SIZE, verify_data);
@@ -162,9 +147,6 @@ int main( int argc, char* argv[] )
   setStats(1);
   sort( DATA_SIZE, input_data );
   setStats(0);
-
-  // Print out the results
-  printArray( "test", DATA_SIZE, input_data );
 
   // Check the results
   return verify( DATA_SIZE, input_data, verify_data );
