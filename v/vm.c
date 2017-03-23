@@ -234,6 +234,7 @@ void vm_boot(uintptr_t test_addr)
                 "csrrw t0, mtvec, t0\n\t"
                 "csrw pmpaddr0, %1\n\t"
                 "csrw pmpcfg0, %0\n\t"
+                ".align 2\n\t"
                 "1:"
                 : : "r" (pmpc), "r" (-1UL) : "t0");
 
