@@ -58,9 +58,9 @@
   csrw mtvec, t0;                                                       \
   csrwi sptbr, 0;                                                       \
   li t0, -1;        /* Set up a PMP to permit all accesses */           \
-  csrw CSR_PMPADDR0, t0;                                                \
+  csrw pmpaddr0, t0;                                                    \
   li t0, PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;            \
-  csrw CSR_PMPCFG0, t0;                                                 \
+  csrw pmpcfg0, t0;                                                     \
 1:
 
 #define RVTEST_ENABLE_SUPERVISOR                                        \

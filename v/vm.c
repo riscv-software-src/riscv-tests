@@ -231,12 +231,11 @@ void vm_boot(uintptr_t test_addr)
   // Set up PMPs if present, ignoring illegal instruction trap if not.
   uintptr_t pmpc = PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;
   asm volatile ("la t0, 1f\n\t"
-                "csrw mtvec, t0\n\t"
-                "csrw %2, %3\n\t"
-                "csrw %0, %1\n\t"
+                "csrrw t0, mtvec, t0\n\t"
+                "csrw pmpaddr0, %1\n\t"
+                "csrw pmpcfg0, %0\n\t"
                 "1:"
-                :: "i" (CSR_PMPCFG0), "r" (pmpc), "i" (CSR_PMPADDR0), "r" (-1)
-                : "t0");
+                : : "r" (pmpc), "r" (-1UL) : "t0");
 
   // set up supervisor trap handling
   write_csr(stvec, pa2kva(trap_entry));
