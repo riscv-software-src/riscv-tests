@@ -53,14 +53,30 @@
 # define CHECK_XLEN li a0, 1; slli a0, a0, 31; bltz a0, 1f; RVTEST_PASS; 1:
 #endif
 
-#define INIT_SPTBR                                                      \
+#define INIT_PMP                                                        \
   la t0, 1f;                                                            \
   csrw mtvec, t0;                                                       \
-  csrwi sptbr, 0;                                                       \
   li t0, -1;        /* Set up a PMP to permit all accesses */           \
   csrw pmpaddr0, t0;                                                    \
   li t0, PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;            \
   csrw pmpcfg0, t0;                                                     \
+  .align 2;                                                             \
+1:
+
+#define INIT_SPTBR                                                      \
+  la t0, 1f;                                                            \
+  csrw mtvec, t0;                                                       \
+  csrwi sptbr, 0;                                                       \
+  .align 2;                                                             \
+1:
+
+#define DELEGATE_NO_TRAPS                                               \
+  la t0, 1f;                                                            \
+  csrw mtvec, t0;                                                       \
+  csrwi medeleg, 0;                                                     \
+  csrwi mideleg, 0;                                                     \
+  csrwi mie, 0;                                                         \
+  .align 2;                                                             \
 1:
 
 #define RVTEST_ENABLE_SUPERVISOR                                        \
@@ -127,13 +143,12 @@ handle_exception:                                                       \
 reset_vector:                                                           \
         RISCV_MULTICORE_DISABLE;                                        \
         INIT_SPTBR;                                                     \
+        INIT_PMP;                                                       \
+        DELEGATE_NO_TRAPS;                                              \
         li TESTNUM, 0;                                                  \
         la t0, trap_vector;                                             \
         csrw mtvec, t0;                                                 \
         CHECK_XLEN;                                                     \
-        csrwi medeleg, 0;                                               \
-        csrwi mideleg, 0;                                               \
-        csrwi mie, 0;                                                   \
         /* if an stvec_handler is defined, delegate exceptions to it */ \
         la t0, stvec_handler;                                           \
         beqz t0, 1f;                                                    \
