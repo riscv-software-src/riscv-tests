@@ -55,14 +55,15 @@ _start:
   csrs mstatus, t0
 
   # make sure XLEN agrees with compilation choice
-  csrr t0, misa
+  li t0, 1
+  slli t0, t0, 31
 #if __riscv_xlen == 64
-  bltz t0, 1f
-#else
   bgez t0, 1f
+#else
+  bltz t0, 1f
 #endif
-  li a0, 1234
-  j tohost_exit
+  li a0, 1
+  sw a0, tohost, t0
 1:
 
 #ifdef __riscv_flen
