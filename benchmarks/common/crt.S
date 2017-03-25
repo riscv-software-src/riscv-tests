@@ -15,9 +15,6 @@
   .section ".text.init"
   .globl _start
 _start:
-  la t0, trap_entry
-  csrw mtvec, t0
-
   li  x1, 0
   li  x2, 0
   li  x3, 0
@@ -62,14 +59,16 @@ _start:
 #else
   bltz t0, 1f
 #endif
+2:
   li a0, 1
   sw a0, tohost, t0
+  j 2b
 1:
 
 #ifdef __riscv_flen
   # initialize FPU if we have one
-  andi t0, t0, 1 << ('f' - 'a')
-  beqz t0, 1f
+  la t0, 1f
+  csrw mtvec, t0
 
   fssr    x0
   fmv.s.x f0, x0
@@ -104,9 +103,12 @@ _start:
   fmv.s.x f29,x0
   fmv.s.x f30,x0
   fmv.s.x f31,x0
+1:
 #endif
 
-1:
+  # initialize trap vector
+  la t0, trap_entry
+  csrw mtvec, t0
 
   # initialize global pointer
   la gp, _gp
