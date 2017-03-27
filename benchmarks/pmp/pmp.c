@@ -16,7 +16,7 @@ uintptr_t handle_trap(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
   if (cause == CAUSE_ILLEGAL_INSTRUCTION)
     exit(0); // no PMP support
 
-  if (!trap_expected)
+  if (!trap_expected || cause != CAUSE_LOAD_ACCESS)
     exit(1);
   trap_expected = 0;
   return epc + insn_len(epc);

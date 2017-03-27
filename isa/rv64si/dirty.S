@@ -58,7 +58,7 @@ RVTEST_CODE_BEGIN
   .align 2
 stvec_handler:
   csrr t0, scause
-  add t0, t0, -CAUSE_FAULT_STORE
+  add t0, t0, -CAUSE_STORE_PAGE_FAULT
   bnez t0, die
 
   li t1, 2
