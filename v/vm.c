@@ -127,7 +127,7 @@ void handle_fault(uintptr_t addr, uintptr_t cause)
     if (!(user_l3pt[addr/PGSIZE] & PTE_A)) {
       user_l3pt[addr/PGSIZE] |= PTE_A;
     } else {
-      assert(!(user_l3pt[addr/PGSIZE] & PTE_D) && cause == CAUSE_FAULT_STORE);
+      assert(!(user_l3pt[addr/PGSIZE] & PTE_D) && cause == CAUSE_STORE_PAGE_FAULT);
       user_l3pt[addr/PGSIZE] |= PTE_D;
     }
     flush_page(addr);
@@ -178,7 +178,7 @@ void handle_trap(trapframe_t* tf)
       assert(!"illegal instruction");
     tf->epc += 4;
   }
-  else if (tf->cause == CAUSE_FAULT_FETCH || tf->cause == CAUSE_FAULT_LOAD || tf->cause == CAUSE_FAULT_STORE)
+  else if (tf->cause == CAUSE_FETCH_PAGE_FAULT || tf->cause == CAUSE_LOAD_PAGE_FAULT || tf->cause == CAUSE_STORE_PAGE_FAULT)
     handle_fault(tf->badvaddr, tf->cause);
   else
     assert(!"unexpected exception");
@@ -243,9 +243,9 @@ void vm_boot(uintptr_t test_addr)
   write_csr(sscratch, pa2kva(read_csr(mscratch)));
   write_csr(medeleg,
     (1 << CAUSE_USER_ECALL) |
-    (1 << CAUSE_FAULT_FETCH) |
-    (1 << CAUSE_FAULT_LOAD) |
-    (1 << CAUSE_FAULT_STORE));
+    (1 << CAUSE_FETCH_PAGE_FAULT) |
+    (1 << CAUSE_LOAD_PAGE_FAULT) |
+    (1 << CAUSE_STORE_PAGE_FAULT));
   // FPU on; accelerator on; allow supervisor access to user memory access
   write_csr(mstatus, MSTATUS_FS | MSTATUS_XS | MSTATUS_SUM);
   write_csr(mie, 0);

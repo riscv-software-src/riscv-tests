@@ -153,9 +153,9 @@ reset_vector:                                                           \
         la t0, stvec_handler;                                           \
         beqz t0, 1f;                                                    \
         csrw stvec, t0;                                                 \
-        li t0, (1 << CAUSE_FAULT_LOAD) |                                \
-               (1 << CAUSE_FAULT_STORE) |                               \
-               (1 << CAUSE_FAULT_FETCH) |                               \
+        li t0, (1 << CAUSE_LOAD_PAGE_FAULT) |                           \
+               (1 << CAUSE_STORE_PAGE_FAULT) |                          \
+               (1 << CAUSE_FETCH_PAGE_FAULT) |                          \
                (1 << CAUSE_MISALIGNED_FETCH) |                          \
                (1 << CAUSE_USER_ECALL) |                                \
                (1 << CAUSE_BREAKPOINT);                                 \
