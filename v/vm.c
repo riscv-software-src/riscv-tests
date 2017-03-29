@@ -101,10 +101,12 @@ static void evict(unsigned long addr)
   {
     // check accessed and dirty bits
     assert(user_l3pt[addr/PGSIZE] & PTE_A);
+    uintptr_t sstatus = set_csr(sstatus, SSTATUS_SUM);
     if (memcmp((void*)addr, uva2kva(addr), PGSIZE)) {
       assert(user_l3pt[addr/PGSIZE] & PTE_D);
       memcpy((void*)addr, uva2kva(addr), PGSIZE);
     }
+    write_csr(sstatus, sstatus);
 
     user_mapping[addr/PGSIZE].addr = 0;
 
@@ -146,7 +148,10 @@ void handle_fault(uintptr_t addr, uintptr_t cause)
 
   assert(user_mapping[addr/PGSIZE].addr == 0);
   user_mapping[addr/PGSIZE] = *node;
+
+  uintptr_t sstatus = set_csr(sstatus, SSTATUS_SUM);
   memcpy((void*)addr, uva2kva(addr), PGSIZE);
+  write_csr(sstatus, sstatus);
 
   user_l3pt[addr/PGSIZE] = new_pte;
   flush_page(addr);
@@ -247,7 +252,7 @@ void vm_boot(uintptr_t test_addr)
     (1 << CAUSE_LOAD_PAGE_FAULT) |
     (1 << CAUSE_STORE_PAGE_FAULT));
   // FPU on; accelerator on; allow supervisor access to user memory access
-  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS | MSTATUS_SUM);
+  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS);
   write_csr(mie, 0);
 
   random = 1 + (random % MAX_TEST_PAGES);
