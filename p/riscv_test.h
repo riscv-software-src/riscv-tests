@@ -58,7 +58,7 @@
   csrw mtvec, t0;                                                       \
   li t0, -1;        /* Set up a PMP to permit all accesses */           \
   csrw pmpaddr0, t0;                                                    \
-  li t0, PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;            \
+  li t0, PMP_NAPOT | PMP_R | PMP_W | PMP_X;                             \
   csrw pmpcfg0, t0;                                                     \
   .align 2;                                                             \
 1:

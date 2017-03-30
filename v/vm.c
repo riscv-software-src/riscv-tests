@@ -234,7 +234,7 @@ void vm_boot(uintptr_t test_addr)
                    (vm_choice * (SPTBR_MODE & ~(SPTBR_MODE<<1))));
 
   // Set up PMPs if present, ignoring illegal instruction trap if not.
-  uintptr_t pmpc = PMP_EN | PMP_NAPOT | PMP_M | PMP_R | PMP_W | PMP_X;
+  uintptr_t pmpc = PMP_NAPOT | PMP_R | PMP_W | PMP_X;
   asm volatile ("la t0, 1f\n\t"
                 "csrrw t0, mtvec, t0\n\t"
                 "csrw pmpaddr0, %1\n\t"
