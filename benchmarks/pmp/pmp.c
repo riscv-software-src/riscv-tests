@@ -44,7 +44,7 @@ static void init_pt()
 #endif
   write_csr(sptbr, ((uintptr_t)l1pt >> RISCV_PGSHIFT) |
                    (vm_choice * (SPTBR_MODE & ~(SPTBR_MODE<<1))));
-  write_csr(pmpcfg0, (PMP_EN | PMP_NAPOT | PMP_R) << 16);
+  write_csr(pmpcfg0, (PMP_NAPOT | PMP_R) << 16);
   write_csr(pmpaddr2, -1);
 }
 
@@ -65,10 +65,13 @@ typedef struct {
 
 INLINE int pmp_ok(pmpcfg_t p, uintptr_t addr, uintptr_t size)
 {
-  if (!(p.cfg & PMP_TOR)) {
+  if ((p.cfg & PMP_A) == 0)
+    return 1;
+
+  if ((p.cfg & PMP_A) != PMP_TOR) {
     uintptr_t range = 1;
 
-    if (p.cfg & PMP_NAPOT) {
+    if ((p.cfg & PMP_A) == PMP_NAPOT) {
       range <<= 1;
       for (uintptr_t i = 1; i; i <<= 1) {
         if ((p.a1 & i) == 0)
@@ -141,7 +144,7 @@ INLINE pmpcfg_t set_pmp(pmpcfg_t p)
 INLINE pmpcfg_t set_pmp_range(uintptr_t base, uintptr_t range)
 {
   pmpcfg_t p;
-  p.cfg = PMP_EN | PMP_TOR | PMP_M | PMP_R;
+  p.cfg = PMP_TOR | PMP_R;
   p.a0 = base >> PMP_SHIFT;
   p.a1 = (base + range) >> PMP_SHIFT;
   return set_pmp(p);
@@ -150,7 +153,7 @@ INLINE pmpcfg_t set_pmp_range(uintptr_t base, uintptr_t range)
 INLINE pmpcfg_t set_pmp_napot(uintptr_t base, uintptr_t range)
 {
   pmpcfg_t p;
-  p.cfg = PMP_EN | PMP_M | PMP_R | (range > GRANULE ? PMP_NAPOT : 0);
+  p.cfg = PMP_R | (range > GRANULE ? PMP_NAPOT : PMP_NA4);
   p.a0 = 0;
   p.a1 = (base + (range/2 - 1)) >> PMP_SHIFT;
   return set_pmp(p);
