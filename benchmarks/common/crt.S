@@ -108,7 +108,10 @@ _start:
 1:
 
   # initialize global pointer
-  la gp, _gp
+.option push
+.option norelax
+  la gp, __global_pointer$
+.option pop
 
   la  tp, _end + 63
   and tp, tp, -64
