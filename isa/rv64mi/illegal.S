@@ -13,26 +13,41 @@
 RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
+  .align 2
+  .option norvc
+
   li TESTNUM, 2
 bad2:
   .word 0
   j fail
 
+  # Test vectored interrupts if they are supported.
+test_vectored_interrupts:
+  csrwi mip, MIP_SSIP
+  csrwi mie, MIP_SSIP
+  la t0, mtvec_handler + 1
+  csrrw s0, mtvec, t0
+  csrr t0, mtvec
+  andi t0, t0, 1
+  beqz t0, msip
+  csrsi mstatus, MSTATUS_MIE
+1:
+  j 1b
+
+msip:
+  csrw mtvec, s0
+
   # Skip the rest of the test if S-mode is not present.
-  li t0, MSTATUS_MPIE
-  csrc mstatus, t0
   li t0, MSTATUS_MPP
   csrc mstatus, t0
-  li t1, (MSTATUS_MPP & ~(MSTATUS_MPP << 1)) * PRV_S
+  li t1, (MSTATUS_MPP & -MSTATUS_MPP) * PRV_S
   csrs mstatus, t1
   csrr t2, mstatus
   and t2, t2, t0
   bne t1, t2, pass
 
-  # Set a software interrupt pending so WFI won't stall.
+  # Delegate supervisor software interrupts so WFI won't stall.
   csrwi mideleg, MIP_SSIP
-  csrwi mip, MIP_SSIP
-  csrwi mie, MIP_SSIP
   la t0, 1f
   csrw mepc, t0
   mret
@@ -86,7 +101,26 @@ bad9:
 
   TEST_PASSFAIL
 
+  .align 8
 mtvec_handler:
+  j synchronous_exception
+  j msip
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+  j fail
+
+synchronous_exception:
   li t1, CAUSE_ILLEGAL_INSTRUCTION
   csrr t0, mcause
   bne t0, t1, fail
@@ -132,7 +166,7 @@ mtvec_handler:
   j 2b
 
 9:
-  j pass
+  j 2b
 
 RVTEST_CODE_END
 
