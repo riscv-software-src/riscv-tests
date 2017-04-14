@@ -166,7 +166,7 @@ class Openocd(object):
         messaged = False
         while True:
             log = open(Openocd.logname).read()
-            if "Examined RISCV core" in log:
+            if "OK GO NOW" in log:
                 break
             if not self.process.poll() is None:
                 raise Exception(
@@ -203,7 +203,7 @@ class Openocd(object):
             elif matches:
                 [match] = matches
                 return int(match.group('port'))
-            time.sleep(0.1)
+            time.sleep(1)
         raise Exception("Timed out waiting for gdb server to obtain port.")
 
     def __del__(self):
@@ -261,7 +261,7 @@ class Gdb(object):
         """Wait for prompt."""
         self.child.expect(r"\(gdb\)")
 
-    def command(self, command, timeout=-1):
+    def command(self, command, timeout=6000):
         self.child.sendline(command)
         self.child.expect("\n", timeout=timeout)
         self.child.expect(r"\(gdb\)", timeout=timeout)
@@ -278,7 +278,7 @@ class Gdb(object):
 
     def interrupt(self):
         self.child.send("\003")
-        self.child.expect(r"\(gdb\)", timeout=60)
+        self.child.expect(r"\(gdb\)", timeout=6000)
         return self.child.before.strip()
 
     def x(self, address, size='w'):
@@ -311,7 +311,7 @@ class Gdb(object):
         return output
 
     def load(self):
-        output = self.command("load", timeout=60)
+        output = self.command("load", timeout=6000)
         assert "failed" not in  output
         assert "Transfer rate" in output
 

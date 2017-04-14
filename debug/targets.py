@@ -99,7 +99,7 @@ class HiFive1Target(FreedomE300Target):
 class FreedomE300SimTarget(Target):
     name = "freedom-e300-sim"
     xlen = 32
-    timeout_sec = 240
+    timeout_sec = 6000
     ram = 0x80000000
     ram_size = 256 * 1024 * 1024
     instruction_hardware_breakpoint_count = 2
@@ -119,7 +119,7 @@ class FreedomU500Target(Target):
 class FreedomU500SimTarget(Target):
     name = "freedom-u500-sim"
     xlen = 64
-    timeout_sec = 240
+    timeout_sec = 6000
     ram = 0x80000000
     ram_size = 256 * 1024 * 1024
     instruction_hardware_breakpoint_count = 2
