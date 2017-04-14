@@ -13,9 +13,9 @@ main:
         # update mstatus
         csrr    t1, CSR_MSTATUS
 #if XLEN == 32
-        li      t0, (MSTATUS_MPRV | (VM_SV32 << 24))
+        li      t0, (MSTATUS_MPRV | (SPTBR_MODE_SV32 << 24))
 #else
-        li      t0, (MSTATUS_MPRV | (VM_SV39 << 24))
+        li      t0, (MSTATUS_MPRV | (SPTBR_MODE_SV39 << 24))
 #endif
         #li      t0, ((VM_SV39 << 24))
         or      t1, t0, t1

@@ -19,8 +19,11 @@ def find_file(path):
     return None
 
 def compile(args, xlen=32): # pylint: disable=redefined-builtin
-    cc = os.path.expandvars("$RISCV/bin/riscv%d-unknown-elf-gcc" % xlen)
+    cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
     cmd = [cc, "-g"]
+    if (xlen == 32):
+        cmd.append("-march=rv32imac")
+        cmd.append("-mabi=ilp32")
     for arg in args:
         found = find_file(arg)
         if found:
@@ -28,7 +31,7 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         else:
             cmd.append(arg)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode:
         print

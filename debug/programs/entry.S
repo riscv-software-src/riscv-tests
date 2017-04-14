@@ -30,8 +30,23 @@ handle_reset:
   la t0, trap_entry
   csrw mtvec, t0
   csrwi mstatus, 0
+
+  // make sure these registers exist by seeing if either S or U bits
+  // are set before attempting to zero them out.
+  csrr   t1, misa
+  addi   t2, x0, 1 	
+  slli   t2, t2, 20 // U_EXTENSION
+  and    t2, t1, t2
+  bne    x0, t2, 1f
+  addi   t2, x0, 1
+  slli   t2, t2, 18 // S_EXTENSION	
+  and    t2, t1, t2
+  bne    x0, t2, 1f
+  j 2f
+1:
   csrwi mideleg, 0
   csrwi medeleg, 0
+2:
   csrwi mie, 0
 
   # initialize global pointer
