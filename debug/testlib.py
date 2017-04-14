@@ -24,6 +24,9 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
     if (xlen == 32):
         cmd.append("-march=rv32imac")
         cmd.append("-mabi=ilp32")
+    else:
+        cmd.append("-march=rv64imac")
+        cmd.append("-mabi=lp64")        
     for arg in args:
         found = find_file(arg)
         if found:
