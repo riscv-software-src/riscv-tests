@@ -21,6 +21,15 @@ bad2:
   .word 0
   j fail
 
+  # Skip the rest of the test if S-mode is not present.
+  li t0, MSTATUS_MPP
+  csrc mstatus, t0
+  li t1, (MSTATUS_MPP & -MSTATUS_MPP) * PRV_S
+  csrs mstatus, t1
+  csrr t2, mstatus
+  and t2, t2, t0
+  bne t1, t2, pass
+
   # Test vectored interrupts if they are supported.
 test_vectored_interrupts:
   csrwi mip, MIP_SSIP
@@ -33,23 +42,18 @@ test_vectored_interrupts:
   csrsi mstatus, MSTATUS_MIE
 1:
   j 1b
-
 msip:
   csrw mtvec, s0
 
-  # Skip the rest of the test if S-mode is not present.
+  # Delegate supervisor software interrupts so WFI won't stall.
+  csrwi mideleg, MIP_SSIP
+  # Enter supervisor mode.
+  la t0, 1f
+  csrw mepc, t0
   li t0, MSTATUS_MPP
   csrc mstatus, t0
   li t1, (MSTATUS_MPP & -MSTATUS_MPP) * PRV_S
   csrs mstatus, t1
-  csrr t2, mstatus
-  and t2, t2, t0
-  bne t1, t2, pass
-
-  # Delegate supervisor software interrupts so WFI won't stall.
-  csrwi mideleg, MIP_SSIP
-  la t0, 1f
-  csrw mepc, t0
   mret
 
 1:
