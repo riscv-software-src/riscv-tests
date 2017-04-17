@@ -19,8 +19,14 @@ def find_file(path):
     return None
 
 def compile(args, xlen=32): # pylint: disable=redefined-builtin
-    cc = os.path.expandvars("$RISCV/bin/riscv%d-unknown-elf-gcc" % xlen)
+    cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
     cmd = [cc, "-g"]
+    if (xlen == 32):
+        cmd.append("-march=rv32imac")
+        cmd.append("-mabi=ilp32")
+    else:
+        cmd.append("-march=rv64imac")
+        cmd.append("-mabi=lp64")        
     for arg in args:
         found = find_file(arg)
         if found:
@@ -28,7 +34,7 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         else:
             cmd.append(arg)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode:
         print
@@ -185,7 +191,7 @@ class Openocd(object):
         messaged = False
         while True:
             log = open(Openocd.logname).read()
-            if "Examined RISCV core" in log:
+            if "OK GO NOW" in log:
                 break
             if not self.process.poll() is None:
                 raise Exception(
@@ -222,7 +228,7 @@ class Openocd(object):
             elif matches:
                 [match] = matches
                 return int(match.group('port'))
-            time.sleep(0.1)
+            time.sleep(1)
         raise Exception("Timed out waiting for gdb server to obtain port.")
 
     def __del__(self):
@@ -280,7 +286,7 @@ class Gdb(object):
         """Wait for prompt."""
         self.child.expect(r"\(gdb\)")
 
-    def command(self, command, timeout=-1):
+    def command(self, command, timeout=6000):
         self.child.sendline(command)
         self.child.expect("\n", timeout=timeout)
         self.child.expect(r"\(gdb\)", timeout=timeout)
@@ -297,7 +303,7 @@ class Gdb(object):
 
     def interrupt(self):
         self.child.send("\003")
-        self.child.expect(r"\(gdb\)", timeout=60)
+        self.child.expect(r"\(gdb\)", timeout=6000)
         return self.child.before.strip()
 
     def x(self, address, size='w'):
@@ -330,7 +336,7 @@ class Gdb(object):
         return output
 
     def load(self):
-        output = self.command("load", timeout=60)
+        output = self.command("load", timeout=6000)
         assert "failed" not in  output
         assert "Transfer rate" in output
 
