@@ -57,14 +57,15 @@ def unused_port():
 class Spike(object):
     logname = "spike.log"
 
-    def __init__(self, cmd, binary=None, halted=False, with_jtag_gdb=True,
+    def __init__(self, sim_cmd, binary=None, halted=False, with_jtag_gdb=True,
             timeout=None, xlen=64):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
-        if cmd:
-            cmd = shlex.split(cmd)
+        if sim_cmd:
+            cmd = shlex.split(sim_cmd)
         else:
-            cmd = ["spike"]
+            spike = os.path.expandvars("$RISCV/bin/spike")
+            cmd = [spike]
         if xlen == 32:
             cmd += ["--isa", "RV32"]
 
@@ -110,8 +111,8 @@ class Spike(object):
         return self.process.wait(*args, **kwargs)
 
 class VcsSim(object):
-    def __init__(self, simv=None, debug=False):
-        if simv:
+    def __init__(self, sim_cmd=None, debug=False):
+        if sim_cmd:
             cmd = shlex.split(simv)
         else:
             cmd = ["simv"]
@@ -147,12 +148,15 @@ class VcsSim(object):
 class Openocd(object):
     logname = "openocd.log"
 
-    def __init__(self, cmd=None, config=None, debug=False):
-        if cmd:
-            cmd = shlex.split(cmd)
+    def __init__(self, server_cmd=None, config=None, debug=False):
+        if server_cmd:
+            cmd = shlex.split(server_cmd)
         else:
-            cmd = ["openocd", "-d"]
-
+            openocd = os.path.expandvars("$RISCV/bin/riscv-openocd")
+            cmd = [openocd]
+            if (debug):
+                cmd.append("-d")
+        
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
         cmd += [

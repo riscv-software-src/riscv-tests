@@ -678,7 +678,7 @@ def main():
             epilog="""
             Example command line from the real world:
             Run all RegsTest cases against a physical FPGA, with custom openocd command:
-            ./gdbserver.py --freedom-e300 --cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" Simple
+            ./gdbserver.py --freedom-e300 --server_cmd "$HOME/SiFive/openocd/src/openocd -s $HOME/SiFive/openocd/tcl -d" Simple
             """)
     targets.add_target_options(parser)
 
@@ -688,7 +688,7 @@ def main():
     global parsed   # pylint: disable=global-statement
     parsed = parser.parse_args()
 
-    target = parsed.target(parsed.cmd, parsed.run, parsed.isolate)
+    target = parsed.target(parsed.server_cmd, parsed.sim_cmd, parsed.isolate)
     if parsed.xlen:
         target.xlen = parsed.xlen
 

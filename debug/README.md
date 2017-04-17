@@ -2,9 +2,9 @@ Debug Tests
 ===========
 
 Debugging requires many system components to all work together. The tests here
-perform an end-to-end test, communicating only with gdb. If a simulator or
-hardware passes all these tests, then you can be pretty confident that the
-actual debug interface is functioning correctly.
+perform an end-to-end test, communicating with gdb and OpenOCD.
+If a simulator or hardware passes all these tests, then you can be pretty
+confident that the actual debug interface is functioning correctly.
 
 Targets
 =======
@@ -23,12 +23,13 @@ Targets
 -------------------------------------
 
 `./gdbserver.py --freedom-e300`
+`./gdbserver.py --hifive1`
+
 
 32-bit rocket-chip core in Simulation
 -------------------------------------
 
 `./gdbserver.py --freedom-e300-sim`
-
 
 Debug Tips
 ==========
