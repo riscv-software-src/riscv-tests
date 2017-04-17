@@ -13,9 +13,6 @@ rv32mi_sc_tests = \
 	sbreak \
 	shamt \
 
-rv32mi_mc_tests = \
-	ipi \
-
 rv32mi_p_tests = $(addprefix rv32mi-p-, $(rv32mi_sc_tests))
 
 spike32_tests += $(rv32mi_p_tests)

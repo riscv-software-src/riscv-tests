@@ -31,18 +31,18 @@ RVTEST_CODE_BEGIN
 
   # Test with a negative base
 
-  TEST_CASE( 10, x3, 0x00ff00ff00ff00ff, \
+  TEST_CASE( 10, x5, 0x00ff00ff00ff00ff, \
     la  x1, tdat; \
     addi x1, x1, -32; \
-    ld x3, 32(x1); \
+    ld x5, 32(x1); \
   )
 
   # Test with unaligned base
 
-  TEST_CASE( 11, x3, 0xff00ff00ff00ff00, \
+  TEST_CASE( 11, x5, 0xff00ff00ff00ff00, \
     la  x1, tdat; \
     addi x1, x1, -3; \
-    ld x3, 11(x1); \
+    ld x5, 11(x1); \
   )
 
   #-------------------------------------------------------------
@@ -62,14 +62,14 @@ RVTEST_CODE_BEGIN
   #-------------------------------------------------------------
 
   TEST_CASE( 18, x2, 2, \
-    la  x3, tdat; \
-    ld  x2, 0(x3); \
+    la  x5, tdat; \
+    ld  x2, 0(x5); \
     li  x2, 2; \
   )
 
   TEST_CASE( 19, x2, 2, \
-    la  x3, tdat; \
-    ld  x2, 0(x3); \
+    la  x5, tdat; \
+    ld  x2, 0(x5); \
     nop; \
     li  x2, 2; \
   )

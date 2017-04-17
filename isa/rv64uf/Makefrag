@@ -3,7 +3,7 @@
 #-----------------------------------------------------------------------
 
 rv64uf_sc_tests = \
-	fadd fdiv fclass fcmp fcvt fcvt_w fmadd fmin fsgnj \
+	fadd fdiv fclass fcmp fcvt fcvt_w fmadd fmin \
 	ldst move recoding \
 
 rv64uf_p_tests = $(addprefix rv64uf-p-, $(rv64uf_sc_tests))

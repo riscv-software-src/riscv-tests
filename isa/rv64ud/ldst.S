@@ -13,8 +13,12 @@
 RVTEST_RV64UF
 RVTEST_CODE_BEGIN
 
-  TEST_CASE(2, a0, 0x40000000bf800000, la a1, tdat; fld f2, 0(a1); fsd f2, 16(a1); ld a0, 16(a1))
-  TEST_CASE(3, a0, 0xc080000040400000, la a1, tdat; fld f2, 8(a1); fsd f2, 16(a1); ld a0, 16(a1))
+  la s0, tdat
+  TEST_CASE(2, a0, 0x40000000bf800000, fld f2, 0(s0); fsd f2, 16(s0); ld a0, 16(s0))
+  TEST_CASE(3, a0, 0x40000000bf800000, fld f2, 0(s0); fsw f2, 16(s0); ld a0, 16(s0))
+  TEST_CASE(4, a0, 0x40000000bf800000, flw f2, 0(s0); fsw f2, 16(s0); ld a0, 16(s0))
+  TEST_CASE(5, a0, 0xc080000040400000, fld f2, 8(s0); fsd f2, 16(s0); ld a0, 16(s0))
+  TEST_CASE(6, a0, 0xffffffff40400000, flw f2, 8(s0); fsd f2, 16(s0); ld a0, 16(s0))
 
   TEST_PASSFAIL
 

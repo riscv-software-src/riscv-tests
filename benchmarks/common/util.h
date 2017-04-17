@@ -3,61 +3,11 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
-//--------------------------------------------------------------------------
-// Macros
-
-// Set HOST_DEBUG to 1 if you are going to compile this for a host
-// machine (ie Athena/Linux) for debug purposes and set HOST_DEBUG
-// to 0 if you are compiling with the smips-gcc toolchain.
-
-#ifndef HOST_DEBUG
-#define HOST_DEBUG 0
-#endif
-
-// Set PREALLOCATE to 1 if you want to preallocate the benchmark
-// function before starting stats. If you have instruction/data
-// caches and you don't want to count the overhead of misses, then
-// you will need to use preallocation.
-
-#ifndef PREALLOCATE
-#define PREALLOCATE 0
-#endif
-
-// Set SET_STATS to 1 if you want to carve out the piece that actually
-// does the computation.
-
-#if HOST_DEBUG
-#include <stdio.h>
-static void setStats(int enable) {}
-#else
 extern void setStats(int enable);
-#endif
 
 #include <stdint.h>
 
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
-
-static void printArray(const char name[], int n, const int arr[])
-{
-#if HOST_DEBUG
-  int i;
-  printf( " %10s :", name );
-  for ( i = 0; i < n; i++ )
-    printf( " %3d ", arr[i] );
-  printf( "\n" );
-#endif
-}
-
-static void printDoubleArray(const char name[], int n, const double arr[])
-{
-#if HOST_DEBUG
-  int i;
-  printf( " %10s :", name );
-  for ( i = 0; i < n; i++ )
-    printf( " %g ", arr[i] );
-  printf( "\n" );
-#endif
-}
 
 static int verify(int n, const volatile int* test, const int* verify)
 {
@@ -115,6 +65,11 @@ static uint64_t lfsr(uint64_t x)
 {
   uint64_t bit = (x ^ (x >> 1)) & 1;
   return (x >> 1) | (bit << 62);
+}
+
+static uintptr_t insn_len(uintptr_t pc)
+{
+  return (*(unsigned short*)pc & 3) ? 4 : 2;
 }
 
 #ifdef __riscv

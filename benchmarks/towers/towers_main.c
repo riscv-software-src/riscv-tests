@@ -13,10 +13,7 @@
 // disc on top of a smaller disc.
 //
 // This implementation starts with NUM_DISC discs and uses a recursive
-// algorithm to sovel the puzzle.  The smips-gcc toolchain does not support
-// system calls so printf's can only be used on a host system, not on the
-// smips processor simulator itself. You should not change anything except
-// the HOST_DEBUG and PREALLOCATE macros for your timing run.
+// algorithm to sovel the puzzle.
 
 #include "util.h"
 
@@ -140,34 +137,6 @@ void towers_clear( struct Towers* this )
 
 }
 
-#if HOST_DEBUG
-void towers_print( struct Towers* this )
-{
-  struct Node* ptr;
-  int i, numElements;
-
-  printf( "  pegA: " );
-  for ( i = 0; i < ((this->numDiscs)-list_getSize(&(this->pegA))); i++ )
-    printf( ". " );
-  for ( ptr = this->pegA.head; ptr != 0; ptr = ptr->next )
-    printf( "%d ", ptr->val );
-
-  printf( "  pegB: " );
-  for ( i = 0; i < ((this->numDiscs)-list_getSize(&(this->pegB))); i++ )
-    printf( ". " );
-  for ( ptr = this->pegB.head; ptr != 0; ptr = ptr->next )
-    printf( "%d ", ptr->val );
-
-  printf( "  pegC: " );
-  for ( i = 0; i < ((this->numDiscs)-list_getSize(&(this->pegC))); i++ )
-    printf( ". " );
-  for ( ptr = this->pegC.head; ptr != 0; ptr = ptr->next )
-    printf( "%d ", ptr->val );
-
-  printf( "\n" );
-}
-#endif
-
 void towers_solve_h( struct Towers* this, int n,
                      struct List* startPeg,
                      struct List* tempPeg,
@@ -176,9 +145,6 @@ void towers_solve_h( struct Towers* this, int n,
   int val;
 
   if ( n == 1 ) {
-#if HOST_DEBUG
-    towers_print(this);
-#endif
     val = list_pop(startPeg);
     list_push(destPeg,val);
     this->numMoves++;
@@ -202,43 +168,25 @@ int towers_verify( struct Towers* this )
   int numDiscs = 0;
 
   if ( list_getSize(&this->pegA) != 0 ) {
-#if HOST_DEBUG
-    printf( "ERROR: Peg A is not empty!\n" );
-#endif
     return 2;
   }
 
   if ( list_getSize(&this->pegB) != 0 ) {
-#if HOST_DEBUG
-    printf( "ERROR: Peg B is not empty!\n" );
-#endif
     return 3;
   }
 
   if ( list_getSize(&this->pegC) != this->numDiscs ) {
-#if HOST_DEBUG
-    printf( " ERROR: Expected %d discs but found only %d discs!\n", \
-            this->numDiscs, list_getSize(&this->pegC) );
-#endif
     return 4;
   }
 
   for ( ptr = this->pegC.head; ptr != 0; ptr = ptr->next ) {
     numDiscs++;
     if ( ptr->val != numDiscs ) {
-#if HOST_DEBUG
-      printf( " ERROR: Expecting disc %d on peg C but found disc %d instead!\n", \
-              numDiscs, ptr->val );
-#endif
       return 5;
     }
   }
 
   if ( this->numMoves != ((1 << this->numDiscs) - 1) ) {
-#if HOST_DEBUG
-    printf( " ERROR: Expecting %d num moves but found %d instead!\n", \
-            ((1 << this->numDiscs) - 1), this->numMoves );
-#endif
     return 6;
   }
 
@@ -279,12 +227,6 @@ int main( int argc, char* argv[] )
   setStats(1);
   towers_solve( &towers );
   setStats(0);
-
-  // Print out the results
-
-#if HOST_DEBUG
-  towers_print( &towers );
-#endif
 
   // Check the results
   return towers_verify( &towers );

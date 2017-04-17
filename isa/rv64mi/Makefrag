@@ -12,9 +12,6 @@ rv64mi_sc_tests = \
 	scall \
 	sbreak \
 
-rv64mi_mc_tests = \
-	ipi \
-
 rv64mi_p_tests = $(addprefix rv64mi-p-, $(rv64mi_sc_tests))
 
 spike_tests += $(rv64mi_p_tests)
