@@ -76,14 +76,14 @@ class Spike64Target(SpikeTarget):
     use_fpu = True
 
     def target(self):
-        return testlib.Spike(self.sim_cmd, halted=True)
+        return testlib.Spike(self.sim_cmd)
 
 class Spike32Target(SpikeTarget):
     name = "spike32"
     xlen = 32
 
     def target(self):
-        return testlib.Spike(self.sim_cmd, halted=True, xlen=32)
+        return testlib.Spike(self.sim_cmd, xlen=32)
 
 class FreedomE300Target(Target):
     name = "freedom-e300"

@@ -78,7 +78,7 @@ class Spike(object):
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
         cmd.append("-m32")
-        cmd.append('pk')
+        cmd.append('programs/infinite_loop')
         if binary:
             cmd.append(binary)
         logfile = open(self.logname, "w")
@@ -195,7 +195,7 @@ class Openocd(object):
         messaged = False
         while True:
             log = open(Openocd.logname).read()
-            if "OK GO NOW" in log:
+            if "Ready for Remote Connections" in log:
                 break
             if not self.process.poll() is None:
                 raise Exception(
