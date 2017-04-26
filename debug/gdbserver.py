@@ -80,6 +80,8 @@ class SimpleRegisterTest(GdbTest):
         self.gdb.command("p *((int*) 0x%x)=0x13" % self.target.ram)
         self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 4))
         self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 8))
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 12))
+        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 16))
         self.gdb.p("$pc=0x%x" % self.target.ram)
 
 class SimpleS0Test(SimpleRegisterTest):
@@ -100,6 +102,8 @@ class SimpleT1Test(SimpleRegisterTest):
 
 class SimpleF18Test(SimpleRegisterTest):
     def check_reg(self, name):
+        self.gdb.p_raw("$mstatus=$mstatus | 0x00006000")
+        self.gdb.stepi()
         a = random.random()
         b = random.random()
         self.gdb.p_raw("$%s=%f" % (name, a))
