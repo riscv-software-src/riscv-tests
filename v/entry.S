@@ -13,8 +13,8 @@
 #define STACK_TOP (_end + 4096)
 
   .section ".text.init","ax",@progbits
-
-reset_vector:
+  .globl _start
+_start:
   j handle_reset
 
   /* NMI vector */
