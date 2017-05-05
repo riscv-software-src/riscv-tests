@@ -24,6 +24,11 @@ RVTEST_CODE_BEGIN
   #define SSTATUS_SPP MSTATUS_MPP
 #endif
 
+  # For RV64, make sure UXL encodes RV64.  (UXL does not exist for RV32.)
+#if __riscv_xlen == 64
+  TEST_CASE(13, a0, SSTATUS_UXL & (SSTATUS_UXL << 1), csrr a0, sstatus; li a1, SSTATUS_UXL; and a0, a0, a1)
+#endif
+
   csrwi sscratch, 3
   TEST_CASE( 2, a0,         3, csrr a0, sscratch);
   TEST_CASE( 3, a1,         3, csrrci a1, sscratch, 1);
