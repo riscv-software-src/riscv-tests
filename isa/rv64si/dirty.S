@@ -55,6 +55,19 @@ RVTEST_CODE_BEGIN
   li a0, PTE_A | PTE_D
   and t0, t0, a0
   bne t0, a0, die
+
+  # Enter MPRV again
+  li t0, MSTATUS_MPRV
+  csrs mstatus, t0
+
+  # Make sure that superpage entries trap when PPN LSBs are set.
+  li TESTNUM, 4
+  lw a0, page_table_1 - DRAM_BASE
+  or a0, a0, 1 << PTE_PPN_SHIFT
+  sw a0, page_table_1 - DRAM_BASE, t0
+  sfence.vma
+  sw a0, page_table_1 - DRAM_BASE, t0
+  j die
   
   RVTEST_PASS
 
@@ -91,6 +104,11 @@ skip:
   sw t0, page_table_1, t1
   sfence.vma
   mret
+
+1:
+  li t1, 4
+  bne TESTNUM, t1, 1f
+  j pass
 
 1:
 die:
