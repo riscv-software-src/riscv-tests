@@ -67,7 +67,9 @@ class Spike(object):
             spike = os.path.expandvars("$RISCV/bin/spike")
             cmd = [spike]
         if xlen == 32:
-            cmd += ["--isa", "RV32"]
+            cmd += ["--isa", "RV32G"]
+        else:
+            cmd += ["--isa", "RV64G"]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
