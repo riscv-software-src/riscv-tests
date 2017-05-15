@@ -16,7 +16,7 @@ pylint:
 		--isolate \
 		--$(subst .log,,$@) \
 		--sim_cmd $(RISCV)/bin/$(RISCV_SIM) \
-		--server_cmd openocd \
+		--server_cmd $(RISCV)/bin/openocd \
 	    > $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
 
 clean:
