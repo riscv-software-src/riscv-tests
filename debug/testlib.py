@@ -77,7 +77,6 @@ class Spike(object):
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        cmd.append("-m32")
         cmd.append('programs/infinite_loop')
         if binary:
             cmd.append(binary)
