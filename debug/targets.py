@@ -127,7 +127,7 @@ class FreedomU500SimTarget(Target):
     openocd_config = "targets/%s/openocd.cfg" % name
 
     def target(self):
-        return testlib.VcsSim(simv=self.sim_cmd, debug=False)
+        return testlib.VcsSim(sim_cmd=self.sim_cmd, debug=False)
 
 targets = [
         Spike32Target,

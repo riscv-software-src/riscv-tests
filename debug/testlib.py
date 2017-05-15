@@ -113,7 +113,7 @@ class Spike(object):
 class VcsSim(object):
     def __init__(self, sim_cmd=None, debug=False):
         if sim_cmd:
-            cmd = shlex.split(simv)
+            cmd = shlex.split(sim_cmd)
         else:
             cmd = ["simv"]
         cmd += ["+jtag_vpi_enable"]
