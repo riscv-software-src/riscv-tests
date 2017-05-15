@@ -539,7 +539,8 @@ class GdbTest(BaseTest):
             self.gdb.command(
                     "target extended-remote localhost:%d" % self.server.port)
 
-        self.gdb.p("$priv=3")
+        # FIXME: OpenOCD doesn't handle PRIV now
+        #self.gdb.p("$priv=3")
 
     def classTeardown(self):
         del self.gdb
