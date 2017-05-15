@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <limits.h>
+#include <sys/signal.h>
 #include "util.h"
 
 #define SYS_write 64
@@ -66,6 +67,11 @@ uintptr_t __attribute__((weak)) handle_trap(uintptr_t cause, uintptr_t epc, uint
 void exit(int code)
 {
   tohost_exit(code);
+}
+
+void abort()
+{
+  exit(128 + SIGABRT);
 }
 
 void printstr(const char* s)
