@@ -371,8 +371,9 @@ def run_all_tests(module, target, parsed):
     gdb_cmd = parsed.gdb
 
     todo = []
-    if (parsed.misa):
-        self.target.misa = parsed.misa
+    if (parsed.misaval):
+        target.misa = int(parsed.misaval, 16)
+        print "Assuming $MISA value of 0x%x. Skipping ExamineTarget." % target.misa
     else:
         todo.append(("ExamineTarget", ExamineTarget))
 
@@ -402,15 +403,19 @@ def run_all_tests(module, target, parsed):
 
     return result
 
+def auto_int (x) :
+    return int(x, 0)
+
 def add_test_run_options(parser):
+
     parser.add_argument("--fail-fast", "-f", action="store_true",
             help="Exit as soon as any test fails.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
-    parser.add_argument("--misa", "-m",
-            help="Don't run ExamineTarget, just assume the misa which is specified.")
+    parser.add_argument("--misaval",
+            help="Don't run ExamineTarget, just assume the misa value which is specified.")
 
 def header(title, dash='-'):
     if title:
