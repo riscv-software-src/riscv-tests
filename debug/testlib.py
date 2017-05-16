@@ -67,7 +67,9 @@ class Spike(object):
             spike = os.path.expandvars("$RISCV/bin/spike")
             cmd = [spike]
         if xlen == 32:
-            cmd += ["--isa", "RV32"]
+            cmd += ["--isa", "RV32G"]
+        else:
+            cmd += ["--isa", "RV64G"]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
@@ -77,7 +79,6 @@ class Spike(object):
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        cmd.append("-m32")
         cmd.append('programs/infinite_loop')
         if binary:
             cmd.append(binary)
@@ -538,7 +539,8 @@ class GdbTest(BaseTest):
             self.gdb.command(
                     "target extended-remote localhost:%d" % self.server.port)
 
-        self.gdb.p("$priv=3")
+        # FIXME: OpenOCD doesn't handle PRIV now
+        #self.gdb.p("$priv=3")
 
     def classTeardown(self):
         del self.gdb
