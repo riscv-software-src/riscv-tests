@@ -74,6 +74,8 @@ class Spike(object):
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
 
+        cmd += ["-m0x10000000:0x10000000"]
+
         if halted:
             cmd.append('-H')
         if with_jtag_gdb:
