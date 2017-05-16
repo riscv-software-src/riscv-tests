@@ -64,8 +64,8 @@ class Target(object):
 class SpikeTarget(Target):
     # pylint: disable=abstract-method
     directory = "spike"
-    ram = 0x80010000
-    ram_size = 5 * 1024 * 1024
+    ram = 0x10000000
+    ram_size = 0x10000000
     instruction_hardware_breakpoint_count = 4
     reset_vector = 0x1000
     openocd_config = "targets/%s/openocd.cfg" % directory
