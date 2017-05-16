@@ -370,7 +370,12 @@ def run_all_tests(module, target, parsed):
     global gdb_cmd  # pylint: disable=global-statement
     gdb_cmd = parsed.gdb
 
-    todo = [("ExamineTarget", ExamineTarget)]
+    todo = []
+    if (parsed.misa):
+        self.target.misa = parsed.misa
+    else:
+        todo.append(("ExamineTarget", ExamineTarget))
+
     for name in dir(module):
         definition = getattr(module, name)
         if type(definition) == type and hasattr(definition, 'test') and \
@@ -404,6 +409,8 @@ def add_test_run_options(parser):
             help="Run only tests that are named here.")
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
+    parser.add_argument("--misa", "-m",
+            help="Don't run ExamineTarget, just assume the misa which is specified.")
 
 def header(title, dash='-'):
     if title:
