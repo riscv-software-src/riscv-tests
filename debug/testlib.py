@@ -403,9 +403,6 @@ def run_all_tests(module, target, parsed):
 
     return result
 
-def auto_int (x) :
-    return int(x, 0)
-
 def add_test_run_options(parser):
 
     parser.add_argument("--fail-fast", "-f", action="store_true",
