@@ -1,4 +1,4 @@
-#include "../../env/encoding.h"
+#include "encoding.h"
 
         .global         main
 

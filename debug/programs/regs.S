@@ -8,7 +8,7 @@
 # define REGBYTES 4
 #endif
 
-#include "../../env/encoding.h"
+#include "encoding.h"
 
         .global main
 main:
