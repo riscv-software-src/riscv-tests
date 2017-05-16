@@ -19,8 +19,14 @@ def find_file(path):
     return None
 
 def compile(args, xlen=32): # pylint: disable=redefined-builtin
-    cc = os.path.expandvars("$RISCV/bin/riscv%d-unknown-elf-gcc" % xlen)
+    cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
     cmd = [cc, "-g"]
+    if (xlen == 32):
+        cmd.append("-march=rv32imac")
+        cmd.append("-mabi=ilp32")
+    else:
+        cmd.append("-march=rv64imac")
+        cmd.append("-mabi=lp64")        
     for arg in args:
         found = find_file(arg)
         if found:
@@ -28,7 +34,7 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         else:
             cmd.append(arg)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode:
         print
@@ -51,27 +57,31 @@ def unused_port():
 class Spike(object):
     logname = "spike.log"
 
-    def __init__(self, cmd, binary=None, halted=False, with_gdb=True,
+    def __init__(self, sim_cmd, binary=None, halted=False, with_jtag_gdb=True,
             timeout=None, xlen=64):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
-        if cmd:
-            cmd = shlex.split(cmd)
+        if sim_cmd:
+            cmd = shlex.split(sim_cmd)
         else:
-            cmd = ["spike"]
+            spike = os.path.expandvars("$RISCV/bin/spike")
+            cmd = [spike]
         if xlen == 32:
-            cmd += ["--isa", "RV32"]
+            cmd += ["--isa", "RV32G"]
+        else:
+            cmd += ["--isa", "RV64G"]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
 
+        cmd += ["-m0x10000000:0x10000000"]
+
         if halted:
             cmd.append('-H')
-        if with_gdb:
-            self.port = unused_port()
-            cmd += ['--gdb-port', str(self.port)]
-        cmd.append("-m32")
-        cmd.append('pk')
+        if with_jtag_gdb:
+            cmd += ['--rbb-port', '0']
+            os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
+        cmd.append('programs/infinite_loop')
         if binary:
             cmd.append(binary)
         logfile = open(self.logname, "w")
@@ -79,6 +89,19 @@ class Spike(object):
         logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
+
+        if with_jtag_gdb:
+            self.port = None
+            for _ in range(30):
+                m = re.search(r"Listening for remote bitbang connection on "
+                        r"port (\d+).", open(self.logname).read())
+                if m:
+                    self.port = int(m.group(1))
+                    os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
+                    break
+                time.sleep(0.11)
+            assert self.port, "Didn't get spike message about bitbang " \
+                    "connection"
 
     def __del__(self):
         try:
@@ -91,9 +114,9 @@ class Spike(object):
         return self.process.wait(*args, **kwargs)
 
 class VcsSim(object):
-    def __init__(self, simv=None, debug=False):
-        if simv:
-            cmd = shlex.split(simv)
+    def __init__(self, sim_cmd=None, debug=False):
+        if sim_cmd:
+            cmd = shlex.split(sim_cmd)
         else:
             cmd = ["simv"]
         cmd += ["+jtag_vpi_enable"]
@@ -128,19 +151,18 @@ class VcsSim(object):
 class Openocd(object):
     logname = "openocd.log"
 
-    def __init__(self, cmd=None, config=None, debug=False):
-        if cmd:
-            cmd = shlex.split(cmd)
+    def __init__(self, server_cmd=None, config=None, debug=False):
+        if server_cmd:
+            cmd = shlex.split(server_cmd)
         else:
-            cmd = ["openocd"]
-        if config:
-            cmd += ["-f", find_file(config)]
-        if debug:
-            cmd.append("-d")
-
+            openocd = os.path.expandvars("$RISCV/bin/riscv-openocd")
+            cmd = [openocd]
+            if (debug):
+                cmd.append("-d")
+        
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
-        cmd[1:1] = [
+        cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
             "--command",
             "gdb_port 0",
@@ -152,6 +174,16 @@ class Openocd(object):
             "--command",
             "telnet_port disabled",
         ]
+
+        if config:
+            f = find_file(config)
+            if f is None:
+                print("Unable to read file " + config)
+                exit(1)
+
+            cmd += ["-f", f]
+        if debug:
+            cmd.append("-d")
 
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
@@ -166,7 +198,7 @@ class Openocd(object):
         messaged = False
         while True:
             log = open(Openocd.logname).read()
-            if "Examined RISCV core" in log:
+            if "Ready for Remote Connections" in log:
                 break
             if not self.process.poll() is None:
                 raise Exception(
@@ -203,7 +235,7 @@ class Openocd(object):
             elif matches:
                 [match] = matches
                 return int(match.group('port'))
-            time.sleep(0.1)
+            time.sleep(1)
         raise Exception("Timed out waiting for gdb server to obtain port.")
 
     def __del__(self):
@@ -261,15 +293,15 @@ class Gdb(object):
         """Wait for prompt."""
         self.child.expect(r"\(gdb\)")
 
-    def command(self, command, timeout=-1):
+    def command(self, command, timeout=6000):
         self.child.sendline(command)
         self.child.expect("\n", timeout=timeout)
         self.child.expect(r"\(gdb\)", timeout=timeout)
         return self.child.before.strip()
 
-    def c(self, wait=True):
+    def c(self, wait=True, timeout=-1):
         if wait:
-            output = self.command("c")
+            output = self.command("c", timeout=timeout)
             assert "Continuing" in output
             return output
         else:
@@ -278,7 +310,7 @@ class Gdb(object):
 
     def interrupt(self):
         self.child.send("\003")
-        self.child.expect(r"\(gdb\)", timeout=60)
+        self.child.expect(r"\(gdb\)", timeout=6000)
         return self.child.before.strip()
 
     def x(self, address, size='w'):
@@ -311,7 +343,7 @@ class Gdb(object):
         return output
 
     def load(self):
-        output = self.command("load", timeout=60)
+        output = self.command("load", timeout=6000)
         assert "failed" not in  output
         assert "Transfer rate" in output
 
@@ -509,7 +541,8 @@ class GdbTest(BaseTest):
             self.gdb.command(
                     "target extended-remote localhost:%d" % self.server.port)
 
-        self.gdb.p("$priv=3")
+        # FIXME: OpenOCD doesn't handle PRIV now
+        #self.gdb.p("$priv=3")
 
     def classTeardown(self):
         del self.gdb

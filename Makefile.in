@@ -23,7 +23,8 @@ isa:
 	$(MAKE) -C isa -f $(isa_src_dir)/Makefile src_dir=$(isa_src_dir) XLEN=$(XLEN)
 
 debug-check:
-	mkdir -p debug
+	mkdir -p debug/programs
+	cp -ar $(debug_src_dir)/programs/* debug/programs/
 	$(MAKE) -C debug -f $(debug_src_dir)/Makefile src_dir=$(debug_src_dir) XLEN=$(XLEN)
 
 clean:

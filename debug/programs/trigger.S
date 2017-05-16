@@ -1,4 +1,4 @@
-#include "../../env/encoding.h"
+#include "encoding.h"
 
 #if XLEN == 64
 # define LREG ld
