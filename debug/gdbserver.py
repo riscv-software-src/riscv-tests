@@ -275,7 +275,7 @@ class DebugTurbostep(DebugTest):
         last_pc = None
         advances = 0
         jumps = 0
-        for _ in range(100):
+        for _ in range(10):
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
             assertNotEqual(last_pc, pc)
@@ -286,8 +286,8 @@ class DebugTurbostep(DebugTest):
             last_pc = pc
         # Some basic sanity that we're not running between breakpoints or
         # something.
-        assertGreater(jumps, 10)
-        assertGreater(advances, 50)
+        assertGreater(jumps, 1)
+        assertGreater(advances, 5)
 
 class DebugExit(DebugTest):
     def test(self):
@@ -578,7 +578,7 @@ class WriteCsrs(RegsTest):
 class DownloadTest(GdbTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
-        length = min(2**20, self.target.ram_size - 2048)
+        length = min(2**10, self.target.ram_size - 2048)
         self.download_c = tempfile.NamedTemporaryFile(prefix="download_",
                 suffix=".c", delete=False)
         self.download_c.write("#include <stdint.h>\n")
