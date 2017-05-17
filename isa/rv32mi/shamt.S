@@ -17,7 +17,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE( 2, a0, 65536, li a0, 1; slli a0, a0, 16);
 
   # Make sure slli with shamt[5] set is not legal.
-  TEST_CASE( 3, x0, 1, slli a0, a0, 32);
+  TEST_CASE( 3, x0, 1, .word 0x02051513); # slli a0, a0, 32
 
   TEST_PASSFAIL
 
