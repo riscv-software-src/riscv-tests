@@ -17,7 +17,7 @@ pylint:
 		--$(subst .log,,$@) \
 		--sim_cmd $(RISCV)/bin/$(RISCV_SIM) \
 		--server_cmd $(RISCV)/bin/openocd \
-	    > $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
+	    | tee $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
 
 clean:
 	rm -f *.log *.pyc
