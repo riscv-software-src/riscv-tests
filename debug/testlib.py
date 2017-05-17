@@ -370,7 +370,13 @@ def run_all_tests(module, target, parsed):
     global gdb_cmd  # pylint: disable=global-statement
     gdb_cmd = parsed.gdb
 
-    todo = [("ExamineTarget", ExamineTarget)]
+    todo = []
+    if (parsed.misaval):
+        target.misa = int(parsed.misaval, 16)
+        print "Assuming $MISA value of 0x%x. Skipping ExamineTarget." % target.misa
+    else:
+        todo.append(("ExamineTarget", ExamineTarget))
+
     for name in dir(module):
         definition = getattr(module, name)
         if type(definition) == type and hasattr(definition, 'test') and \
@@ -398,12 +404,15 @@ def run_all_tests(module, target, parsed):
     return result
 
 def add_test_run_options(parser):
+
     parser.add_argument("--fail-fast", "-f", action="store_true",
             help="Exit as soon as any test fails.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
+    parser.add_argument("--misaval",
+            help="Don't run ExamineTarget, just assume the misa value which is specified.")
 
 def header(title, dash='-'):
     if title:
