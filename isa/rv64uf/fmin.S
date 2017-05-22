@@ -31,10 +31,16 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_S(16,  fmax.s, 0, 3.14159265, 3.14159265, 0.00000001 );
   TEST_FP_OP2_S(17,  fmax.s, 0,       -1.0,       -1.0,       -2.0 );
 
-  # FMIN(sNaN, x) = canonical NaN
-  TEST_FP_OP2_S(20,  fmax.s, 0x10, qNaNf, sNaNf, 0);
+  # FMIN(sNaN, x) = x
+  TEST_FP_OP2_S(20,  fmax.s, 0x10, 1.0, sNaNf, 1.0);
   # FMIN(qNaN, qNaN) = canonical NaN
   TEST_FP_OP2_S(21,  fmax.s, 0x00, qNaNf, NaN, NaN);
+
+  # -0.0 < +0.0
+  TEST_FP_OP2_S(30,  fmin.s, 0,       -0.0,       -0.0,        0.0 );
+  TEST_FP_OP2_S(31,  fmin.s, 0,       -0.0,        0.0,       -0.0 );
+  TEST_FP_OP2_S(32,  fmax.s, 0,        0.0,       -0.0,        0.0 );
+  TEST_FP_OP2_S(33,  fmax.s, 0,        0.0,        0.0,       -0.0 );
 
   TEST_PASSFAIL
 
