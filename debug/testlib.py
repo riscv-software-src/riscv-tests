@@ -132,6 +132,12 @@ class VcsSim(object):
                 stdout=logfile, stderr=logfile)
         done = False
         while not done:
+            # Fail if VCS exits early
+            exit_code = self.process.poll()
+            if exit_code is not None:
+                raise RuntimeError('VCS simulator exited early with status %d'
+                                   % exit_code)
+
             line = listenfile.readline()
             if not line:
                 time.sleep(1)
