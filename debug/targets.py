@@ -26,7 +26,8 @@ class Target(object):
     def server(self):
         """Start the debug server that gdb connects to, eg. OpenOCD."""
         if self.openocd_config:
-            return testlib.Openocd(server_cmd=self.server_cmd, config=self.openocd_config)
+            return testlib.Openocd(server_cmd=self.server_cmd,
+                    config=self.openocd_config)
         else:
             raise NotImplementedError
 

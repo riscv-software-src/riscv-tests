@@ -21,12 +21,12 @@ def find_file(path):
 def compile(args, xlen=32): # pylint: disable=redefined-builtin
     cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
     cmd = [cc, "-g"]
-    if (xlen == 32):
+    if xlen == 32:
         cmd.append("-march=rv32imac")
         cmd.append("-mabi=ilp32")
     else:
         cmd.append("-march=rv64imac")
-        cmd.append("-mabi=lp64")        
+        cmd.append("-mabi=lp64")
     for arg in args:
         found = find_file(arg)
         if found:
@@ -163,9 +163,9 @@ class Openocd(object):
         else:
             openocd = os.path.expandvars("$RISCV/bin/riscv-openocd")
             cmd = [openocd]
-            if (debug):
+            if debug:
                 cmd.append("-d")
-        
+
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
         cmd += [
@@ -184,7 +184,7 @@ class Openocd(object):
         if config:
             f = find_file(config)
             if f is None:
-                print("Unable to read file " + config)
+                print "Unable to read file " + config
                 exit(1)
 
             cmd += ["-f", f]
@@ -377,9 +377,10 @@ def run_all_tests(module, target, parsed):
     gdb_cmd = parsed.gdb
 
     todo = []
-    if (parsed.misaval):
+    if parsed.misaval:
         target.misa = int(parsed.misaval, 16)
-        print "Assuming $MISA value of 0x%x. Skipping ExamineTarget." % target.misa
+        print "Assuming $MISA value of 0x%x. Skipping ExamineTarget." % \
+                target.misa
     else:
         todo.append(("ExamineTarget", ExamineTarget))
 
@@ -418,7 +419,8 @@ def add_test_run_options(parser):
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
     parser.add_argument("--misaval",
-            help="Don't run ExamineTarget, just assume the misa value which is specified.")
+            help="Don't run ExamineTarget, just assume the misa value which is "
+            "specified.")
 
 def header(title, dash='-'):
     if title:

@@ -11,7 +11,7 @@ import os
 import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn
-from testlib import assertGreater, assertTrue, assertRegexpMatches, assertLess
+from testlib import assertGreater, assertRegexpMatches, assertLess
 from testlib import GdbTest
 
 MSTATUS_UIE = 0x00000001
