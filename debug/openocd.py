@@ -73,7 +73,7 @@ def main():
 
     parsed = parser.parse_args()
 
-    target = parsed.target(parsed.cmd, parsed.run, parsed.isolate)
+    target = parsed.target(parsed.server_cmd, parsed.sim_cmd, parsed.isolate)
     if parsed.xlen:
         target.xlen = parsed.xlen
 
