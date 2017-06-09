@@ -161,7 +161,7 @@ class Openocd(object):
         if server_cmd:
             cmd = shlex.split(server_cmd)
         else:
-            openocd = os.path.expandvars("$RISCV/bin/riscv-openocd")
+            openocd = os.path.expandvars("$RISCV/bin/openocd")
             cmd = [openocd]
             if debug:
                 cmd.append("-d")
