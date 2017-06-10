@@ -266,6 +266,9 @@ class OpenocdCli(object):
 
     def reg(self, reg=''):
         output = self.command("reg %s" % reg)
+        m = re.search(r'Could not fetch register "(\w+)"', output)
+        if m:
+            raise CannotAccessRegister(m.group(1))
         matches = re.findall(r"(\w+) \(/\d+\): (0x[0-9A-F]+)", output)
         values = {r: int(v, 0) for r, v in matches}
         if reg:
@@ -281,6 +284,11 @@ class CannotAccess(Exception):
     def __init__(self, address):
         Exception.__init__(self)
         self.address = address
+
+class CannotAccessRegister(Exception):
+    def __init__(self, regname):
+        Exception.__init__(self)
+        self.regname = regname
 
 class Gdb(object):
     def __init__(self,
@@ -329,6 +337,9 @@ class Gdb(object):
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
+        m = re.search(r'Could not fetch register "(\w+)"', output)
+        if m:
+            raise CannotAccessRegister(m.group(1))
         return output.split('=')[-1].strip()
 
     def p(self, obj):
@@ -336,6 +347,9 @@ class Gdb(object):
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
+        m = re.search(r'Could not fetch register "(\w+)"', output)
+        if m:
+            raise CannotAccessRegister(m.group(1))
         value = int(output.split('=')[-1].strip(), 0)
         return value
 

@@ -575,6 +575,22 @@ class WriteCsrs(RegsTest):
         assertEqual(123, self.gdb.p("$x1"))
         assertEqual(123, self.gdb.p("$csr832"))
 
+class NonExistentCsr(RegsTest):
+    def test(self):
+        #Print old version of $misa at 0xF10 (moved to 0x301)
+        try:
+            self.gdb.p("$csr3856")
+            assert False, "Nonexistent CSR read should have failed."
+        except testlib.CannotAccessRegister as e:
+            assertEqual(e.regname, "csr3856")
+
+        #Try to write $misa in its old location
+        try:
+            self.gdb.p("$csr3856")
+            assert False, "Nonexistent CSR write should have failed."
+        except testlib.CannotAccessRegister as e:
+            assertEqual(e.regname, "csr3856")
+
 class DownloadTest(GdbTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
