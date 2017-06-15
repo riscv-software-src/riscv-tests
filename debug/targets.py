@@ -60,31 +60,41 @@ class Target(object):
 
     def extensionSupported(self, letter):
         # target.misa is set by testlib.ExamineTarget
-        return self.misa & (1 << (ord(letter.upper()) - ord('A')))
+        if self.misa:
+            return self.misa & (1 << (ord(letter.upper()) - ord('A')))
+        else:
+            return False
 
 class SpikeTarget(Target):
     # pylint: disable=abstract-method
-    directory = "spike"
-    ram = 0x10000000
-    ram_size = 0x10000000
     instruction_hardware_breakpoint_count = 4
     reset_vector = 0x1000
-    openocd_config = "targets/%s/openocd.cfg" % directory
 
 class Spike64Target(SpikeTarget):
     name = "spike64"
+    directory = name
     xlen = 64
     use_fpu = True
+    # Would like to use 0x7fffffffffff0000 because it crosses the 0x8000...
+    # boundary, but spike doesn't support that in the code where it generates
+    # the reset vector.
+    ram = 0x1212340000
+    ram_size = 0x10000000
+    openocd_config = "targets/%s/openocd.cfg" % directory
 
     def target(self):
-        return testlib.Spike(self.sim_cmd)
+        return testlib.Spike(self)
 
 class Spike32Target(SpikeTarget):
     name = "spike32"
+    directory = name
     xlen = 32
+    ram = 0x10000000
+    ram_size = 0x10000000
+    openocd_config = "targets/%s/openocd.cfg" % directory
 
     def target(self):
-        return testlib.Spike(self.sim_cmd, xlen=32)
+        return testlib.Spike(self)
 
 class FreedomE300Target(Target):
     name = "freedom-e300"

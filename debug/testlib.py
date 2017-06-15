@@ -55,35 +55,34 @@ def unused_port():
     return port
 
 class Spike(object):
-    logname = "spike.log"
+    logname = "spike-%d.log" % os.getpid()
 
-    def __init__(self, sim_cmd, binary=None, halted=False, with_jtag_gdb=True,
-            timeout=None, xlen=64):
+    def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
-        if sim_cmd:
-            cmd = shlex.split(sim_cmd)
+        if target.sim_cmd:
+            cmd = shlex.split(target.sim_cmd)
         else:
             spike = os.path.expandvars("$RISCV/bin/spike")
             cmd = [spike]
-        if xlen == 32:
+        if target.xlen == 32:
             cmd += ["--isa", "RV32G"]
         else:
             cmd += ["--isa", "RV64G"]
+        cmd += ["-m0x%x:0x%x" % (target.ram, target.ram_size)]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
-
-        cmd += ["-m0x10000000:0x10000000"]
 
         if halted:
             cmd.append('-H')
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        cmd.append('programs/infinite_loop')
-        if binary:
-            cmd.append(binary)
+        self.infinite_loop = target.compile(
+                "programs/checksum.c", "programs/tiny-malloc.c",
+                "programs/infinite_loop.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+        cmd.append(self.infinite_loop)
         logfile = open(self.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
@@ -155,7 +154,7 @@ class VcsSim(object):
             pass
 
 class Openocd(object):
-    logname = "openocd.log"
+    logname = "openocd-%d.log" % os.getpid()
 
     def __init__(self, server_cmd=None, config=None, debug=False):
         if server_cmd:
@@ -212,6 +211,9 @@ class Openocd(object):
             if not messaged and time.time() - start > 1:
                 messaged = True
                 print "Waiting for OpenOCD to examine RISCV core..."
+            if time.time() - start > 60:
+                raise Exception("ERROR: Timed out waiting for OpenOCD to "
+                        "examine RISCV core")
 
         self.port = self._get_gdb_server_port()
 
@@ -577,7 +579,8 @@ class ExamineTarget(GdbTest):
         elif (self.target.misa >> 126) == 3:
             txt += "128"
         else:
-            txt += "??"
+            raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
+                    self.target.misa)
 
         for i in range(26):
             if self.target.misa & (1<<i):

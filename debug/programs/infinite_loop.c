@@ -1,14 +1,9 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-
+volatile int forever = 1;
 
 int main()
 {
+    while (forever)
+        ;
 
-  volatile int forever = 1;
-  while (forever);
-
-  return 1;
+    return 1;
 }
