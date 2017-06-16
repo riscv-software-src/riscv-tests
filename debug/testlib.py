@@ -3,6 +3,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 import traceback
 
@@ -154,7 +155,8 @@ class VcsSim(object):
             pass
 
 class Openocd(object):
-    logname = "openocd-%d.log" % os.getpid()
+    logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
+    logname = logfile.name
 
     def __init__(self, server_cmd=None, config=None, debug=False):
         if server_cmd:
@@ -285,10 +287,13 @@ class CannotAccess(Exception):
         self.address = address
 
 class Gdb(object):
+    logfile = tempfile.NamedTemporaryFile(prefix="gdb", suffix=".log")
+    logname = logfile.name
+
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(cmd)
-        self.child.logfile = open("gdb.log", "w")
+        self.child.logfile = open(self.logname, "w")
         self.child.logfile.write("+ %s\n" % cmd)
         self.wait()
         self.command("set confirm off")
@@ -368,12 +373,10 @@ class Gdb(object):
         return output
 
 def run_all_tests(module, target, parsed):
-    good_results = set(('pass', 'not_applicable'))
+    if not os.path.exists(parsed.logs):
+        os.makedirs(parsed.logs)
 
-    start = time.time()
-
-    results = {}
-    count = 0
+    overall_start = time.time()
 
     global gdb_cmd  # pylint: disable=global-statement
     gdb_cmd = parsed.gdb
@@ -392,16 +395,46 @@ def run_all_tests(module, target, parsed):
                 (not parsed.test or any(test in name for test in parsed.test)):
             todo.append((name, definition))
 
+    results, count = run_tests(parsed, target, todo)
+
+    header("ran %d tests in %.0fs" % (count, time.time() - overall_start),
+            dash=':')
+
+    return print_results(results)
+
+good_results = set(('pass', 'not_applicable'))
+def run_tests(parsed, target, todo):
+    results = {}
+    count = 0
+
     for name, definition in todo:
         instance = definition(target)
-        result = instance.run()
+        log_name = os.path.join(parsed.logs, "%s-%s-%s.log" %
+                (time.strftime("%Y%m%d-%H%M%S"), type(target).__name__, name))
+        log_fd = open(log_name, 'w')
+        print "Running", name, "...",
+        sys.stdout.flush()
+        log_fd.write("Test: %s\n" % name)
+        log_fd.write("Target: %s\n" % type(target).__name__)
+        start = time.time()
+        real_stdout = sys.stdout
+        sys.stdout = log_fd
+        try:
+            result = instance.run()
+        finally:
+            sys.stdout = real_stdout
+        print "%s in %.2fs" % (result, time.time() - start)
+        sys.stdout.flush()
+        log_fd.write("Result: %s\n" % result)
+        log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
         results.setdefault(result, []).append(name)
         count += 1
         if result not in good_results and parsed.fail_fast:
             break
 
-    header("ran %d tests in %.0fs" % (count, time.time() - start), dash=':')
+    return results, count
 
+def print_results(results):
     result = 0
     for key, value in results.iteritems():
         print "%d tests returned %s" % (len(value), key)
@@ -414,6 +447,8 @@ def run_all_tests(module, target, parsed):
 
 def add_test_run_options(parser):
 
+    parser.add_argument("--logs", default="logs",
+            help="Store logs in the specified directory.")
     parser.add_argument("--fail-fast", "-f", action="store_true",
             help="Exit as soon as any test fails.")
     parser.add_argument("test", nargs='*',
@@ -424,27 +459,21 @@ def add_test_run_options(parser):
             help="Don't run ExamineTarget, just assume the misa value which is "
             "specified.")
 
-def header(title, dash='-'):
+def header(title, dash='-', length=78):
     if title:
-        dashes = dash * (36 - len(title))
+        dashes = dash * (length - 4 - len(title))
         before = dashes[:len(dashes)/2]
         after = dashes[len(dashes)/2:]
         print "%s[ %s ]%s" % (before, title, after)
     else:
-        print dash * 40
+        print dash * length
 
 def print_log(path):
     header(path)
     lines = open(path, "r").readlines()
-    if len(lines) > 1000:
-        for l in lines[:500]:
-            sys.stdout.write(l)
-        print "..."
-        for l in lines[-500:]:
-            sys.stdout.write(l)
-    else:
-        for l in lines:
-            sys.stdout.write(l)
+    for l in lines:
+        sys.stdout.write(l)
+    print
 
 class BaseTest(object):
     compiled = {}
@@ -495,11 +524,9 @@ class BaseTest(object):
         if an exception is raised.
         """
 
-        print "Running", type(self).__name__, "...",
         sys.stdout.flush()
 
         if not self.early_applicable():
-            print "not_applicable"
             return "not_applicable"
 
         self.start = time.time()
@@ -516,24 +543,21 @@ class BaseTest(object):
                 result = "fail"
             else:
                 result = "exception"
-            print "%s in %.2fs" % (result, time.time() - self.start)
-            print "=" * 40
             if isinstance(e, TestFailed):
                 header("Message")
                 print e.message
             header("Traceback")
             traceback.print_exc(file=sys.stdout)
-            for log in self.logs:
-                print_log(log)
-            print "/" * 40
             return result
 
         finally:
+            for log in self.logs:
+                print_log(log)
+            header("End of logs")
             self.classTeardown()
 
         if not result:
             result = 'pass'
-        print "%s in %.2fs" % (result, time.time() - self.start)
         return result
 
 gdb_cmd = None
@@ -544,12 +568,13 @@ class GdbTest(BaseTest):
 
     def classSetup(self):
         BaseTest.classSetup(self)
-        self.logs.append("gdb.log")
 
         if gdb_cmd:
             self.gdb = Gdb(gdb_cmd)
         else:
             self.gdb = Gdb()
+
+        self.logs.append(self.gdb.logname)
 
         if self.binary:
             self.gdb.command("file %s" % self.binary)
@@ -559,6 +584,9 @@ class GdbTest(BaseTest):
         if self.server.port:
             self.gdb.command(
                     "target extended-remote localhost:%d" % self.server.port)
+            # Force gdb to discover threads now, otherwise it might interrupt
+            # us at some point when it decides by itself to check.
+            self.gdb.command("info threads")
 
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
