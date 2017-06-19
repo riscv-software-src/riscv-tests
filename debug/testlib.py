@@ -208,6 +208,8 @@ class Openocd(object):
             if "Ready for Remote Connections" in log:
                 break
             if not self.process.poll() is None:
+                header("OpenOCD log")
+                sys.stdout.write(log)
                 raise Exception(
                         "OpenOCD exited before completing riscv_examine()")
             if not messaged and time.time() - start > 1:
@@ -421,12 +423,12 @@ def run_tests(parsed, target, todo):
         sys.stdout = log_fd
         try:
             result = instance.run()
+            log_fd.write("Result: %s\n" % result)
         finally:
             sys.stdout = real_stdout
+            log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
         print "%s in %.2fs" % (result, time.time() - start)
         sys.stdout.flush()
-        log_fd.write("Result: %s\n" % result)
-        log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
         results.setdefault(result, []).append(name)
         count += 1
         if result not in good_results and parsed.fail_fast:
