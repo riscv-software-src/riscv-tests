@@ -1,4 +1,5 @@
 import os.path
+import random
 import re
 import shlex
 import subprocess
@@ -82,7 +83,7 @@ class Spike(object):
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
         self.infinite_loop = target.compile(
                 "programs/checksum.c", "programs/tiny-malloc.c",
-                "programs/infinite_loop.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+                "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         cmd.append(self.infinite_loop)
         logfile = open(self.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
@@ -219,7 +220,12 @@ class Openocd(object):
                 raise Exception("ERROR: Timed out waiting for OpenOCD to "
                         "examine RISCV core")
 
-        self.port = self._get_gdb_server_port()
+        try:
+            self.port = self._get_gdb_server_port()
+        except:
+            header("OpenOCD log")
+            sys.stdout.write(log)
+            raise
 
     def _get_gdb_server_port(self):
         """Get port that OpenOCD's gdb server is listening on."""
@@ -586,9 +592,13 @@ class GdbTest(BaseTest):
         if self.server.port:
             self.gdb.command(
                     "target extended-remote localhost:%d" % self.server.port)
-            # Force gdb to discover threads now, otherwise it might interrupt
-            # us at some point when it decides by itself to check.
-            self.gdb.command("info threads")
+            # Select a random thread.
+            # TODO: Allow a command line option to force a specific thread.
+            output = self.gdb.command("info threads")
+            threads = re.findall(r"Thread (\d+)", output)
+            if threads:
+                thread = random.choice(threads)
+                self.gdb.command("thread %s" % thread)
 
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
