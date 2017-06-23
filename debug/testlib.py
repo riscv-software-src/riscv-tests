@@ -1,3 +1,4 @@
+import collections
 import os.path
 import random
 import re
@@ -294,6 +295,9 @@ class CannotAccess(Exception):
         Exception.__init__(self)
         self.address = address
 
+Thread = collections.namedtuple('Thread', ('id', 'target_id', 'name',
+    'frame'))
+
 class Gdb(object):
     logfile = tempfile.NamedTemporaryFile(prefix="gdb", suffix=".log")
     logname = logfile.name
@@ -320,13 +324,17 @@ class Gdb(object):
         self.child.expect(r"\(gdb\)", timeout=timeout)
         return self.child.before.strip()
 
-    def c(self, wait=True, timeout=-1):
+    def c(self, wait=True, timeout=-1, async=False):
+        if async:
+            async = "&"
+        else:
+            async = ""
         if wait:
-            output = self.command("c", timeout=timeout)
+            output = self.command("c%s" % async, timeout=timeout)
             assert "Continuing" in output
             return output
         else:
-            self.child.sendline("c")
+            self.child.sendline("c%s" % async)
             self.child.expect("Continuing")
 
     def interrupt(self):
@@ -379,6 +387,22 @@ class Gdb(object):
         assert "not defined" not in output
         assert "Hardware assisted breakpoint" in output
         return output
+
+    def threads(self):
+        output = self.command("info threads")
+        threads = []
+        for line in output.splitlines():
+            m = re.match(
+                    r"[\s\*]*(\d+)\s*Thread (\d+)\s*\(Name: ([^\)]+)\s*(.*)",
+                    line)
+            if m:
+                threads.append(Thread(*m.groups()))
+        if not threads:
+            threads.append(Thread('1', '1', 'Default', '???'))
+        return threads
+
+    def thread(self, thread):
+        return self.command("thread %s" % thread.id)
 
 def run_all_tests(module, target, parsed):
     if not os.path.exists(parsed.logs):
@@ -594,11 +618,8 @@ class GdbTest(BaseTest):
                     "target extended-remote localhost:%d" % self.server.port)
             # Select a random thread.
             # TODO: Allow a command line option to force a specific thread.
-            output = self.gdb.command("info threads")
-            threads = re.findall(r"Thread (\d+)", output)
-            if threads:
-                thread = random.choice(threads)
-                self.gdb.command("thread %s" % thread)
+            thread = random.choice(self.gdb.threads())
+            self.gdb.thread(thread)
 
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
