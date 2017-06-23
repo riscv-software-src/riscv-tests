@@ -6,7 +6,7 @@ bmarkdir        := $(abs_top_src_dir)/benchmarks
 isa_src_dir     := $(abs_top_src_dir)/isa
 debug_src_dir   := $(abs_top_src_dir)/debug
 
-all: benchmarks isa
+all: benchmarks isa debug-check
 
 install: all
 	install -d $(instbasedir)/share/riscv-tests/isa
