@@ -261,7 +261,7 @@ class Openocd(object):
         try:
             self.process.kill()
             self.process.wait()
-        except OSError:
+        except (OSError, AttributeError):
             pass
 
 class OpenocdCli(object):
@@ -416,8 +416,9 @@ def run_all_tests(module, target, parsed):
     todo = []
     if parsed.misaval:
         target.misa = int(parsed.misaval, 16)
-        print "Assuming $MISA value of 0x%x. Skipping ExamineTarget." % \
-                target.misa
+        print "Using $misa from command line: 0x%x" % target.misa
+    elif target.misa:
+        print "Using $misa from target definition: 0x%x" % target.misa
     else:
         todo.append(("ExamineTarget", ExamineTarget))
 
@@ -538,7 +539,7 @@ class BaseTest(object):
 
     def classSetup(self):
         self.compile()
-        self.target_process = self.target.target()
+        self.target_process = self.target.create()
         self.server = self.target.server()
         self.logs.append(self.server.logname)
 
