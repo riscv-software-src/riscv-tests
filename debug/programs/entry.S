@@ -27,7 +27,9 @@ trap_vector:
   j trap_entry
 
 handle_reset:
-  la t0, trap_entry
+  // If misa doesn't exist (or is following an old spec where it has a
+  // different number), skip the next block.
+  la t0, 3f
   csrw mtvec, t0
   csrwi mstatus, 0
 
@@ -48,6 +50,10 @@ handle_reset:
   csrwi medeleg, 0
 2:
   csrwi mie, 0
+3:
+  la t0, trap_entry
+  csrw mtvec, t0
+  csrwi mstatus, 0
 
   # initialize global pointer
 .option push
