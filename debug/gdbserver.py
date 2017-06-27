@@ -757,8 +757,8 @@ def main():
     # TODO: remove global
     global parsed   # pylint: disable=global-statement
     parsed = parser.parse_args()
+    target = targets.target(parsed)
 
-    target = parsed.target(parsed.server_cmd, parsed.sim_cmd, parsed.isolate)
     if parsed.xlen:
         target.xlen = parsed.xlen
 
