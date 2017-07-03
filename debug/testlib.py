@@ -622,6 +622,9 @@ class GdbTest(BaseTest):
             thread = random.choice(self.gdb.threads())
             self.gdb.thread(thread)
 
+        for cmd in self.target.gdb_setup:
+            self.gdb.command(cmd)
+
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
 

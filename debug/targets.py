@@ -30,6 +30,10 @@ class Target(object):
     # save a little time.
     misa = None
 
+    # List of commands that should be executed in gdb after connecting but
+    # before starting the test.
+    gdb_setup = []
+
     # Internal variables:
     directory = None
     temporary_files = []
