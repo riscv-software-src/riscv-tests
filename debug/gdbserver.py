@@ -205,6 +205,9 @@ class MemTestBlock(GdbTest):
 
 class InstantHaltTest(GdbTest):
     def test(self):
+        """Assert that reset is really resetting what it should."""
+        self.gdb.command("monitor reset halt")
+        self.gdb.command("flushregs")
         assertEqual(self.target.reset_vector, self.gdb.p("$pc"))
         # mcycle and minstret have no defined reset value.
         mstatus = self.gdb.p("$mstatus")
@@ -215,6 +218,8 @@ class InstantChangePc(GdbTest):
     def test(self):
         """Change the PC right as we come out of reset."""
         # 0x13 is nop
+        self.gdb.command("monitor reset halt")
+        self.gdb.command("flushregs")
         self.gdb.command("p *((int*) 0x%x)=0x13" % self.target.ram)
         self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 4))
         self.gdb.command("p *((int*) 0x%x)=0x13" % (self.target.ram + 8))
