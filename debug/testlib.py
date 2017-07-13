@@ -540,8 +540,15 @@ class BaseTest(object):
     def classSetup(self):
         self.compile()
         self.target_process = self.target.create()
-        self.server = self.target.server()
-        self.logs.append(self.server.logname)
+        if self.target_process:
+            self.logs.append(self.target_process.logname)
+        try:
+            self.server = self.target.server()
+            self.logs.append(self.server.logname)
+        except Exception:
+            for log in self.logs:
+                print_log(log)
+            raise
 
     def classTeardown(self):
         del self.server
@@ -564,9 +571,8 @@ class BaseTest(object):
 
         self.start = time.time()
 
-        self.classSetup()
-
         try:
+            self.classSetup()
             self.setup()
             result = self.test()    # pylint: disable=no-member
         except TestNotApplicable:
