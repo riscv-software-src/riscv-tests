@@ -208,7 +208,13 @@ class InstantHaltTest(GdbTest):
         """Assert that reset is really resetting what it should."""
         self.gdb.command("monitor reset halt")
         self.gdb.command("flushregs")
-        assertEqual(self.target.reset_vector, self.gdb.p("$pc"))
+        threads = self.gdb.threads()
+        pcs = []
+        for t in threads:
+            self.gdb.thread(t)
+            pcs.append(self.gdb.p("$pc"))
+        for pc in pcs:
+            assertEqual(self.target.reset_vector, pc)
         # mcycle and minstret have no defined reset value.
         mstatus = self.gdb.p("$mstatus")
         assertEqual(mstatus & (MSTATUS_MIE | MSTATUS_MPRV |
