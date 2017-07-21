@@ -34,6 +34,12 @@ class Target(object):
     # before starting the test.
     gdb_setup = []
 
+    # Implements dmode in tdata1 as described in the spec. Targets that need
+    # this value set to False are not compliant with the spec (but still usable
+    # as long as running code doesn't try to mess with triggers set by an
+    # external debugger).
+    honors_tdata1_hmode = True
+
     # Internal variables:
     directory = None
     temporary_files = []

@@ -329,6 +329,12 @@ class Hwbp1(DebugTest):
         if self.target.instruction_hardware_breakpoint_count < 1:
             return 'not_applicable'
 
+        if not self.target.honors_tdata1_hmode:
+            # Run to main before setting the breakpoint, because startup code
+            # will otherwise clear the trigger that we set.
+            self.gdb.b("main")
+            self.gdb.c()
+
         self.gdb.hbreak("rot13")
         # The breakpoint should be hit exactly 2 times.
         for _ in range(2):
@@ -560,6 +566,9 @@ class TriggerStoreAddressInstant(TriggerTest):
         assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
 class TriggerDmode(TriggerTest):
+    def early_applicable(self):
+        return self.target.honors_tdata1_hmode
+
     def check_triggers(self, tdata1_lsbs, tdata2):
         dmode = 1 << (self.target.xlen-5)
 
