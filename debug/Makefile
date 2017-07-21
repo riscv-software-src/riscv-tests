@@ -20,4 +20,4 @@ pylint:
 	    | tee $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
 
 clean:
-	rm -f *.log *.pyc
+	rm -f spike32.log spike64.log *.pyc
