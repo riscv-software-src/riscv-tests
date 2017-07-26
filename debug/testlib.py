@@ -207,8 +207,11 @@ class Openocd(object):
         messaged = False
         while True:
             log = open(Openocd.logname).read()
-            if "Ready for Remote Connections" in log:
-                break
+            m = re.search("Listening on port (\d+) for gdb connections", log)
+            if m:
+                self.port = int(m.group(1))
+                break;
+
             if not self.process.poll() is None:
                 header("OpenOCD log")
                 sys.stdout.write(log)
@@ -216,46 +219,10 @@ class Openocd(object):
                         "OpenOCD exited before completing riscv_examine()")
             if not messaged and time.time() - start > 1:
                 messaged = True
-                print "Waiting for OpenOCD to examine RISCV core..."
+                print "Waiting for OpenOCD to start..."
             if time.time() - start > 60:
                 raise Exception("ERROR: Timed out waiting for OpenOCD to "
-                        "examine RISCV core")
-
-        try:
-            self.port = self._get_gdb_server_port()
-        except:
-            header("OpenOCD log")
-            sys.stdout.write(log)
-            raise
-
-    def _get_gdb_server_port(self):
-        """Get port that OpenOCD's gdb server is listening on."""
-        MAX_ATTEMPTS = 50
-        PORT_REGEX = re.compile(r'(?P<port>\d+) \(LISTEN\)')
-        for _ in range(MAX_ATTEMPTS):
-            with open(os.devnull, 'w') as devnull:
-                try:
-                    output = subprocess.check_output([
-                        'lsof',
-                        '-a',  # Take the AND of the following selectors
-                        '-p{}'.format(self.process.pid),  # Filter on PID
-                        '-iTCP',  # Filter only TCP sockets
-                    ], stderr=devnull)
-                except subprocess.CalledProcessError:
-                    output = ""
-            matches = list(PORT_REGEX.finditer(output))
-            matches = [m for m in matches
-                    if m.group('port') not in ('6666', '4444')]
-            if len(matches) > 1:
-                print output
-                raise Exception(
-                    "OpenOCD listening on multiple ports. Cannot uniquely "
-                    "identify gdb server port.")
-            elif matches:
-                [match] = matches
-                return int(match.group('port'))
-            time.sleep(1)
-        raise Exception("Timed out waiting for gdb server to obtain port.")
+                        "listen for gdb")
 
     def __del__(self):
         try:
@@ -368,7 +335,7 @@ class Gdb(object):
         return value
 
     def stepi(self):
-        output = self.command("stepi")
+        output = self.command("stepi", timeout=60)
         return output
 
     def load(self):
