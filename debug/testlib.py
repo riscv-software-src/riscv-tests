@@ -207,10 +207,10 @@ class Openocd(object):
         messaged = False
         while True:
             log = open(Openocd.logname).read()
-            m = re.search("Listening on port (\d+) for gdb connections", log)
+            m = re.search(r"Listening on port (\d+) for gdb connections", log)
             if m:
                 self.port = int(m.group(1))
-                break;
+                break
 
             if not self.process.poll() is None:
                 header("OpenOCD log")
