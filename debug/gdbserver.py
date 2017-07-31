@@ -421,29 +421,27 @@ class MulticoreTest(GdbTest):
 
     def setup(self):
         self.gdb.load()
-        self.gdb.b("main")
-        self.gdb.b("main_end")
-        self.gdb.command("set non-stop on")
-        self.gdb.c()
 
     def test(self):
         threads = self.gdb.threads()
         if len(threads) < 2:
             return 'not_applicable'
-        # Run through the entire loop.
+
         for t in threads:
             self.gdb.thread(t)
             self.gdb.p("$pc=_start")
+
         # Run to main
-        for t in threads:
-            self.gdb.thread(t)
-            self.gdb.c()
+        self.gdb.b("main")
+        self.gdb.c()
         for t in self.gdb.threads():
             assertIn("main", t.frame)
-        # Run to end
-        for t in threads:
-            self.gdb.thread(t)
-            self.gdb.c()
+        self.gdb.command("delete breakpoints")
+
+        # Run through the entire loop.
+        self.gdb.b("main_end")
+        self.gdb.c()
+
         hart_ids = []
         for t in self.gdb.threads():
             assertIn("main_end", t.frame)
@@ -459,24 +457,18 @@ class MulticoreTest(GdbTest):
         # Confirmed that we read different register values for different harts.
         # Write a new value to x1, and run through the add sequence again.
 
-        # This part isn't working right, because gdb doesn't resume Thread 2
-        # when asked. I don't know the root cause for that, but up to this
-        # point the test is still useful.
-
-#        for t in threads:
-#            self.gdb.thread(t)
-#            self.gdb.p("$x1=0x%x" % (int(t.id) + 0x800))
-#            self.gdb.p("$pc=main_post_csrr")
-#        for t in threads:
-#            self.gdb.thread(t)
-#            self.gdb.c()
-#        for t in self.gdb.threads():
-#            assertIn("main_end", t.frame)
-#            # Check register values.
-#            self.gdb.thread(t)
-#            for n in range(1, 32):
-#                value = self.gdb.p("$x%d" % n)
-#                assertEqual(value, int(t.id) + 0x800 + n - 1)
+        for t in threads:
+            self.gdb.thread(t)
+            self.gdb.p("$x1=0x%x" % (int(t.id) * 0x800))
+            self.gdb.p("$pc=main_post_csrr")
+        self.gdb.c()
+        for t in self.gdb.threads():
+            assertIn("main_end", t.frame)
+            # Check register values.
+            self.gdb.thread(t)
+            for n in range(1, 32):
+                value = self.gdb.p("$x%d" % n)
+                assertEqual(value, int(t.id) * 0x800 + n - 1)
 
 class StepTest(GdbTest):
     compile_args = ("programs/step.S", )
