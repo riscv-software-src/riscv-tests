@@ -22,8 +22,7 @@ RVTEST_CODE_BEGIN
   // Make sure fetching a 4-byte instruction across a page boundary works.
   li TESTNUM, 2
   li a1, 666
-  li a2, 1
-  RVC_TEST_CASE (2, a1, 2, \
+  TEST_CASE (2, a1, 667, \
         j 1f; \
         .align 3; \
         data: \
@@ -31,7 +30,7 @@ RVTEST_CODE_BEGIN
           .dword 0xfedcba9876543210; \
         .align 12; \
         .skip 4094; \
-      1: addi a1, a2, 1)
+      1: addi a1, a1, 1)
 
   li sp, 0x1234
   RVC_TEST_CASE (3, a0, 0x1234 + 1020, c.addi4spn a0, sp, 1020)
