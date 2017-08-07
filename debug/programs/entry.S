@@ -157,9 +157,16 @@ trap_entry:
   addi sp, sp, 32*REGBYTES
   mret
 
+loop_forever:
+  j loop_forever
+
   // Fill the stack with data so we can see if it was overrun.
   .align 4
 stack_bottom:
   .fill STACK_SIZE/4, 4, 0x22446688
 stack_top:
+  // Prevent stack_top from being identical to next symbol, which may cause gdb
+  // to report we're halted at stack_top which happens to be the same address
+  // as main.
+  .word 0
 #endif

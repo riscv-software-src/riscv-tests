@@ -36,13 +36,12 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
             cmd.append(found)
         else:
             cmd.append(arg)
+    header("Compile")
+    print "+", " ".join(cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode:
-        print
-        header("Compile failed")
-        print "+", " ".join(cmd)
         print stdout,
         print stderr,
         header("")
@@ -63,16 +62,34 @@ class Spike(object):
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
+        self.process = None
+
+        if target.harts:
+            harts = target.harts
+        else:
+            harts = [target]
+
         if target.sim_cmd:
             cmd = shlex.split(target.sim_cmd)
         else:
             spike = os.path.expandvars("$RISCV/bin/spike")
             cmd = [spike]
-        if target.xlen == 32:
+
+        cmd += ["-p%d" % len(harts)]
+
+        assert len(set(t.xlen for t in harts)) == 1, \
+                "All spike harts must have the same XLEN"
+
+        if harts[0].xlen == 32:
             cmd += ["--isa", "RV32G"]
         else:
             cmd += ["--isa", "RV64G"]
-        cmd += ["-m0x%x:0x%x" % (target.ram, target.ram_size)]
+
+        assert len(set(t.ram for t in harts)) == 1, \
+                "All spike harts must have the same RAM layout"
+        assert len(set(t.ram_size for t in harts)) == 1, \
+                "All spike harts must have the same RAM layout"
+        cmd += ["-m0x%x:0x%x" % (harts[0].ram, harts[0].ram_size)]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
@@ -82,7 +99,7 @@ class Spike(object):
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        self.infinite_loop = target.compile(
+        self.infinite_loop = harts[0].compile(
                 "programs/checksum.c", "programs/tiny-malloc.c",
                 "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         cmd.append(self.infinite_loop)
@@ -106,11 +123,12 @@ class Spike(object):
                     "connection"
 
     def __del__(self):
-        try:
-            self.process.kill()
-            self.process.wait()
-        except OSError:
-            pass
+        if self.process:
+            try:
+                self.process.kill()
+                self.process.wait()
+            except OSError:
+                pass
 
     def wait(self, *args, **kwargs):
         return self.process.wait(*args, **kwargs)
@@ -291,6 +309,10 @@ class Gdb(object):
         # Force consistency.
         self.command("set print entry-values no")
 
+    def select_hart(self, hart):
+        output = self.command("thread %d" % (hart.index + 1))
+        assert "Unknown" not in output
+
     def wait(self):
         """Wait for prompt."""
         self.child.expect(r"\(gdb\)")
@@ -391,19 +413,20 @@ def run_all_tests(module, target, parsed):
     gdb_cmd = parsed.gdb
 
     todo = []
-    if parsed.misaval:
-        target.misa = int(parsed.misaval, 16)
-        print "Using $misa from command line: 0x%x" % target.misa
-    elif target.misa:
-        print "Using $misa from target definition: 0x%x" % target.misa
-    else:
-        todo.append(("ExamineTarget", ExamineTarget))
+    for hart in target.harts:
+        if parsed.misaval:
+            hart.misa = int(parsed.misaval, 16)
+            print "Using $misa from command line: 0x%x" % hart.misa
+        elif hart.misa:
+            print "Using $misa from hart definition: 0x%x" % hart.misa
+        else:
+            todo.append(("ExamineTarget", ExamineTarget, hart))
 
     for name in dir(module):
         definition = getattr(module, name)
         if type(definition) == type and hasattr(definition, 'test') and \
                 (not parsed.test or any(test in name for test in parsed.test)):
-            todo.append((name, definition))
+            todo.append((name, definition, None))
 
     results, count = run_tests(parsed, target, todo)
 
@@ -417,12 +440,12 @@ def run_tests(parsed, target, todo):
     results = {}
     count = 0
 
-    for name, definition in todo:
-        instance = definition(target)
+    for name, definition, hart in todo:
         log_name = os.path.join(parsed.logs, "%s-%s-%s.log" %
                 (time.strftime("%Y%m%d-%H%M%S"), type(target).__name__, name))
         log_fd = open(log_name, 'w')
         print "Running %s > %s ..." % (name, log_name),
+        instance = definition(target, hart)
         sys.stdout.flush()
         log_fd.write("Test: %s\n" % name)
         log_fd.write("Target: %s\n" % type(target).__name__)
@@ -491,8 +514,12 @@ def print_log(path):
 class BaseTest(object):
     compiled = {}
 
-    def __init__(self, target):
+    def __init__(self, target, hart=None):
         self.target = target
+        if hart:
+            self.hart = hart
+        else:
+            self.hart = random.choice(target.harts)
         self.server = None
         self.target_process = None
         self.binary = None
@@ -514,7 +541,7 @@ class BaseTest(object):
             if compile_args not in BaseTest.compiled:
                 # pylint: disable=star-args
                 BaseTest.compiled[compile_args] = \
-                        self.target.compile(*compile_args)
+                        self.hart.compile(*compile_args)
         self.binary = BaseTest.compiled.get(compile_args)
 
     def classSetup(self):
@@ -581,8 +608,8 @@ class BaseTest(object):
 
 gdb_cmd = None
 class GdbTest(BaseTest):
-    def __init__(self, target):
-        BaseTest.__init__(self, target)
+    def __init__(self, target, hart=None):
+        BaseTest.__init__(self, target, hart=hart)
         self.gdb = None
 
     def classSetup(self):
@@ -598,15 +625,12 @@ class GdbTest(BaseTest):
         if self.binary:
             self.gdb.command("file %s" % self.binary)
         if self.target:
-            self.gdb.command("set arch riscv:rv%d" % self.target.xlen)
+            self.gdb.command("set arch riscv:rv%d" % self.hart.xlen)
             self.gdb.command("set remotetimeout %d" % self.target.timeout_sec)
         if self.server.port:
             self.gdb.command(
                     "target extended-remote localhost:%d" % self.server.port)
-            # Select a random thread.
-            # TODO: Allow a command line option to force a specific thread.
-            thread = random.choice(self.gdb.threads())
-            self.gdb.thread(thread)
+            self.gdb.select_hart(self.hart)
 
         for cmd in self.target.gdb_setup:
             self.gdb.command(cmd)
@@ -617,6 +641,17 @@ class GdbTest(BaseTest):
     def classTeardown(self):
         del self.gdb
         BaseTest.classTeardown(self)
+
+class GdbSingleHartTest(GdbTest):
+    def classSetup(self):
+        GdbTest.classSetup(self)
+
+        for hart in self.target.harts:
+            # Park all harts that we're not using in a safe place.
+            if hart != self.hart:
+                self.gdb.select_hart(hart)
+                self.gdb.p("$pc=loop_forever")
+        self.gdb.select_hart(self.hart)
 
 class ExamineTarget(GdbTest):
     def test(self):
