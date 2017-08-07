@@ -218,7 +218,13 @@ class Openocd(object):
         logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+
+        self.ports = []
+        self.port = None
+        self.process = self.start(cmd, logfile)
+
+    def start(self, cmd, logfile):
+        process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
 
         try:
@@ -233,10 +239,14 @@ class Openocd(object):
                 m = re.search(r"Listening on port (\d+) for gdb connections",
                         log)
                 if m:
-                    self.port = int(m.group(1))
+                    if not self.ports:
+                        self.port = int(m.group(1))
+                    self.ports.append(int(m.group(1)))
+
+                if "telnet server disabled" in log:
                     break
 
-                if not self.process.poll() is None:
+                if not process.poll() is None:
                     raise Exception(
                             "OpenOCD exited before completing riscv_examine()")
                 if not messaged and time.time() - start > 1:
@@ -245,7 +255,7 @@ class Openocd(object):
                 if (time.time() - start) > timeout:
                     raise Exception("ERROR: Timed out waiting for OpenOCD to "
                             "listen for gdb")
-
+            return process
         except Exception:
             header("OpenOCD log")
             sys.stdout.write(log)
