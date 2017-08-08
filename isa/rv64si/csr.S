@@ -47,10 +47,15 @@ RVTEST_CODE_BEGIN
   # If so, make sure FP stores have no effect when mstatus.FS is off.
   li a1, MSTATUS_FS
   csrs mstatus, a1
+#ifdef __riscv_flen
   fmv.s.x f0, x0
   csrc mstatus, a1
   la a1, fsw_data
   TEST_CASE(10, a0, 1, fsw f0, (a1); lw a0, (a1));
+#else
+  # Fail if this test is compiled without F but executed on a core with F.
+  TEST_CASE(10, zero, 1)
+#endif
 1:
 
   # Figure out if 'U' is set in misa
@@ -58,7 +63,7 @@ RVTEST_CODE_BEGIN
   srli a0, a0, 20 # a0 = a0 >> 20
   andi a0, a0, 1  # a0 = a0 & 1
   beqz a0, finish # if no user mode, skip the rest of these checks
-#endif
+#endif /* __MACHINE_MODE */
 
   # jump to user land
   li t0, SSTATUS_SPP
