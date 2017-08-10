@@ -14,7 +14,7 @@ pylint:
 %.log:
 	$(GDBSERVER_PY) \
 		--isolate \
-		targets/RISC-V/$(subst .log,.py,$@) \
+		$(src_dir)/targets/RISC-V/$(subst .log,.py,$@) \
 		--sim_cmd $(RISCV)/bin/$(RISCV_SIM) \
 		--server_cmd $(RISCV)/bin/openocd \
 	    | tee $@ 2>&1 || (sed s/^/$@:\ / $@ && false)
