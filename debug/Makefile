@@ -9,7 +9,7 @@ default: spike$(XLEN).log
 all:	pylint spike32.log spike64.log
 
 pylint:
-	pylint --rcfile=pylint.rc *.py
+	pylint --rcfile=pylint.rc `git ls-files '*.py'`
 
 %.log:
 	$(GDBSERVER_PY) \
