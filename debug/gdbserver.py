@@ -114,7 +114,6 @@ class SimpleF18Test(SimpleRegisterTest):
         assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
 
     def early_applicable(self):
-        print repr(self.hart)
         return self.hart.extensionSupported('F')
 
     def test(self):
@@ -416,20 +415,19 @@ class UserInterrupt(DebugTest):
         self.gdb.p("i=0")
         self.exit()
 
-class MulticoreTest(GdbTest):
-    compile_args = ("programs/infinite_loop.S", )
+class MulticoreRegTest(GdbTest):
+    compile_args = ("programs/infinite_loop.S", "-DMULTICORE")
 
     def early_applicable(self):
         return len(self.target.harts) > 1
 
     def setup(self):
         self.gdb.load()
-
-    def test(self):
         for hart in self.target.harts:
             self.gdb.select_hart(hart)
             self.gdb.p("$pc=_start")
 
+    def test(self):
         # Run to main
         self.gdb.b("main")
         self.gdb.c()
@@ -469,6 +467,34 @@ class MulticoreTest(GdbTest):
             for n in range(1, 32):
                 value = self.gdb.p("$x%d" % n)
                 assertEqual(value, hart.index * 0x800 + n - 1)
+
+class MulticoreRunHaltTest(GdbTest):
+    compile_args = ("programs/multicore.c", "-DMULTICORE")
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
+    def setup(self):
+        self.gdb.load()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.p("$pc=_start")
+
+    def test(self):
+        previous_hart_count = [0 for h in self.target.harts]
+        for _ in range(10):
+            self.gdb.c(wait=False)
+            time.sleep(1)
+            self.gdb.interrupt()
+            self.gdb.p("buf", fmt="")
+            hart_count = self.gdb.p("hart_count")
+            for i, h in enumerate(self.target.harts):
+                assertGreater(hart_count[i], previous_hart_count[i])
+                self.gdb.select_hart(h)
+                pc = self.gdb.p("$pc")
+                self.gdb.stepi()
+                stepped_pc = self.gdb.p("$pc")
+                assertNotEqual(pc, stepped_pc)
 
 class StepTest(GdbTest):
     compile_args = ("programs/step.S", )

@@ -17,8 +17,11 @@ import pexpect
 def find_file(path):
     for directory in (os.getcwd(), os.path.dirname(__file__)):
         fullpath = os.path.join(directory, path)
-        if os.path.exists(fullpath):
-            return fullpath
+        relpath = os.path.relpath(fullpath)
+        if len(relpath) >= len(fullpath):
+            relpath = fullpath
+        if os.path.exists(relpath):
+            return relpath
     return None
 
 def compile(args, xlen=32): # pylint: disable=redefined-builtin
@@ -363,13 +366,23 @@ class Gdb(object):
             raise CannotAccess(int(m.group(1), 0))
         return output.split('=')[-1].strip()
 
-    def p(self, obj):
-        output = self.command("p/x %s" % obj)
+    def parse_string(self, text):
+        text = text.strip()
+        if text.startswith("{") and text.endswith("}"):
+            inner = text[1:-1]
+            return [self.parse_string(t) for t in inner.split(", ")]
+        elif text.startswith('"') and text.endswith('"'):
+            return text[1:-1]
+        else:
+            return int(text, 0)
+
+    def p(self, obj, fmt="/x"):
+        output = self.command("p%s %s" % (fmt, obj))
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
-        value = int(output.split('=')[-1].strip(), 0)
-        return value
+        rhs = output.split('=')[-1]
+        return self.parse_string(rhs)
 
     def p_string(self, obj):
         output = self.command("p %s" % obj)
@@ -530,6 +543,7 @@ class BaseTest(object):
             self.hart = hart
         else:
             self.hart = random.choice(target.harts)
+            self.hart = target.harts[-1]    #<<<
         self.server = None
         self.target_process = None
         self.binary = None

@@ -3,7 +3,7 @@
 
 #include "encoding.h"
 
-#define STACK_SIZE 512
+#define STACK_SIZE 1024
 
 #if XLEN == 64
 # define LREG ld
@@ -61,8 +61,14 @@ handle_reset:
   la gp, __global_pointer$
 .option pop
 
-  # initialize stack pointer
-  la sp, stack_top
+  # Initialize stack pointer.
+  # Support up to 4 harts, with IDs 0--3.
+  csrr  t0, CSR_MHARTID
+  addi  t0, t0, 1
+  li    t1, STACK_SIZE / 4
+  mul   t0, t0, t1
+  la    sp, stack_bottom
+  add   sp, sp, t0
 
   # Clear all hardware triggers
   li    t0, ~0
@@ -73,8 +79,33 @@ handle_reset:
   csrr  t1, CSR_TSELECT
   beq   t0, t1, 1b
 
+#ifdef MULTICORE
+  csrr  t0, CSR_MHARTID
+  bnez  t0, wait_until_initialized
+#endif
+
+  la    t0, __bss_start
+  la    t1, __bss_end
+1:
+  bge   t0, t1, 2f
+  sb    zero, 0(t0)
+  addi  t0, t0, 1
+  j     1b
+2:
+#ifdef MULTICORE
+  la    t0, initialized
+  li    t1, 1
+  sw    t1, 0(t0)
+
+wait_until_initialized:      # Wait for hart 0 to perform initialization.
+  la    t0, initialized
+1:
+  lw    t1, 0(t0)
+  beqz  t1, 1b
+#endif
+
   # perform the rest of initialization in C
-  j _init
+  j     _init
 
 
 trap_entry:
@@ -165,8 +196,6 @@ loop_forever:
 stack_bottom:
   .fill STACK_SIZE/4, 4, 0x22446688
 stack_top:
-  // Prevent stack_top from being identical to next symbol, which may cause gdb
-  // to report we're halted at stack_top which happens to be the same address
-  // as main.
+initialized:
   .word 0
 #endif
