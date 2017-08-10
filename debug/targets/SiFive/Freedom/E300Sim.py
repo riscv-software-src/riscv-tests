@@ -1,4 +1,5 @@
 import targets
+import testlib
 
 class E300Sim(targets.Target):
     xlen = 32
@@ -9,5 +10,5 @@ class E300Sim(targets.Target):
     openocd_config_path = "Freedom.cfg"
     link_script_path = "Freedom.lds"
 
-    def target(self):
+    def create(self):
         return testlib.VcsSim(sim_cmd=self.sim_cmd, debug=False)

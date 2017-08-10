@@ -1,4 +1,7 @@
-class U500Sim(Target):
+import targets
+import testlib
+
+class U500Sim(targets.Target):
     xlen = 64
     timeout_sec = 6000
     ram = 0x80000000
@@ -7,5 +10,5 @@ class U500Sim(Target):
     openocd_config_path = "Freedom.cfg"
     link_script_path = "Freedom.lds"
 
-    def target(self):
+    def create(self):
         return testlib.VcsSim(sim_cmd=self.sim_cmd, debug=False)

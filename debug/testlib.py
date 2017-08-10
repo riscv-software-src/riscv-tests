@@ -116,6 +116,8 @@ class Spike(object):
         return self.process.wait(*args, **kwargs)
 
 class VcsSim(object):
+    logname = "simv.log"
+
     def __init__(self, sim_cmd=None, debug=False):
         if sim_cmd:
             cmd = shlex.split(sim_cmd)
@@ -125,10 +127,10 @@ class VcsSim(object):
         if debug:
             cmd[0] = cmd[0] + "-debug"
             cmd += ["+vcdplusfile=output/gdbserver.vpd"]
-        logfile = open("simv.log", "w")
+        logfile = open(self.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
-        listenfile = open("simv.log", "r")
+        listenfile = open(self.logname, "r")
         listenfile.seek(0, 2)
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
