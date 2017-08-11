@@ -14,9 +14,10 @@ pylint:
 spike%:
 	$(GDBSERVER_PY) \
 		--isolate \
+		--print-failures \
 		$(src_dir)/targets/RISC-V/$@.py \
 		--sim_cmd $(RISCV)/bin/$(RISCV_SIM) \
-		--server_cmd $(RISCV)/bin/openocd \
+		--server_cmd $(RISCV)/bin/openocd
 
 clean:
 	rm -f *.pyc

@@ -428,6 +428,8 @@ def run_tests(parsed, target, todo):
             sys.stdout = real_stdout
             log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
         print "%s in %.2fs" % (result, time.time() - start)
+        if result not in good_results and parsed.print_failures:
+            sys.stdout.write(file(log_name).read())
         sys.stdout.flush()
         results.setdefault(result, []).append(name)
         count += 1
@@ -448,11 +450,12 @@ def print_results(results):
     return result
 
 def add_test_run_options(parser):
-
     parser.add_argument("--logs", default="logs",
             help="Store logs in the specified directory.")
     parser.add_argument("--fail-fast", "-f", action="store_true",
             help="Exit as soon as any test fails.")
+    parser.add_argument("--print-failures", action="store_true",
+            help="When a test fails, print the log file to stdout.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
     parser.add_argument("--gdb",
