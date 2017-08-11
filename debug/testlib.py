@@ -414,7 +414,7 @@ def run_tests(parsed, target, todo):
         log_name = os.path.join(parsed.logs, "%s-%s-%s.log" %
                 (time.strftime("%Y%m%d-%H%M%S"), type(target).__name__, name))
         log_fd = open(log_name, 'w')
-        print "Running", name, "...",
+        print "Running %s > %s ..." % (name, log_name),
         sys.stdout.flush()
         log_fd.write("Test: %s\n" % name)
         log_fd.write("Target: %s\n" % type(target).__name__)
@@ -429,9 +429,9 @@ def run_tests(parsed, target, todo):
             log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
         print "%s in %.2fs" % (result, time.time() - start)
         if result not in good_results and parsed.print_failures:
-            sys.stdout.write(file(log_name).read())
+            sys.stdout.write(open(log_name).read())
         sys.stdout.flush()
-        results.setdefault(result, []).append(name)
+        results.setdefault(result, []).append((name, log_name))
         count += 1
         if result not in good_results and parsed.fail_fast:
             break
@@ -444,8 +444,8 @@ def print_results(results):
         print "%d tests returned %s" % (len(value), key)
         if key not in good_results:
             result = 1
-            for test in value:
-                print "   ", test
+            for name, log_name in value:
+                print "   %s > %s" % (name, log_name)
 
     return result
 
