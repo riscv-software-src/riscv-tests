@@ -12,6 +12,7 @@ pylint:
 	pylint --rcfile=pylint.rc `git ls-files '*.py'`
 
 %.log:
+	set -o pipefail; \
 	$(GDBSERVER_PY) \
 		--isolate \
 		$(src_dir)/targets/RISC-V/$(subst .log,.py,$@) \
