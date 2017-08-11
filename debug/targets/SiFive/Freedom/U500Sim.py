@@ -8,7 +8,7 @@ class U500Hart(targets.Hart):
     instruction_hardware_breakpoint_count = 2
     link_script_path = "Freedom.lds"
 
-class U500Sim(Target):
+class U500Sim(targets.Target):
     timeout_sec = 6000
     openocd_config_path = "Freedom.cfg"
     harts = [U500Hart()]
