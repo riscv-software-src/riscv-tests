@@ -202,29 +202,35 @@ class Openocd(object):
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
 
-        # Wait for OpenOCD to have made it through riscv_examine(). When using
-        # OpenOCD to communicate with a simulator this may take a long time,
-        # and gdb will time out when trying to connect if we attempt too early.
-        start = time.time()
-        messaged = False
-        while True:
-            log = open(Openocd.logname).read()
-            m = re.search(r"Listening on port (\d+) for gdb connections", log)
-            if m:
-                self.port = int(m.group(1))
-                break
+        try:
+            # Wait for OpenOCD to have made it through riscv_examine(). When
+            # using OpenOCD to communicate with a simulator this may take a
+            # long time, and gdb will time out when trying to connect if we
+            # attempt too early.
+            start = time.time()
+            messaged = False
+            while True:
+                log = open(Openocd.logname).read()
+                m = re.search(r"Listening on port (\d+) for gdb connections",
+                        log)
+                if m:
+                    self.port = int(m.group(1))
+                    break
 
-            if not self.process.poll() is None:
-                header("OpenOCD log")
-                sys.stdout.write(log)
-                raise Exception(
-                        "OpenOCD exited before completing riscv_examine()")
-            if not messaged and time.time() - start > 1:
-                messaged = True
-                print "Waiting for OpenOCD to start..."
-            if time.time() - start > 60:
-                raise Exception("ERROR: Timed out waiting for OpenOCD to "
-                        "listen for gdb")
+                if not self.process.poll() is None:
+                    raise Exception(
+                            "OpenOCD exited before completing riscv_examine()")
+                if not messaged and time.time() - start > 1:
+                    messaged = True
+                    print "Waiting for OpenOCD to start..."
+                if time.time() - start > 60:
+                    raise Exception("ERROR: Timed out waiting for OpenOCD to "
+                            "listen for gdb")
+
+        except Exception:
+            header("OpenOCD log")
+            sys.stdout.write(log)
+            raise
 
     def __del__(self):
         try:
