@@ -468,7 +468,7 @@ class MulticoreRegTest(GdbTest):
                 value = self.gdb.p("$x%d" % n)
                 assertEqual(value, hart.index * 0x800 + n - 1)
 
-class MulticoreRunHaltTest(GdbTest):
+class MulticoreRunHaltStepiTest(GdbTest):
     compile_args = ("programs/multicore.c", "-DMULTICORE")
 
     def early_applicable(self):
