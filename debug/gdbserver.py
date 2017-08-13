@@ -12,7 +12,7 @@ import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegexpMatches, assertLess
-from testlib import GdbTest, GdbSingleHartTest
+from testlib import GdbTest, GdbSingleHartTest, TestFailed
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -171,20 +171,21 @@ class MemTest64(SimpleMemoryTest):
 #        self.gdb.p("*((int*)0x%x)=6874742" % self.hart.ram)
 
 class MemTestBlock(GdbTest):
+    length = 1024
+    line_length = 16
+
     def test(self):
-        length = 1024
-        line_length = 16
         a = tempfile.NamedTemporaryFile(suffix=".ihex")
         data = ""
-        for i in range(length / line_length):
+        for i in range(self.length / self.line_length):
             line_data = "".join(["%c" % random.randrange(256)
-                for _ in range(line_length)])
+                for _ in range(self.line_length)])
             data += line_data
-            a.write(ihex_line(i * line_length, 0, line_data))
+            a.write(ihex_line(i * self.line_length, 0, line_data))
         a.flush()
 
         self.gdb.command("restore %s 0x%x" % (a.name, self.hart.ram))
-        for offset in range(0, length, 19*4) + [length-4]:
+        for offset in range(0, self.length, 19*4) + [self.length-4]:
             value = self.gdb.p("*((int*)0x%x)" % (self.hart.ram + offset))
             written = ord(data[offset]) | \
                     (ord(data[offset+1]) << 8) | \
@@ -194,13 +195,16 @@ class MemTestBlock(GdbTest):
 
         b = tempfile.NamedTemporaryFile(suffix=".ihex")
         self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name,
-            self.hart.ram, self.hart.ram + length))
+            self.hart.ram, self.hart.ram + self.length))
         for line in b:
             record_type, address, line_data = ihex_parse(line)
             if record_type == 0:
-                assertEqual(readable_binary_string(line_data),
-                        readable_binary_string(
-                            data[address:address+len(line_data)]))
+                written_data = data[address:address+len(line_data)]
+                if line_data != written_data:
+                    raise TestFailed(
+                            "Data mismatch at 0x%x; wrote %s but read %s" % (
+                                address, readable_binary_string(written_data),
+                                readable_binary_string(line_data)))
 
 class InstantHaltTest(GdbTest):
     def test(self):
