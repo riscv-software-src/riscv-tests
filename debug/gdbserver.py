@@ -124,8 +124,8 @@ class SimpleMemoryTest(GdbTest):
         assertEqual(self.gdb.p("sizeof(%s)" % data_type), size)
         a = 0x86753095555aaaa & ((1<<(size*8))-1)
         b = 0xdeadbeef12345678 & ((1<<(size*8))-1)
-        addrA = self.target.ram
-        addrB = self.target.ram + self.target.ram_size - size
+        addrA = self.hart.ram
+        addrB = self.hart.ram + self.hart.ram_size - size
         self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, addrA, a))
         self.gdb.p("*((%s*)0x%x) = 0x%x" % (data_type, addrB, b))
         assertEqual(self.gdb.p("*((%s*)0x%x)" % (data_type, addrA)), a)
