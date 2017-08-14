@@ -161,8 +161,9 @@ class VcsSim(object):
 class Openocd(object):
     logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
     logname = logfile.name
+    print "OpenOCD Temporary Log File: %s" % logname
 
-    def __init__(self, server_cmd=None, config=None, debug=False):
+    def __init__(self, server_cmd=None, config=None, debug=False, timeout=60):
         if server_cmd:
             cmd = shlex.split(server_cmd)
         else:
@@ -196,7 +197,7 @@ class Openocd(object):
         if debug:
             cmd.append("-d")
 
-        logfile = open(Openocd.logname, "w")
+        logfile = Openocd.logfile
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
@@ -223,7 +224,7 @@ class Openocd(object):
                 if not messaged and time.time() - start > 1:
                     messaged = True
                     print "Waiting for OpenOCD to start..."
-                if time.time() - start > 60:
+                if (time.time() - start) > timeout:
                     raise Exception("ERROR: Timed out waiting for OpenOCD to "
                             "listen for gdb")
 
@@ -276,12 +277,12 @@ Thread = collections.namedtuple('Thread', ('id', 'target_id', 'name',
 class Gdb(object):
     logfile = tempfile.NamedTemporaryFile(prefix="gdb", suffix=".log")
     logname = logfile.name
+    print "GDB Temporary Log File: %s" % logname
 
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(cmd)
-        self.child.logfile = open(self.logname, "w")
-        self.child.logfile.write("+ %s\n" % cmd)
+        Gdb.logfile.write("+ %s\n" % cmd)
         self.wait()
         self.command("set confirm off")
         self.command("set width 0")
