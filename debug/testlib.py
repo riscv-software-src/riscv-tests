@@ -161,7 +161,7 @@ class VcsSim(object):
 class Openocd(object):
     logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
     logname = logfile.name
-    print "OpenOCD Temp Logfile: %s " % logname
+    print "OpenOCD Temporary Log File: %s" % logname
 
     def __init__(self, server_cmd=None, config=None, debug=False, timeout=60):
         if server_cmd:
@@ -277,7 +277,7 @@ Thread = collections.namedtuple('Thread', ('id', 'target_id', 'name',
 class Gdb(object):
     logfile = tempfile.NamedTemporaryFile(prefix="gdb", suffix=".log")
     logname = logfile.name
-    print "GDB Temporary file: %s" % logname
+    print "GDB Temporary Log File: %s" % logname
 
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
