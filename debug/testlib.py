@@ -561,8 +561,6 @@ class BaseTest(object):
                 result = "fail"
             else:
                 result = "exception"
-                header ("Backtrace")
-                print e
             if isinstance(e, TestFailed):
                 header("Message")
                 print e.message
