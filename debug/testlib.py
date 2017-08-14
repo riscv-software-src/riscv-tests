@@ -282,7 +282,7 @@ class Gdb(object):
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(cmd)
-        self.child.logfile.write("+ %s\n" % cmd)
+        Gdb.logfile.write("+ %s\n" % cmd)
         self.wait()
         self.command("set confirm off")
         self.command("set width 0")
