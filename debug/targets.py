@@ -22,6 +22,12 @@ class Target(object):
     # target is defined. Defaults to <name>.cfg.
     openocd_config_path = None
 
+    # Timeout waiting for the server to start up. This is different than the
+    # GDB timeout, which is how long GDB waits for commands to execute.
+    # The server_timeout is how long this script waits for the Server to be ready
+    # for GDB connections.
+    server_timeout_sec = 60
+
     # Path to linker script relative to the .py file where the target is
     # defined. Defaults to <name>.lds.
     link_script_path = None
@@ -72,7 +78,8 @@ class Target(object):
     def server(self):
         """Start the debug server that gdb connects to, eg. OpenOCD."""
         return testlib.Openocd(server_cmd=self.server_cmd,
-                config=self.openocd_config_path)
+                               config=self.openocd_config_path,
+                               timeout=self.server_timeout_sec)
 
     def compile(self, *sources):
         binary_name = "%s_%s-%d" % (
