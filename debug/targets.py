@@ -24,8 +24,8 @@ class Target(object):
 
     # Timeout waiting for the server to start up. This is different than the
     # GDB timeout, which is how long GDB waits for commands to execute.
-    # The server_timeout is how long this script waits for the Server to be ready
-    # for GDB connections.
+    # The server_timeout is how long this script waits for the Server to be
+    # ready for GDB connections.
     server_timeout_sec = 60
 
     # Path to linker script relative to the .py file where the target is

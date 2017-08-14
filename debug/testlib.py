@@ -197,7 +197,7 @@ class Openocd(object):
         if debug:
             cmd.append("-d")
 
-        logfile = Openocd.logfile
+        logfile = open(Openocd.logname, "w")
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
@@ -282,7 +282,8 @@ class Gdb(object):
     def __init__(self,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
         self.child = pexpect.spawn(cmd)
-        Gdb.logfile.write("+ %s\n" % cmd)
+        self.child.logfile = open(self.logname, "w")
+        self.child.logfile.write("+ %s\n" % cmd)
         self.wait()
         self.command("set confirm off")
         self.command("set width 0")
