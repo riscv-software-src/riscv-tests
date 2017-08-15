@@ -185,6 +185,8 @@ class Openocd(object):
     print "OpenOCD Temporary Log File: %s" % logname
 
     def __init__(self, server_cmd=None, config=None, debug=False, timeout=60):
+        self.timeout = timeout
+
         if server_cmd:
             cmd = shlex.split(server_cmd)
         else:
@@ -255,7 +257,7 @@ class Openocd(object):
                 if not messaged and time.time() - start > 1:
                     messaged = True
                     print "Waiting for OpenOCD to start..."
-                if (time.time() - start) > timeout:
+                if (time.time() - start) > self.timeout:
                     raise Exception("ERROR: Timed out waiting for OpenOCD to "
                             "listen for gdb")
             return process
