@@ -22,7 +22,7 @@ static void do_tohost(uint64_t tohost_value)
 #define pa2kva(pa) ((void*)(pa) - DRAM_BASE - MEGAPAGE_SIZE)
 #define uva2kva(pa) ((void*)(pa) - MEGAPAGE_SIZE)
 
-#define flush_page(addr) asm volatile ("sfence.vma %0" : : "r" (addr))
+#define flush_page(addr) asm volatile ("sfence.vma %0" : : "r" (addr) : "memory")
 
 static uint64_t lfsr63(uint64_t x)
 {
