@@ -137,7 +137,7 @@ INLINE pmpcfg_t set_pmp(pmpcfg_t p)
   write_csr(pmpaddr0, p.a0);
   write_csr(pmpaddr1, p.a1);
   write_csr(pmpcfg0, ((p.cfg << 8) & 0xff00) | (cfg0 & ~0xff00));
-  asm volatile ("sfence.vma");
+  asm volatile ("sfence.vma" ::: "memory");
   return p;
 }
 
