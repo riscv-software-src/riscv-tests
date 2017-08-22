@@ -16,7 +16,7 @@ class Target(object):
     xlen = 0
 
     # GDB remotetimeout setting.
-    timeout_sec = 2
+    timeout_sec = 20
 
     # Path to OpenOCD configuration file relative to the .py file where the
     # target is defined. Defaults to <name>.cfg.
