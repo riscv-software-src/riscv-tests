@@ -408,7 +408,7 @@ class UserInterrupt(DebugTest):
         self.gdb.c()
         self.gdb.p("i=123")
         self.gdb.c(wait=False)
-        time.sleep(0.5)
+        time.sleep(2)
         output = self.gdb.interrupt()
         assert "main" in output
         assertGreater(self.gdb.p("j"), 10)
