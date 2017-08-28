@@ -12,6 +12,7 @@ class spike32_hart(targets.Hart):
 class spike32(targets.Target):
     harts = [spike32_hart()]
     openocd_config_path = "spike.cfg"
+    timeout_sec = 30
 
     def create(self):
         return testlib.Spike(self)

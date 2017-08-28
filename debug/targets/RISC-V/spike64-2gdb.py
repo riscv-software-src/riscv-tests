@@ -1,12 +1,11 @@
 import targets
 import testlib
 
-import spike64  # pylint: disable=import-error
+import spike64
 
-class spike64_2(targets.Target):
+class spike64_2gdb(targets.Target):
     harts = [spike64.spike64_hart(), spike64.spike64_hart()]
-    openocd_config_path = "spike.cfg"
-    timeout_sec = 30
+    openocd_config_path = "spike-2gdb.cfg"
 
     def create(self):
         return testlib.Spike(self)
