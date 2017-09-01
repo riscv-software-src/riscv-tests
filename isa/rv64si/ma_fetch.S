@@ -61,16 +61,63 @@ RVTEST_CODE_BEGIN
   j fail
 2:
 
+  # Like test 2, but with jal instead of jalr.
+  li TESTNUM, 5
+  li t1, 0
+  la t0, 1f
+  jal t1, 2f
+1:
+  .option rvc
+  c.j 1f
+2:
+  c.j 2f
+  .option norvc
+1:
+  j fail
+2:
+
+  # Like test 2, but with a taken branch instead of jalr.
+  li TESTNUM, 6
+  li t1, 0
+  la t0, 1f
+  beqz x0, 2f
+1:
+  .option rvc
+  c.j 1f
+2:
+  c.j 2f
+  .option norvc
+1:
+  j fail
+2:
+
+  # Not-taken branches should not trap, even without RVC.
+  li TESTNUM, 7
+  bnez x0, 1f
+  j 2f
+  .option rvc
+  c.j 1f
+1:
+  c.j 1f
+  .option norvc
+1:
+  j fail
+2:
+
   j pass
 
   TEST_PASSFAIL
 
   .align 2
 stvec_handler:
-  # tests 2 and 4 should trap
+  # tests 2, 4, 5, and 6 should trap
   li a0, 2
   beq TESTNUM, a0, 1f
   li a0, 4
+  beq TESTNUM, a0, 1f
+  li a0, 5
+  beq TESTNUM, a0, 1f
+  li a0, 6
   beq TESTNUM, a0, 1f
   j fail
 1:
