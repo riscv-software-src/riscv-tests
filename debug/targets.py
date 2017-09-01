@@ -34,35 +34,6 @@ class Hart(object):
     # Defaults to target-<index>
     name = None
 
-    def __init__(self):
-        self.temporary_binary = None
-
-    def compile(self, *sources):
-        binary_name = "%s_%s-%d" % (
-                self.name,
-                os.path.basename(os.path.splitext(sources[0])[0]),
-                self.xlen)
-        if Target.isolate:
-            self.temporary_binary = tempfile.NamedTemporaryFile(
-                    prefix=binary_name + "_")
-            binary_name = self.temporary_binary.name
-            Target.temporary_files.append(self.temporary_binary)
-        march = "rv%dima" % self.xlen
-        for letter in "fdc":
-            if self.extensionSupported(letter):
-                march += letter
-        testlib.compile(sources +
-                ("programs/entry.S", "programs/init.c",
-                    "-I", "../env",
-                    "-march=%s" % march,
-                    "-T", self.link_script_path,
-                    "-nostartfiles",
-                    "-mcmodel=medany",
-                    "-DXLEN=%d" % self.xlen,
-                    "-o", binary_name),
-                xlen=self.xlen)
-        return binary_name
-
     def extensionSupported(self, letter):
         # target.misa is set by testlib.ExamineTarget
         if self.misa:
@@ -106,6 +77,7 @@ class Target(object):
         self.directory = os.path.dirname(path)
         self.server_cmd = parsed.server_cmd
         self.sim_cmd = parsed.sim_cmd
+        self.temporary_binary = None
         Target.isolate = parsed.isolate
         if not self.name:
             self.name = type(self).__name__
@@ -132,6 +104,33 @@ class Target(object):
         """Start the debug server that gdb connects to, eg. OpenOCD."""
         return testlib.Openocd(server_cmd=self.server_cmd,
                 config=self.openocd_config_path)
+
+    def compile(self, hart, *sources):
+        binary_name = "%s_%s-%d" % (
+                self.name,
+                os.path.basename(os.path.splitext(sources[0])[0]),
+                hart.xlen)
+        if Target.isolate:
+            self.temporary_binary = tempfile.NamedTemporaryFile(
+                    prefix=binary_name + "_")
+            binary_name = self.temporary_binary.name
+            Target.temporary_files.append(self.temporary_binary)
+        march = "rv%dima" % hart.xlen
+        for letter in "fdc":
+            if hart.extensionSupported(letter):
+                march += letter
+        testlib.compile(sources +
+                ("programs/entry.S", "programs/init.c",
+                    "-DNHARTS=%d" % len(self.harts),
+                    "-I", "../env",
+                    "-march=%s" % march,
+                    "-T", hart.link_script_path,
+                    "-nostartfiles",
+                    "-mcmodel=medany",
+                    "-DXLEN=%d" % hart.xlen,
+                    "-o", binary_name),
+                xlen=hart.xlen)
+        return binary_name
 
 def add_target_options(parser):
     parser.add_argument("target", help=".py file that contains definition for "

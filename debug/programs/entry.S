@@ -1,9 +1,8 @@
-#ifndef ENTRY_S
-#define ENTRY_S
-
 #include "encoding.h"
 
-#define STACK_SIZE 1024
+// Enough stack to store every register in case a trap handler is executed,
+// plus 33 more values.
+#define STACK_SIZE (64 * XLEN / 8)
 
 #if XLEN == 64
 # define LREG ld
@@ -62,10 +61,11 @@ handle_reset:
 .option pop
 
   # Initialize stack pointer.
-  # Support up to 4 harts, with IDs 0--3.
+  # Give each hart STACK_SIZE of stack.
+  # Assume hart IDs are contiguous and start at 0.
   csrr  t0, CSR_MHARTID
   addi  t0, t0, 1
-  li    t1, STACK_SIZE / 4
+  li    t1, STACK_SIZE
   mul   t0, t0, t1
   la    sp, stack_bottom
   add   sp, sp, t0
@@ -194,8 +194,7 @@ loop_forever:
   // Fill the stack with data so we can see if it was overrun.
   .align 4
 stack_bottom:
-  .fill STACK_SIZE/4, 4, 0x22446688
+  .fill NHARTS * STACK_SIZE/4, 4, 0x22446688
 stack_top:
 initialized:
   .word 0
-#endif

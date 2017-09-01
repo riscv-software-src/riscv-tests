@@ -102,7 +102,7 @@ class Spike(object):
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        self.infinite_loop = harts[0].compile(
+        self.infinite_loop = target.compile(harts[0],
                 "programs/checksum.c", "programs/tiny-malloc.c",
                 "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         cmd.append(self.infinite_loop)
@@ -567,7 +567,7 @@ class BaseTest(object):
             if compile_args not in BaseTest.compiled:
                 # pylint: disable=star-args
                 BaseTest.compiled[compile_args] = \
-                        self.hart.compile(*compile_args)
+                        self.target.compile(self.hart, *compile_args)
         self.binary = BaseTest.compiled.get(compile_args)
 
     def classSetup(self):

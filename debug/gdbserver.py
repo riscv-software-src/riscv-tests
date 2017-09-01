@@ -708,7 +708,7 @@ class DownloadTest(GdbTest):
         if self.crc < 0:
             self.crc += 2**32
 
-        self.binary = self.hart.compile(self.download_c.name,
+        self.binary = self.target.compile(self.hart, self.download_c.name,
                 "programs/checksum.c")
         self.gdb.command("file %s" % self.binary)
 
