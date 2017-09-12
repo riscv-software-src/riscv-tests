@@ -588,6 +588,9 @@ class BaseTest(object):
         del self.server
         del self.target_process
 
+    def postMortem(self):
+        pass
+
     def run(self):
         """
         If compile_args is set, compile a program and set self.binary.
@@ -621,6 +624,7 @@ class BaseTest(object):
                 print e.message
             header("Traceback")
             traceback.print_exc(file=sys.stdout)
+            self.postMortem()
             return result
 
         finally:
@@ -664,6 +668,12 @@ class GdbTest(BaseTest):
 
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
+
+    def postMortem(self):
+        if not self.gdb:
+            return
+        self.gdb.interrupt()
+        self.gdb.command("info registers all", timeout=10)
 
     def classTeardown(self):
         del self.gdb
