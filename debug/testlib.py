@@ -333,6 +333,7 @@ class Gdb(object):
         self.child.expect(r"\(gdb\)")
 
     def command(self, command, timeout=6000):
+        """timeout is in seconds"""
         self.child.sendline(command)
         self.child.expect("\n", timeout=timeout)
         self.child.expect(r"\(gdb\)", timeout=timeout)
