@@ -5,22 +5,53 @@ import tempfile
 
 import testlib
 
+class Hart(object):
+    # XLEN of the hart. May be overridden with --32 or --64 command line
+    # options.
+    xlen = 0
+
+    # Will be autodetected (by running ExamineTarget) if left unset. Set to
+    # save a little time.
+    misa = None
+
+    # Path to linker script relative to the .py file where the target is
+    # defined. Defaults to <name>.lds.
+    link_script_path = None
+
+    # Implements dmode in tdata1 as described in the spec. Harts that need
+    # this value set to False are not compliant with the spec (but still usable
+    # as long as running code doesn't try to mess with triggers set by an
+    # external debugger).
+    honors_tdata1_hmode = True
+
+    # Address where a r/w/x block of RAM starts, together with its size.
+    ram = None
+    ram_size = None
+
+    # Number of instruction triggers the hart supports.
+    instruction_hardware_breakpoint_count = 0
+
+    # Defaults to target-<index>
+    name = None
+
+    def extensionSupported(self, letter):
+        # target.misa is set by testlib.ExamineTarget
+        if self.misa:
+            return self.misa & (1 << (ord(letter.upper()) - ord('A')))
+        else:
+            return False
+
 class Target(object):
     # pylint: disable=too-many-instance-attributes
+
+    # List of Hart object instances, one for each hart in the target.
+    harts = []
 
     # Name of the target. Defaults to the name of the class.
     name = None
 
-    # XLEN of the target. May be overridden with --32 or --64 command line
-    # options.
-    xlen = 0
-
     # GDB remotetimeout setting.
     timeout_sec = 2
-
-    # Path to OpenOCD configuration file relative to the .py file where the
-    # target is defined. Defaults to <name>.cfg.
-    openocd_config_path = None
 
     # Timeout waiting for the server to start up. This is different than the
     # GDB timeout, which is how long GDB waits for commands to execute.
@@ -28,28 +59,17 @@ class Target(object):
     # ready for GDB connections.
     server_timeout_sec = 60
 
-    # Path to linker script relative to the .py file where the target is
-    # defined. Defaults to <name>.lds.
-    link_script_path = None
-
-    # Will be autodetected (by running ExamineTarget) if left unset. Set to
-    # save a little time.
-    misa = None
+    # Path to OpenOCD configuration file relative to the .py file where the
+    # target is defined. Defaults to <name>.cfg.
+    openocd_config_path = None
 
     # List of commands that should be executed in gdb after connecting but
     # before starting the test.
     gdb_setup = []
 
-    # Implements dmode in tdata1 as described in the spec. Targets that need
-    # this value set to False are not compliant with the spec (but still usable
-    # as long as running code doesn't try to mess with triggers set by an
-    # external debugger).
-    honors_tdata1_hmode = True
-
     # Internal variables:
     directory = None
     temporary_files = []
-    temporary_binary = None
 
     def __init__(self, path, parsed):
         # Path to module.
@@ -57,7 +77,8 @@ class Target(object):
         self.directory = os.path.dirname(path)
         self.server_cmd = parsed.server_cmd
         self.sim_cmd = parsed.sim_cmd
-        self.isolate = parsed.isolate
+        self.temporary_binary = None
+        Target.isolate = parsed.isolate
         if not self.name:
             self.name = type(self).__name__
         # Default OpenOCD config file to <name>.cfg
@@ -65,11 +86,15 @@ class Target(object):
             self.openocd_config_path = "%s.cfg" % self.name
         self.openocd_config_path = os.path.join(self.directory,
                 self.openocd_config_path)
-        # Default link script to <name>.lds
-        if not self.link_script_path:
-            self.link_script_path = "%s.lds" % self.name
-        self.link_script_path = os.path.join(self.directory,
-                self.link_script_path)
+        for i, hart in enumerate(self.harts):
+            hart.index = i
+            if not hart.name:
+                hart.name = "%s-%d" % (self.name, i)
+            # Default link script to <name>.lds
+            if not hart.link_script_path:
+                hart.link_script_path = "%s.lds" % self.name
+            hart.link_script_path = os.path.join(self.directory,
+                    hart.link_script_path)
 
     def create(self):
         """Create the target out of thin air, eg. start a simulator."""
@@ -78,41 +103,34 @@ class Target(object):
     def server(self):
         """Start the debug server that gdb connects to, eg. OpenOCD."""
         return testlib.Openocd(server_cmd=self.server_cmd,
-                               config=self.openocd_config_path,
-                               timeout=self.server_timeout_sec)
+                config=self.openocd_config_path)
 
-    def compile(self, *sources):
+    def compile(self, hart, *sources):
         binary_name = "%s_%s-%d" % (
                 self.name,
                 os.path.basename(os.path.splitext(sources[0])[0]),
-                self.xlen)
-        if self.isolate:
+                hart.xlen)
+        if Target.isolate:
             self.temporary_binary = tempfile.NamedTemporaryFile(
                     prefix=binary_name + "_")
             binary_name = self.temporary_binary.name
             Target.temporary_files.append(self.temporary_binary)
-        march = "rv%dima" % self.xlen
+        march = "rv%dima" % hart.xlen
         for letter in "fdc":
-            if self.extensionSupported(letter):
+            if hart.extensionSupported(letter):
                 march += letter
         testlib.compile(sources +
                 ("programs/entry.S", "programs/init.c",
+                    "-DNHARTS=%d" % len(self.harts),
                     "-I", "../env",
                     "-march=%s" % march,
-                    "-T", self.link_script_path,
+                    "-T", hart.link_script_path,
                     "-nostartfiles",
                     "-mcmodel=medany",
-                    "-DXLEN=%d" % self.xlen,
+                    "-DXLEN=%d" % hart.xlen,
                     "-o", binary_name),
-                xlen=self.xlen)
+                xlen=hart.xlen)
         return binary_name
-
-    def extensionSupported(self, letter):
-        # target.misa is set by testlib.ExamineTarget
-        if self.misa:
-            return self.misa & (1 << (ord(letter.upper()) - ord('A')))
-        else:
-            return False
 
 def add_target_options(parser):
     parser.add_argument("target", help=".py file that contains definition for "
@@ -149,4 +167,7 @@ def target(parsed):
     assert len(found) == 1, "%s does not define exactly one subclass of " \
             "targets.Target" % parsed.target
 
-    return found[0](parsed.target, parsed)
+    t = found[0](parsed.target, parsed)
+    assert t.harts, "%s doesn't have any harts defined!" % t.name
+
+    return t

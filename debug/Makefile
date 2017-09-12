@@ -4,9 +4,9 @@ XLEN ?= 64
 src_dir ?= .
 GDBSERVER_PY = $(src_dir)/gdbserver.py
 
-default: spike$(XLEN)
+default: spike$(XLEN)-2
 
-all:	pylint spike32 spike64
+all:	pylint spike32 spike64 spike32-2 spike64-2
 
 pylint:
 	pylint --rcfile=pylint.rc `git ls-files '*.py'`

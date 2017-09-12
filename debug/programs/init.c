@@ -1,7 +1,30 @@
+#include "init.h"
+#include "encoding.h"
+
 int main(void);
+
+trap_handler_t trap_handler[NHARTS] = {0};
+
+void set_trap_handler(trap_handler_t handler)
+{
+    unsigned hartid = csr_read(mhartid);
+    trap_handler[hartid] = handler;
+}
+
+void enable_timer_interrupts()
+{
+    set_csr(mie, MIP_MTIP);
+    set_csr(mstatus, MSTATUS_MIE);
+}
 
 void handle_trap(unsigned int mcause, unsigned int mepc, unsigned int sp)
 {
+    unsigned hartid = csr_read(mhartid);
+    if (trap_handler[hartid]) {
+        trap_handler[hartid](hartid, mcause, mepc, sp);
+        return;
+    }
+
     while (1)
         ;
 }

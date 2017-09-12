@@ -22,11 +22,13 @@ SECTIONS
   }
 
   /* bss segment */
+  __bss_start = .;
   .sbss : {
     *(.sbss .sbss.* .gnu.linkonce.sb.*)
     *(.scommon)
   }
   .bss : { *(.bss) }
+  __bss_end = .;
 
   __malloc_start = .;
   . = . + 512;
