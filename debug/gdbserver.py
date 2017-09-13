@@ -419,6 +419,49 @@ class UserInterrupt(DebugTest):
         self.gdb.p("i=0")
         self.exit()
 
+class InterruptTest(GdbSingleHartTest):
+    compile_args = ("programs/interrupt.c",)
+
+    def early_applicable(self):
+        return self.target.supports_clint_mtime
+
+    def setup(self):
+        self.gdb.load()
+
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn(" main ", output)
+        self.gdb.b("trap_entry")
+        output = self.gdb.c()
+        assertIn(" trap_entry ", output)
+        assertEqual(self.gdb.p("$mip") & 0x80, 0x80)
+        assertEqual(self.gdb.p("interrupt_count"), 0)
+        # You'd expect local to still be 0, but it looks like spike doesn't
+        # jump to the interrupt handler immediately after the write to
+        # mtimecmp.
+        assertLess(self.gdb.p("local"), 1000)
+        self.gdb.command("delete breakpoints")
+        for _ in range(10):
+            self.gdb.c(wait=False)
+            time.sleep(2)
+            self.gdb.interrupt()
+            interrupt_count = self.gdb.p("interrupt_count")
+            local = self.gdb.p("local")
+            if interrupt_count > 1000 and \
+                    local > 1000:
+                return
+
+        assertGreater(interrupt_count, 1000)
+        assertGreater(local, 1000)
+
+    def postMortem(self):
+        GdbSingleHartTest.postMortem(self)
+        self.gdb.p("*((long long*) 0x200bff8)")
+        self.gdb.p("*((long long*) 0x2004000)")
+        self.gdb.p("interrupt_count")
+        self.gdb.p("local")
+
 class MulticoreRegTest(GdbTest):
     compile_args = ("programs/infinite_loop.S", "-DMULTICORE")
 
