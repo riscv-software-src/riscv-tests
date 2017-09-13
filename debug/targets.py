@@ -67,6 +67,9 @@ class Target(object):
     # before starting the test.
     gdb_setup = []
 
+    # Supports mtime at 0x2004000
+    supports_clint_mtime = True
+
     # Internal variables:
     directory = None
     temporary_files = []

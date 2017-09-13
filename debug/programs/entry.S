@@ -1,8 +1,6 @@
 #include "encoding.h"
 
-// Enough stack to store every register in case a trap handler is executed,
-// plus 33 more values.
-#define STACK_SIZE (64 * XLEN / 8)
+#define STACK_SIZE (74 * XLEN / 8)
 
 #if XLEN == 64
 # define LREG ld

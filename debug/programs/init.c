@@ -17,7 +17,7 @@ void enable_timer_interrupts()
     set_csr(mstatus, MSTATUS_MIE);
 }
 
-void handle_trap(unsigned int mcause, unsigned int mepc, unsigned int sp)
+void handle_trap(unsigned int mcause, void *mepc, void *sp)
 {
     unsigned hartid = csr_read(mhartid);
     if (trap_handler[hartid]) {
