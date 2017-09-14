@@ -72,6 +72,34 @@ class Spike(object):
         else:
             harts = [target]
 
+        cmd = self.command(target, harts, halted, timeout, with_jtag_gdb)
+        self.infinite_loop = target.compile(harts[0],
+                "programs/checksum.c", "programs/tiny-malloc.c",
+                "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+        cmd.append(self.infinite_loop)
+        logfile = open(self.logname, "w")
+        logfile.write("+ %s\n" % " ".join(cmd))
+        logfile.flush()
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                stdout=logfile, stderr=logfile)
+
+        if with_jtag_gdb:
+            self.port = None
+            for _ in range(30):
+                m = re.search(r"Listening for remote bitbang connection on "
+                        r"port (\d+).", open(self.logname).read())
+                if m:
+                    self.port = int(m.group(1))
+                    os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
+                    break
+                time.sleep(0.11)
+            if not self.port:
+                print_log(self.logname)
+                raise Exception("Didn't get spike message about bitbang "
+                        "connection")
+
+    def command(self, target, harts, halted, timeout, with_jtag_gdb):
+        # pylint: disable=no-self-use
         if target.sim_cmd:
             cmd = shlex.split(target.sim_cmd)
         else:
@@ -102,28 +130,8 @@ class Spike(object):
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        self.infinite_loop = target.compile(harts[0],
-                "programs/checksum.c", "programs/tiny-malloc.c",
-                "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
-        cmd.append(self.infinite_loop)
-        logfile = open(self.logname, "w")
-        logfile.write("+ %s\n" % " ".join(cmd))
-        logfile.flush()
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                stdout=logfile, stderr=logfile)
 
-        if with_jtag_gdb:
-            self.port = None
-            for _ in range(30):
-                m = re.search(r"Listening for remote bitbang connection on "
-                        r"port (\d+).", open(self.logname).read())
-                if m:
-                    self.port = int(m.group(1))
-                    os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
-                    break
-                time.sleep(0.11)
-            assert self.port, "Didn't get spike message about bitbang " \
-                    "connection"
+        return cmd
 
     def __del__(self):
         if self.process:
