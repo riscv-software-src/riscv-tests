@@ -700,21 +700,21 @@ class GdbSingleHartTest(GdbTest):
 
 class ExamineTarget(GdbTest):
     def test(self):
-        self.target.misa = self.gdb.p("$misa")
+        self.hart.misa = self.gdb.p("$misa")
 
         txt = "RV"
-        if (self.target.misa >> 30) == 1:
+        if (self.hart.misa >> 30) == 1:
             txt += "32"
-        elif (self.target.misa >> 62) == 2:
+        elif (self.hart.misa >> 62) == 2:
             txt += "64"
-        elif (self.target.misa >> 126) == 3:
+        elif (self.hart.misa >> 126) == 3:
             txt += "128"
         else:
             raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
-                    self.target.misa)
+                    self.hart.misa)
 
         for i in range(26):
-            if self.target.misa & (1<<i):
+            if self.hart.misa & (1<<i):
                 txt += chr(i + ord('A'))
         print txt,
 
