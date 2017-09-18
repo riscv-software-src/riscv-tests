@@ -529,14 +529,21 @@ class MulticoreRunHaltStepiTest(GdbTest):
 
     def test(self):
         previous_hart_count = [0 for h in self.target.harts]
+        previous_interrupt_count = [0 for h in self.target.harts]
         for _ in range(10):
             self.gdb.c(wait=False)
-            time.sleep(1)
+            time.sleep(2)
             self.gdb.interrupt()
+            self.gdb.p("$mie")
+            self.gdb.p("$mip")
+            self.gdb.p("$mstatus")
+            self.gdb.p("$priv")
             self.gdb.p("buf", fmt="")
             hart_count = self.gdb.p("hart_count")
+            interrupt_count = self.gdb.p("interrupt_count")
             for i, h in enumerate(self.target.harts):
                 assertGreater(hart_count[i], previous_hart_count[i])
+                assertGreater(interrupt_count[i], previous_interrupt_count[i])
                 self.gdb.select_hart(h)
                 pc = self.gdb.p("$pc")
                 self.gdb.stepi()

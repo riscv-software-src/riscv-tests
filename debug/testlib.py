@@ -540,8 +540,7 @@ def header(title, dash='-', length=78):
 
 def print_log(path):
     header(path)
-    lines = open(path, "r").readlines()
-    for l in lines:
+    for l in open(path, "r"):
         sys.stdout.write(l)
     print
 
