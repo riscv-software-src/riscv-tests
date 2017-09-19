@@ -1,6 +1,6 @@
 #include "encoding.h"
 
-#define STACK_SIZE (74 * XLEN / 8)
+#define STACK_SIZE (90 * XLEN / 8)
 
 #if XLEN == 64
 # define LREG ld

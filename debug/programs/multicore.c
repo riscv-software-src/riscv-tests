@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include "init.h"
+
 typedef struct {
     int counter;
 } atomic_t;
@@ -14,14 +16,6 @@ static inline int atomic_xchg(atomic_t *v, int n)
             : "r" (n));
     return c;
 }
-
-#define csr_read(csr)                                   \
-({                                                      \
-    register unsigned long __v;                         \
-    __asm__ __volatile__ ("csrr %0, " #csr              \
-                  : "=r" (__v));                        \
-    __v;                                                \
-})
 
 static inline void mb(void)
 {
@@ -44,19 +38,31 @@ void put_lock(atomic_t *lock)
 static atomic_t buf_lock = { .counter = 0 };
 static char buf[32];
 static int buf_initialized;
-static unsigned hart_count[2];
+static unsigned hart_count[NHARTS];
+static unsigned interrupt_count[NHARTS];
 
-static const char case_bit = 'a' - 'A';
-volatile int initialized;
+static unsigned delta = 0x100;
+void *increment_count(unsigned hartid, unsigned mcause, void *mepc, void *sp)
+{
+    interrupt_count[hartid]++;
+    MTIMECMP[hartid] = MTIME + delta;
+    return mepc;
+}
 
 int main()
 {
     uint32_t hartid = csr_read(mhartid);
     hart_count[hartid] = 0;
+    interrupt_count[hartid] = 0;
+
+    set_trap_handler(increment_count);
+    // Despite being memory-mapped, there appears to be one mtimecmp
+    // register per hart. The spec does not address this.
+    MTIMECMP[hartid] = MTIME + delta;
+    enable_timer_interrupts();
 
     while (1) {
         get_lock(&buf_lock);
-        hart_count[hartid]++;
 
         if (!buf_initialized) {
             for (unsigned i = 0; i < sizeof(buf); i++) {
@@ -77,5 +83,6 @@ int main()
                 buf[i] = 'a' + ((i + hartid + hart_count[hartid]) % 26);
         }
         put_lock(&buf_lock);
+        hart_count[hartid]++;
     }
 }
