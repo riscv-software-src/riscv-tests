@@ -217,7 +217,7 @@ class InstantHaltTest(GdbTest):
             self.gdb.thread(t)
             pcs.append(self.gdb.p("$pc"))
         for pc in pcs:
-            assertEqual(self.hart.reset_vector, pc)
+            assertIn(pc, self.hart.reset_vectors)
         # mcycle and minstret have no defined reset value.
         mstatus = self.gdb.p("$mstatus")
         assertEqual(mstatus & (MSTATUS_MIE | MSTATUS_MPRV |

@@ -34,6 +34,11 @@ class Hart(object):
     # Defaults to target-<index>
     name = None
 
+    # When reset, the PC must be at one of the values listed here.
+    # This is a list because on some boards the reset vector depends on
+    # jumpers.
+    reset_vectors = []
+
     def extensionSupported(self, letter):
         # target.misa is set by testlib.ExamineTarget
         if self.misa:
