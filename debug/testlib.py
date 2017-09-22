@@ -50,15 +50,6 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         header("")
         raise Exception("Compile failed!")
 
-def unused_port():
-    # http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    port = s.getsockname()[1]
-    s.close()
-    return port
-
 class Spike(object):
     logname = "spike-%d.log" % os.getpid()
 
