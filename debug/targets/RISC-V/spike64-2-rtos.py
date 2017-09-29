@@ -3,9 +3,9 @@ import testlib
 
 import spike64  # pylint: disable=import-error
 
-class spike64_2(targets.Target):
+class spike64_2_rtos(targets.Target):
     harts = [spike64.spike64_hart(), spike64.spike64_hart()]
-    openocd_config_path = "spike-2.cfg"
+    openocd_config_path = "spike-rtos.cfg"
     timeout_sec = 30
 
     def create(self):

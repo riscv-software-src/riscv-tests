@@ -96,6 +96,8 @@ class Target(object):
                 self.openocd_config_path)
         for i, hart in enumerate(self.harts):
             hart.index = i
+            if not hasattr(hart, 'id'):
+                hart.id = i
             if not hart.name:
                 hart.name = "%s-%d" % (self.name, i)
             # Default link script to <name>.lds

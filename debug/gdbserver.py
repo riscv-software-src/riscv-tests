@@ -363,7 +363,7 @@ class Hwbp2(DebugTest):
         self.exit()
 
 class TooManyHwbp(DebugTest):
-    def run(self):
+    def test(self):
         for i in range(30):
             self.gdb.hbreak("*rot13 + %d" % (i * 4))
 
@@ -476,21 +476,27 @@ class MulticoreRegTest(GdbTest):
 
     def test(self):
         # Run to main
+        # Hart 0 is the first to be resumed, so we have to set the breakpoint
+        # there. gdb won't actually set the breakpoint until we tell it to
+        # resume.
+        self.gdb.select_hart(self.target.harts[0])
         self.gdb.b("main")
-        self.gdb.c()
-        for t in self.gdb.threads():
-            assertIn("main", t.frame)
+        self.gdb.c_all()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            assertIn("main", self.gdb.where())
+        self.gdb.select_hart(self.target.harts[0])
         self.gdb.command("delete breakpoints")
 
         # Run through the entire loop.
         self.gdb.b("main_end")
-        self.gdb.c()
+        self.gdb.c_all()
 
         hart_ids = []
-        for t in self.gdb.threads():
-            assertIn("main_end", t.frame)
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            assertIn("main_end", self.gdb.where())
             # Check register values.
-            self.gdb.thread(t)
             hart_id = self.gdb.p("$x1")
             assertNotIn(hart_id, hart_ids)
             hart_ids.append(hart_id)
@@ -505,12 +511,11 @@ class MulticoreRegTest(GdbTest):
             self.gdb.select_hart(hart)
             self.gdb.p("$x1=0x%x" % (hart.index * 0x800))
             self.gdb.p("$pc=main_post_csrr")
-        self.gdb.c()
-        for t in self.gdb.threads():
-            assertIn("main_end", t.frame)
+        self.gdb.c_all()
         for hart in self.target.harts:
-            # Check register values.
             self.gdb.select_hart(hart)
+            assertIn("main", self.gdb.where())
+            # Check register values.
             for n in range(1, 32):
                 value = self.gdb.p("$x%d" % n)
                 assertEqual(value, hart.index * 0x800 + n - 1)
