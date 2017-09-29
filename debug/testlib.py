@@ -447,14 +447,16 @@ def run_all_tests(module, target, parsed):
     gdb_cmd = parsed.gdb
 
     todo = []
+    examine_added = False
     for hart in target.harts:
         if parsed.misaval:
             hart.misa = int(parsed.misaval, 16)
             print "Using $misa from command line: 0x%x" % hart.misa
         elif hart.misa:
             print "Using $misa from hart definition: 0x%x" % hart.misa
-        else:
-            todo.append(("ExamineTarget", ExamineTarget, hart))
+        elif not examine_added:
+            todo.append(("ExamineTarget", ExamineTarget, None))
+            examine_added = True
 
     for name in dir(module):
         definition = getattr(module, name)
@@ -699,23 +701,26 @@ class GdbSingleHartTest(GdbTest):
 
 class ExamineTarget(GdbTest):
     def test(self):
-        self.hart.misa = self.gdb.p("$misa")
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
 
-        txt = "RV"
-        if (self.hart.misa >> 30) == 1:
-            txt += "32"
-        elif (self.hart.misa >> 62) == 2:
-            txt += "64"
-        elif (self.hart.misa >> 126) == 3:
-            txt += "128"
-        else:
-            raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
-                    self.hart.misa)
+            hart.misa = self.gdb.p("$misa")
 
-        for i in range(26):
-            if self.hart.misa & (1<<i):
-                txt += chr(i + ord('A'))
-        print txt,
+            txt = "RV"
+            if (hart.misa >> 30) == 1:
+                txt += "32"
+            elif (hart.misa >> 62) == 2:
+                txt += "64"
+            elif (hart.misa >> 126) == 3:
+                txt += "128"
+            else:
+                raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
+                        self.hart.misa)
+
+            for i in range(26):
+                if hart.misa & (1<<i):
+                    txt += chr(i + ord('A'))
+            print txt,
 
 class TestFailed(Exception):
     def __init__(self, message):
