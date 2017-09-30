@@ -12,7 +12,7 @@ import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegexpMatches, assertLess
-from testlib import GdbTest, GdbSingleHartTest, TestFailed
+from testlib import GdbTest, GdbSingleHartTest, TestFailed, assertTrue
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -774,7 +774,6 @@ class DownloadTest(GdbTest):
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 
-# FIXME: PRIV isn't implemented in the current OpenOCD
 #class MprvTest(GdbTest):
 #    compile_args = ("programs/mprv.S", )
 #    def setup(self):
@@ -787,56 +786,56 @@ class DownloadTest(GdbTest):
 #        self.gdb.interrupt()
 #        output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
 #        assertIn("0xbead", output)
-#
-#class PrivTest(GdbTest):
-#    compile_args = ("programs/priv.S", )
-#    def setup(self):
-#        # pylint: disable=attribute-defined-outside-init
-#        self.gdb.load()
-#
-#        misa = self.hart.misa
-#        self.supported = set()
-#        if misa & (1<<20):
-#            self.supported.add(0)
-#        if misa & (1<<18):
-#            self.supported.add(1)
-#        if misa & (1<<7):
-#            self.supported.add(2)
-#        self.supported.add(3)
-#
-#class PrivRw(PrivTest):
-#    def test(self):
-#        """Test reading/writing priv."""
-#        for privilege in range(4):
-#            self.gdb.p("$priv=%d" % privilege)
-#            self.gdb.stepi()
-#            actual = self.gdb.p("$priv")
-#            assertIn(actual, self.supported)
-#            if privilege in self.supported:
-#                assertEqual(actual, privilege)
-#
-#class PrivChange(PrivTest):
-#    def test(self):
-#        """Test that the core's privilege level actually changes."""
-#
-#        if 0 not in self.supported:
-#            return 'not_applicable'
-#
-#        self.gdb.b("main")
-#        self.gdb.c()
-#
-#        # Machine mode
-#        self.gdb.p("$priv=3")
-#        main_address = self.gdb.p("$pc")
-#        self.gdb.stepi()
-#        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
-#
-#        # User mode
-#        self.gdb.p("$priv=0")
-#        self.gdb.stepi()
-#        # Should have taken an exception, so be nowhere near main.
-#        pc = self.gdb.p("$pc")
-#        assertTrue(pc < main_address or pc > main_address + 0x100)
+
+class PrivTest(GdbTest):
+    compile_args = ("programs/priv.S", )
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
+        self.gdb.load()
+
+        misa = self.hart.misa
+        self.supported = set()
+        if misa & (1<<20):
+            self.supported.add(0)
+        if misa & (1<<18):
+            self.supported.add(1)
+        if misa & (1<<7):
+            self.supported.add(2)
+        self.supported.add(3)
+
+class PrivRw(PrivTest):
+    def test(self):
+        """Test reading/writing priv."""
+        for privilege in range(4):
+            self.gdb.p("$priv=%d" % privilege)
+            self.gdb.stepi()
+            actual = self.gdb.p("$priv")
+            assertIn(actual, self.supported)
+            if privilege in self.supported:
+                assertEqual(actual, privilege)
+
+class PrivChange(PrivTest):
+    def test(self):
+        """Test that the core's privilege level actually changes."""
+
+        if 0 not in self.supported:
+            return 'not_applicable'
+
+        self.gdb.b("main")
+        self.gdb.c()
+
+        # Machine mode
+        self.gdb.p("$priv=3")
+        main_address = self.gdb.p("$pc")
+        self.gdb.stepi()
+        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
+
+        # User mode
+        self.gdb.p("$priv=0")
+        self.gdb.stepi()
+        # Should have taken an exception, so be nowhere near main.
+        pc = self.gdb.p("$pc")
+        assertTrue(pc < main_address or pc > main_address + 0x100)
 
 parsed = None
 def main():
