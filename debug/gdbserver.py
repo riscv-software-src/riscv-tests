@@ -12,7 +12,7 @@ import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegexpMatches, assertLess
-from testlib import GdbTest, GdbSingleHartTest, TestFailed
+from testlib import GdbTest, GdbSingleHartTest, TestFailed, assertTrue
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -217,7 +217,7 @@ class InstantHaltTest(GdbTest):
             self.gdb.thread(t)
             pcs.append(self.gdb.p("$pc"))
         for pc in pcs:
-            assertEqual(self.hart.reset_vector, pc)
+            assertIn(pc, self.hart.reset_vectors)
         # mcycle and minstret have no defined reset value.
         mstatus = self.gdb.p("$mstatus")
         assertEqual(mstatus & (MSTATUS_MIE | MSTATUS_MPRV |
@@ -363,7 +363,7 @@ class Hwbp2(DebugTest):
         self.exit()
 
 class TooManyHwbp(DebugTest):
-    def run(self):
+    def test(self):
         for i in range(30):
             self.gdb.hbreak("*rot13 + %d" % (i * 4))
 
@@ -476,21 +476,27 @@ class MulticoreRegTest(GdbTest):
 
     def test(self):
         # Run to main
+        # Hart 0 is the first to be resumed, so we have to set the breakpoint
+        # there. gdb won't actually set the breakpoint until we tell it to
+        # resume.
+        self.gdb.select_hart(self.target.harts[0])
         self.gdb.b("main")
-        self.gdb.c()
-        for t in self.gdb.threads():
-            assertIn("main", t.frame)
+        self.gdb.c_all()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            assertIn("main", self.gdb.where())
+        self.gdb.select_hart(self.target.harts[0])
         self.gdb.command("delete breakpoints")
 
         # Run through the entire loop.
         self.gdb.b("main_end")
-        self.gdb.c()
+        self.gdb.c_all()
 
         hart_ids = []
-        for t in self.gdb.threads():
-            assertIn("main_end", t.frame)
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            assertIn("main_end", self.gdb.where())
             # Check register values.
-            self.gdb.thread(t)
             hart_id = self.gdb.p("$x1")
             assertNotIn(hart_id, hart_ids)
             hart_ids.append(hart_id)
@@ -505,12 +511,11 @@ class MulticoreRegTest(GdbTest):
             self.gdb.select_hart(hart)
             self.gdb.p("$x1=0x%x" % (hart.index * 0x800))
             self.gdb.p("$pc=main_post_csrr")
-        self.gdb.c()
-        for t in self.gdb.threads():
-            assertIn("main_end", t.frame)
+        self.gdb.c_all()
         for hart in self.target.harts:
-            # Check register values.
             self.gdb.select_hart(hart)
+            assertIn("main", self.gdb.where())
+            # Check register values.
             for n in range(1, 32):
                 value = self.gdb.p("$x%d" % n)
                 assertEqual(value, hart.index * 0x800 + n - 1)
@@ -529,14 +534,21 @@ class MulticoreRunHaltStepiTest(GdbTest):
 
     def test(self):
         previous_hart_count = [0 for h in self.target.harts]
+        previous_interrupt_count = [0 for h in self.target.harts]
         for _ in range(10):
             self.gdb.c(wait=False)
-            time.sleep(1)
+            time.sleep(2)
             self.gdb.interrupt()
+            self.gdb.p("$mie")
+            self.gdb.p("$mip")
+            self.gdb.p("$mstatus")
+            self.gdb.p("$priv")
             self.gdb.p("buf", fmt="")
             hart_count = self.gdb.p("hart_count")
+            interrupt_count = self.gdb.p("interrupt_count")
             for i, h in enumerate(self.target.harts):
                 assertGreater(hart_count[i], previous_hart_count[i])
+                assertGreater(interrupt_count[i], previous_interrupt_count[i])
                 self.gdb.select_hart(h)
                 pc = self.gdb.p("$pc")
                 self.gdb.stepi()
@@ -762,7 +774,6 @@ class DownloadTest(GdbTest):
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 
-# FIXME: PRIV isn't implemented in the current OpenOCD
 #class MprvTest(GdbTest):
 #    compile_args = ("programs/mprv.S", )
 #    def setup(self):
@@ -775,56 +786,56 @@ class DownloadTest(GdbTest):
 #        self.gdb.interrupt()
 #        output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
 #        assertIn("0xbead", output)
-#
-#class PrivTest(GdbTest):
-#    compile_args = ("programs/priv.S", )
-#    def setup(self):
-#        # pylint: disable=attribute-defined-outside-init
-#        self.gdb.load()
-#
-#        misa = self.hart.misa
-#        self.supported = set()
-#        if misa & (1<<20):
-#            self.supported.add(0)
-#        if misa & (1<<18):
-#            self.supported.add(1)
-#        if misa & (1<<7):
-#            self.supported.add(2)
-#        self.supported.add(3)
-#
-#class PrivRw(PrivTest):
-#    def test(self):
-#        """Test reading/writing priv."""
-#        for privilege in range(4):
-#            self.gdb.p("$priv=%d" % privilege)
-#            self.gdb.stepi()
-#            actual = self.gdb.p("$priv")
-#            assertIn(actual, self.supported)
-#            if privilege in self.supported:
-#                assertEqual(actual, privilege)
-#
-#class PrivChange(PrivTest):
-#    def test(self):
-#        """Test that the core's privilege level actually changes."""
-#
-#        if 0 not in self.supported:
-#            return 'not_applicable'
-#
-#        self.gdb.b("main")
-#        self.gdb.c()
-#
-#        # Machine mode
-#        self.gdb.p("$priv=3")
-#        main_address = self.gdb.p("$pc")
-#        self.gdb.stepi()
-#        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
-#
-#        # User mode
-#        self.gdb.p("$priv=0")
-#        self.gdb.stepi()
-#        # Should have taken an exception, so be nowhere near main.
-#        pc = self.gdb.p("$pc")
-#        assertTrue(pc < main_address or pc > main_address + 0x100)
+
+class PrivTest(GdbTest):
+    compile_args = ("programs/priv.S", )
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
+        self.gdb.load()
+
+        misa = self.hart.misa
+        self.supported = set()
+        if misa & (1<<20):
+            self.supported.add(0)
+        if misa & (1<<18):
+            self.supported.add(1)
+        if misa & (1<<7):
+            self.supported.add(2)
+        self.supported.add(3)
+
+class PrivRw(PrivTest):
+    def test(self):
+        """Test reading/writing priv."""
+        for privilege in range(4):
+            self.gdb.p("$priv=%d" % privilege)
+            self.gdb.stepi()
+            actual = self.gdb.p("$priv")
+            assertIn(actual, self.supported)
+            if privilege in self.supported:
+                assertEqual(actual, privilege)
+
+class PrivChange(PrivTest):
+    def test(self):
+        """Test that the core's privilege level actually changes."""
+
+        if 0 not in self.supported:
+            return 'not_applicable'
+
+        self.gdb.b("main")
+        self.gdb.c()
+
+        # Machine mode
+        self.gdb.p("$priv=3")
+        main_address = self.gdb.p("$pc")
+        self.gdb.stepi()
+        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
+
+        # User mode
+        self.gdb.p("$priv=0")
+        self.gdb.stepi()
+        # Should have taken an exception, so be nowhere near main.
+        pc = self.gdb.p("$pc")
+        assertTrue(pc < main_address or pc > main_address + 0x100)
 
 parsed = None
 def main():

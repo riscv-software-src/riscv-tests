@@ -1,4 +1,5 @@
 import collections
+import os
 import os.path
 import random
 import re
@@ -50,18 +51,7 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         header("")
         raise Exception("Compile failed!")
 
-def unused_port():
-    # http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    port = s.getsockname()[1]
-    s.close()
-    return port
-
 class Spike(object):
-    logname = "spike-%d.log" % os.getpid()
-
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
@@ -72,6 +62,36 @@ class Spike(object):
         else:
             harts = [target]
 
+        cmd = self.command(target, harts, halted, timeout, with_jtag_gdb)
+        self.infinite_loop = target.compile(harts[0],
+                "programs/checksum.c", "programs/tiny-malloc.c",
+                "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+        cmd.append(self.infinite_loop)
+        self.logfile = tempfile.NamedTemporaryFile(prefix="spike-",
+                suffix=".log")
+        self.logname = self.logfile.name
+        self.logfile.write("+ %s\n" % " ".join(cmd))
+        self.logfile.flush()
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                stdout=self.logfile, stderr=self.logfile)
+
+        if with_jtag_gdb:
+            self.port = None
+            for _ in range(30):
+                m = re.search(r"Listening for remote bitbang connection on "
+                        r"port (\d+).", open(self.logname).read())
+                if m:
+                    self.port = int(m.group(1))
+                    os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
+                    break
+                time.sleep(0.11)
+            if not self.port:
+                print_log(self.logname)
+                raise Exception("Didn't get spike message about bitbang "
+                        "connection")
+
+    def command(self, target, harts, halted, timeout, with_jtag_gdb):
+        # pylint: disable=no-self-use
         if target.sim_cmd:
             cmd = shlex.split(target.sim_cmd)
         else:
@@ -102,28 +122,8 @@ class Spike(object):
         if with_jtag_gdb:
             cmd += ['--rbb-port', '0']
             os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
-        self.infinite_loop = target.compile(harts[0],
-                "programs/checksum.c", "programs/tiny-malloc.c",
-                "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
-        cmd.append(self.infinite_loop)
-        logfile = open(self.logname, "w")
-        logfile.write("+ %s\n" % " ".join(cmd))
-        logfile.flush()
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                stdout=logfile, stderr=logfile)
 
-        if with_jtag_gdb:
-            self.port = None
-            for _ in range(30):
-                m = re.search(r"Listening for remote bitbang connection on "
-                        r"port (\d+).", open(self.logname).read())
-                if m:
-                    self.port = int(m.group(1))
-                    os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
-                    break
-                time.sleep(0.11)
-            assert self.port, "Didn't get spike message about bitbang " \
-                    "connection"
+        return cmd
 
     def __del__(self):
         if self.process:
@@ -224,8 +224,7 @@ class Openocd(object):
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
 
-        self.ports = []
-        self.port = None
+        self.gdb_ports = []
         self.process = self.start(cmd, logfile)
 
     def start(self, cmd, logfile):
@@ -239,31 +238,32 @@ class Openocd(object):
             # attempt too early.
             start = time.time()
             messaged = False
+            fd = open(Openocd.logname, "r")
             while True:
-                log = open(Openocd.logname).read()
+                line = fd.readline()
+                if not line:
+                    if not process.poll() is None:
+                        raise Exception("OpenOCD exited early.")
+                    time.sleep(0.1)
+                    continue
+
                 m = re.search(r"Listening on port (\d+) for gdb connections",
-                        log)
+                        line)
                 if m:
-                    if not self.ports:
-                        self.port = int(m.group(1))
-                    self.ports.append(int(m.group(1)))
+                    self.gdb_ports.append(int(m.group(1)))
 
-                if "telnet server disabled" in log:
-                    break
+                if "telnet server disabled" in line:
+                    return process
 
-                if not process.poll() is None:
-                    raise Exception(
-                            "OpenOCD exited before completing riscv_examine()")
                 if not messaged and time.time() - start > 1:
                     messaged = True
                     print "Waiting for OpenOCD to start..."
                 if (time.time() - start) > self.timeout:
-                    raise Exception("ERROR: Timed out waiting for OpenOCD to "
+                    raise Exception("Timed out waiting for OpenOCD to "
                             "listen for gdb")
-            return process
+
         except Exception:
-            header("OpenOCD log")
-            sys.stdout.write(log)
+            print_log(Openocd.logname)
             raise
 
     def __del__(self):
@@ -304,42 +304,109 @@ class CannotAccess(Exception):
         Exception.__init__(self)
         self.address = address
 
-Thread = collections.namedtuple('Thread', ('id', 'target_id', 'name',
-    'frame'))
+Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
+    'name', 'frame'))
 
 class Gdb(object):
-    logfile = tempfile.NamedTemporaryFile(prefix="gdb", suffix=".log")
-    logname = logfile.name
-    print "GDB Temporary Log File: %s" % logname
+    """A single gdb class which can interact with one or more gdb instances."""
 
-    def __init__(self,
-            cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb")):
-        self.child = pexpect.spawn(cmd)
-        self.child.logfile = open(self.logname, "w")
-        self.child.logfile.write("+ %s\n" % cmd)
-        self.wait()
-        self.command("set confirm off")
-        self.command("set width 0")
-        self.command("set height 0")
-        # Force consistency.
-        self.command("set print entry-values no")
+    # pylint: disable=too-many-public-methods
+
+    def __init__(self, ports,
+            cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb"),
+            binary=None):
+        assert ports
+
+        self.stack = []
+
+        self.logfiles = []
+        self.children = []
+        for port in ports:
+            logfile = tempfile.NamedTemporaryFile(prefix="gdb@%d-" % port,
+                    suffix=".log")
+            self.logfiles.append(logfile)
+            child = pexpect.spawn(cmd)
+            child.logfile = logfile
+            child.logfile.write("+ %s\n" % cmd)
+            self.children.append(child)
+        self.active_child = self.children[0]
+
+        self.harts = {}
+        for port, child in zip(ports, self.children):
+            self.select_child(child)
+            self.wait()
+            self.command("set confirm off")
+            self.command("set width 0")
+            self.command("set height 0")
+            # Force consistency.
+            self.command("set print entry-values no")
+            self.command("target extended-remote localhost:%d" % port)
+            if binary:
+                self.command("file %s" % binary)
+            threads = self.threads()
+            for t in threads:
+                hartid = None
+                if t.name:
+                    m = re.search(r"Hart (\d+)", t.name)
+                    if m:
+                        hartid = int(m.group(1))
+                if hartid is None:
+                    if self.harts:
+                        hartid = max(self.harts) + 1
+                    else:
+                        hartid = 0
+                self.harts[hartid] = (child, t)
+
+    def __del__(self):
+        for child in self.children:
+            del child
+
+    def lognames(self):
+        return [logfile.name for logfile in self.logfiles]
+
+    def select_child(self, child):
+        self.active_child = child
 
     def select_hart(self, hart):
-        output = self.command("thread %d" % (hart.index + 1))
+        child, thread = self.harts[hart.id]
+        self.select_child(child)
+        output = self.command("thread %s" % thread.id)
         assert "Unknown" not in output
+
+    def push_state(self):
+        self.stack.append({
+            'active_child': self.active_child
+            })
+
+    def pop_state(self):
+        state = self.stack.pop()
+        self.active_child = state['active_child']
 
     def wait(self):
         """Wait for prompt."""
-        self.child.expect(r"\(gdb\)")
+        self.active_child.expect(r"\(gdb\)")
 
     def command(self, command, timeout=6000):
         """timeout is in seconds"""
-        self.child.sendline(command)
-        self.child.expect("\n", timeout=timeout)
-        self.child.expect(r"\(gdb\)", timeout=timeout)
-        return self.child.before.strip()
+        self.active_child.sendline(command)
+        self.active_child.expect("\n", timeout=timeout)
+        self.active_child.expect(r"\(gdb\)", timeout=timeout)
+        return self.active_child.before.strip()
+
+    def global_command(self, command):
+        """Execute this command on every gdb that we control."""
+        with PrivateState(self):
+            for child in self.children:
+                self.select_child(child)
+                self.command(command)
 
     def c(self, wait=True, timeout=-1, async=False):
+        """
+        Dumb c command.
+        In RTOS mode, gdb will resume all harts.
+        In multi-gdb mode, this command will just go to the current gdb, so
+        will only resume one hart.
+        """
         if async:
             async = "&"
         else:
@@ -349,13 +416,24 @@ class Gdb(object):
             assert "Continuing" in output
             return output
         else:
-            self.child.sendline("c%s" % async)
-            self.child.expect("Continuing")
+            self.active_child.sendline("c%s" % async)
+            self.active_child.expect("Continuing")
+
+    def c_all(self):
+        """Resume every hart."""
+        with PrivateState(self):
+            for child in self.children:
+                child.sendline("c")
+                child.expect("Continuing")
+
+            # Now wait for them all to halt
+            for child in self.children:
+                child.expect(r"\(gdb\)")
 
     def interrupt(self):
-        self.child.send("\003")
-        self.child.expect(r"\(gdb\)", timeout=6000)
-        return self.child.before.strip()
+        self.active_child.send("\003")
+        self.active_child.expect(r"\(gdb\)", timeout=6000)
+        return self.active_child.before.strip()
 
     def x(self, address, size='w'):
         output = self.command("x/%s %s" % (size, address))
@@ -418,16 +496,31 @@ class Gdb(object):
         threads = []
         for line in output.splitlines():
             m = re.match(
-                    r"[\s\*]*(\d+)\s*Thread (\d+)\s*\(Name: ([^\)]+)\s*(.*)",
-                    line)
+                    r"[\s\*]*(\d+)\s*"
+                    r"(Remote target|Thread (\d+)\s*\(Name: ([^\)]+))"
+                    r"\s*(.*)", line)
             if m:
                 threads.append(Thread(*m.groups()))
-        if not threads:
-            threads.append(Thread('1', '1', 'Default', '???'))
+        assert threads
+        #>>>if not threads:
+        #>>>    threads.append(Thread('1', '1', 'Default', '???'))
         return threads
 
     def thread(self, thread):
         return self.command("thread %s" % thread.id)
+
+    def where(self):
+        return self.command("where 1")
+
+class PrivateState(object):
+    def __init__(self, gdb):
+        self.gdb = gdb
+
+    def __enter__(self):
+        self.gdb.push_state()
+
+    def __exit__(self, _type, _value, _traceback):
+        self.gdb.pop_state()
 
 def run_all_tests(module, target, parsed):
     if not os.path.exists(parsed.logs):
@@ -439,14 +532,16 @@ def run_all_tests(module, target, parsed):
     gdb_cmd = parsed.gdb
 
     todo = []
+    examine_added = False
     for hart in target.harts:
         if parsed.misaval:
             hart.misa = int(parsed.misaval, 16)
             print "Using $misa from command line: 0x%x" % hart.misa
         elif hart.misa:
             print "Using $misa from hart definition: 0x%x" % hart.misa
-        else:
-            todo.append(("ExamineTarget", ExamineTarget, hart))
+        elif not examine_added:
+            todo.append(("ExamineTarget", ExamineTarget, None))
+            examine_added = True
 
     for name in dir(module):
         definition = getattr(module, name)
@@ -470,7 +565,7 @@ def run_tests(parsed, target, todo):
         log_name = os.path.join(parsed.logs, "%s-%s-%s.log" %
                 (time.strftime("%Y%m%d-%H%M%S"), type(target).__name__, name))
         log_fd = open(log_name, 'w')
-        print "Running %s > %s ..." % (name, log_name),
+        print "[%s] Starting > %s" % (name, log_name)
         instance = definition(target, hart)
         sys.stdout.flush()
         log_fd.write("Test: %s\n" % name)
@@ -479,12 +574,12 @@ def run_tests(parsed, target, todo):
         real_stdout = sys.stdout
         sys.stdout = log_fd
         try:
-            result = instance.run()
+            result = instance.run(real_stdout)
             log_fd.write("Result: %s\n" % result)
         finally:
             sys.stdout = real_stdout
             log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
-        print "%s in %.2fs" % (result, time.time() - start)
+        print "[%s] %s in %.2fs" % (name, result, time.time() - start)
         if result not in good_results and parsed.print_failures:
             sys.stdout.write(open(log_name).read())
         sys.stdout.flush()
@@ -532,8 +627,7 @@ def header(title, dash='-', length=78):
 
 def print_log(path):
     header(path)
-    lines = open(path, "r").readlines()
-    for l in lines:
+    for l in open(path, "r"):
         sys.stdout.write(l)
     print
 
@@ -591,7 +685,7 @@ class BaseTest(object):
     def postMortem(self):
         pass
 
-    def run(self):
+    def run(self, real_stdout):
         """
         If compile_args is set, compile a program and set self.binary.
 
@@ -610,6 +704,8 @@ class BaseTest(object):
 
         try:
             self.classSetup()
+            real_stdout.write("[%s] Temporary logs: %s\n" % (
+                type(self).__name__, ", ".join(self.logs)))
             self.setup()
             result = self.test()    # pylint: disable=no-member
         except TestNotApplicable:
@@ -624,7 +720,12 @@ class BaseTest(object):
                 print e.message
             header("Traceback")
             traceback.print_exc(file=sys.stdout)
-            self.postMortem()
+            try:
+                self.postMortem()
+            except Exception as e:  # pylint: disable=broad-except
+                header("postMortem Exception")
+                print e
+                traceback.print_exc(file=sys.stdout)
             return result
 
         finally:
@@ -647,24 +748,21 @@ class GdbTest(BaseTest):
         BaseTest.classSetup(self)
 
         if gdb_cmd:
-            self.gdb = Gdb(gdb_cmd)
+            self.gdb = Gdb(self.server.gdb_ports, gdb_cmd, binary=self.binary)
         else:
-            self.gdb = Gdb()
+            self.gdb = Gdb(self.server.gdb_ports, binary=self.binary)
 
-        self.logs.append(self.gdb.logname)
+        self.logs += self.gdb.lognames()
 
-        if self.binary:
-            self.gdb.command("file %s" % self.binary)
         if self.target:
-            self.gdb.command("set arch riscv:rv%d" % self.hart.xlen)
-            self.gdb.command("set remotetimeout %d" % self.target.timeout_sec)
-        if self.server.port:
-            self.gdb.command(
-                    "target extended-remote localhost:%d" % self.server.port)
-            self.gdb.select_hart(self.hart)
+            self.gdb.global_command("set arch riscv:rv%d" % self.hart.xlen)
+            self.gdb.global_command("set remotetimeout %d" %
+                    self.target.timeout_sec)
 
         for cmd in self.target.gdb_setup:
             self.gdb.command(cmd)
+
+        self.gdb.select_hart(self.hart)
 
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
@@ -692,23 +790,26 @@ class GdbSingleHartTest(GdbTest):
 
 class ExamineTarget(GdbTest):
     def test(self):
-        self.target.misa = self.gdb.p("$misa")
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
 
-        txt = "RV"
-        if (self.target.misa >> 30) == 1:
-            txt += "32"
-        elif (self.target.misa >> 62) == 2:
-            txt += "64"
-        elif (self.target.misa >> 126) == 3:
-            txt += "128"
-        else:
-            raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
-                    self.target.misa)
+            hart.misa = self.gdb.p("$misa")
 
-        for i in range(26):
-            if self.target.misa & (1<<i):
-                txt += chr(i + ord('A'))
-        print txt,
+            txt = "RV"
+            if (hart.misa >> 30) == 1:
+                txt += "32"
+            elif (hart.misa >> 62) == 2:
+                txt += "64"
+            elif (hart.misa >> 126) == 3:
+                txt += "128"
+            else:
+                raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
+                        self.hart.misa)
+
+            for i in range(26):
+                if hart.misa & (1<<i):
+                    txt += chr(i + ord('A'))
+            print txt,
 
 class TestFailed(Exception):
     def __init__(self, message):

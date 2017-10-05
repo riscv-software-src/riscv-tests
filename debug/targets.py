@@ -34,6 +34,11 @@ class Hart(object):
     # Defaults to target-<index>
     name = None
 
+    # When reset, the PC must be at one of the values listed here.
+    # This is a list because on some boards the reset vector depends on
+    # jumpers.
+    reset_vectors = []
+
     def extensionSupported(self, letter):
         # target.misa is set by testlib.ExamineTarget
         if self.misa:
@@ -91,6 +96,8 @@ class Target(object):
                 self.openocd_config_path)
         for i, hart in enumerate(self.harts):
             hart.index = i
+            if not hasattr(hart, 'id'):
+                hart.id = i
             if not hart.name:
                 hart.name = "%s-%d" % (self.name, i)
             # Default link script to <name>.lds
