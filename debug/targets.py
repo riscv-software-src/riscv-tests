@@ -60,7 +60,7 @@ class Target(object):
 
     # Timeout waiting for the server to start up. This is different than the
     # GDB timeout, which is how long GDB waits for commands to execute.
-    # The server_timeout is how long this script waits for the Server to be
+    # The server_timeout is how long this script waits for the server to be
     # ready for GDB connections.
     server_timeout_sec = 60
 
@@ -113,7 +113,8 @@ class Target(object):
     def server(self):
         """Start the debug server that gdb connects to, eg. OpenOCD."""
         return testlib.Openocd(server_cmd=self.server_cmd,
-                config=self.openocd_config_path)
+                config=self.openocd_config_path,
+                timeout=self.server_timeout_sec)
 
     def compile(self, hart, *sources):
         binary_name = "%s_%s-%d" % (
