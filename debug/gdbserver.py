@@ -184,8 +184,10 @@ class MemTestBlock(GdbTest):
             a.write(ihex_line(i * self.line_length, 0, line_data))
         a.flush()
 
+        self.gdb.command("shell cat %s" % a.name)
         self.gdb.command("restore %s 0x%x" % (a.name, self.hart.ram))
-        for offset in range(0, self.length, 19*4) + [self.length-4]:
+        increment = 19 * 4
+        for offset in range(0, self.length, increment) + [self.length-4]:
             value = self.gdb.p("*((int*)0x%x)" % (self.hart.ram + offset))
             written = ord(data[offset]) | \
                     (ord(data[offset+1]) << 8) | \
@@ -196,6 +198,7 @@ class MemTestBlock(GdbTest):
         b = tempfile.NamedTemporaryFile(suffix=".ihex")
         self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name,
             self.hart.ram, self.hart.ram + self.length))
+        self.gdb.command("shell cat %s" % b.name)
         for line in b:
             record_type, address, line_data = ihex_parse(line)
             if record_type == 0:
