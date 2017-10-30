@@ -92,6 +92,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 3
+  .global mtvec_handler
 mtvec_handler:
   csrr t0, mcause
   bne t0, s1, fail

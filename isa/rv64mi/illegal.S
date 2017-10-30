@@ -106,6 +106,7 @@ bad9:
   TEST_PASSFAIL
 
   .align 8
+  .global mtvec_handler
 mtvec_handler:
   j synchronous_exception
   j msip
