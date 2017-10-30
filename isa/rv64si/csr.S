@@ -110,6 +110,7 @@ finish:
   TEST_PASSFAIL
 
   .align 2
+  .global stvec_handler
 stvec_handler:
   # Trapping on tests 10-12 is good news.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.

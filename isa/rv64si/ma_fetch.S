@@ -110,6 +110,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
+  .global stvec_handler
 stvec_handler:
   # tests 2, 4, 5, and 6 should trap
   li a0, 2
