@@ -420,7 +420,17 @@ class Gdb(object):
             self.active_child.expect("Continuing")
 
     def c_all(self):
-        """Resume every hart."""
+        """
+        Resume every hart.
+
+        This function works fine when using multiple gdb sessions, but the
+        caller must be careful when using it nonetheless. gdb's behavior is to
+        not set breakpoints until just before the hart is resumed, and then
+        clears them as soon as the hart halts. That means that you can't set
+        one software breakpoint, and expect multiple harts to hit it. It's
+        possible that the first hart completes set/run/halt/clear before the
+        second hart even gets to resume, so it will never hit the breakpoint.
+        """
         with PrivateState(self):
             for child in self.children:
                 child.sendline("c")

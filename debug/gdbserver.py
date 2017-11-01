@@ -465,64 +465,60 @@ class InterruptTest(GdbSingleHartTest):
         self.gdb.p("interrupt_count")
         self.gdb.p("local")
 
-# Fails nondeterministically.
-#class MulticoreRegTest(GdbTest):
-#    compile_args = ("programs/infinite_loop.S", "-DMULTICORE")
-#
-#    def early_applicable(self):
-#        return len(self.target.harts) > 1
-#
-#    def setup(self):
-#        self.gdb.load()
-#        for hart in self.target.harts:
-#            self.gdb.select_hart(hart)
-#            self.gdb.p("$pc=_start")
-#
-#    def test(self):
-#        # Run to main
-#        # Hart 0 is the first to be resumed, so we have to set the breakpoint
-#        # there. gdb won't actually set the breakpoint until we tell it to
-#        # resume.
-#        self.gdb.select_hart(self.target.harts[0])
-#        self.gdb.b("main")
-#        self.gdb.c_all()
-#        for hart in self.target.harts:
-#            self.gdb.select_hart(hart)
-#            assertIn("main", self.gdb.where())
-#        self.gdb.select_hart(self.target.harts[0])
-#        self.gdb.command("delete breakpoints")
-#
-#        # Run through the entire loop.
-#        self.gdb.b("main_end")
-#        self.gdb.c_all()
-#
-#        hart_ids = []
-#        for hart in self.target.harts:
-#            self.gdb.select_hart(hart)
-#            assertIn("main_end", self.gdb.where())
-#            # Check register values.
-#            hart_id = self.gdb.p("$x1")
-#            assertNotIn(hart_id, hart_ids)
-#            hart_ids.append(hart_id)
-#            for n in range(2, 32):
-#                value = self.gdb.p("$x%d" % n)
-#                assertEqual(value, hart_ids[-1] + n - 1)
-#
-#        # Confirmed that we read different register values for different harts.
-#        # Write a new value to x1, and run through the add sequence again.
-#
-#        for hart in self.target.harts:
-#            self.gdb.select_hart(hart)
-#            self.gdb.p("$x1=0x%x" % (hart.index * 0x800))
-#            self.gdb.p("$pc=main_post_csrr")
-#        self.gdb.c_all()
-#        for hart in self.target.harts:
-#            self.gdb.select_hart(hart)
-#            assertIn("main", self.gdb.where())
-#            # Check register values.
-#            for n in range(1, 32):
-#                value = self.gdb.p("$x%d" % n)
-#                assertEqual(value, hart.index * 0x800 + n - 1)
+class MulticoreRegTest(GdbTest):
+    compile_args = ("programs/infinite_loop.S", "-DMULTICORE")
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
+    def setup(self):
+        self.gdb.load()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.p("$pc=_start")
+
+    def test(self):
+        # Run to main
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.b("main")
+            self.gdb.c()
+            assertIn("main", self.gdb.where())
+            self.gdb.command("delete breakpoints")
+
+        # Run through the entire loop.
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.b("main_end")
+            self.gdb.c()
+            assertIn("main_end", self.gdb.where())
+
+        hart_ids = []
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            # Check register values.
+            hart_id = self.gdb.p("$x1")
+            assertNotIn(hart_id, hart_ids)
+            hart_ids.append(hart_id)
+            for n in range(2, 32):
+                value = self.gdb.p("$x%d" % n)
+                assertEqual(value, hart_ids[-1] + n - 1)
+
+        # Confirmed that we read different register values for different harts.
+        # Write a new value to x1, and run through the add sequence again.
+
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.p("$x1=0x%x" % (hart.index * 0x800))
+            self.gdb.p("$pc=main_post_csrr")
+            self.gdb.c()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            assertIn("main", self.gdb.where())
+            # Check register values.
+            for n in range(1, 32):
+                value = self.gdb.p("$x%d" % n)
+                assertEqual(value, hart.index * 0x800 + n - 1)
 
 class MulticoreRunHaltStepiTest(GdbTest):
     compile_args = ("programs/multicore.c", "-DMULTICORE")
