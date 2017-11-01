@@ -65,15 +65,19 @@ def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
 
 class SimpleRegisterTest(GdbTest):
-    def check_reg(self, name):
+    def check_reg(self, name, alias):
         a = random.randrange(1<<self.hart.xlen)
         b = random.randrange(1<<self.hart.xlen)
         self.gdb.p("$%s=0x%x" % (name, a))
+        assertEqual(self.gdb.p("$%s" % alias), a)
         self.gdb.stepi()
         assertEqual(self.gdb.p("$%s" % name), a)
-        self.gdb.p("$%s=0x%x" % (name, b))
+        assertEqual(self.gdb.p("$%s" % alias), a)
+        self.gdb.p("$%s=0x%x" % (alias, b))
+        assertEqual(self.gdb.p("$%s" % name), b)
         self.gdb.stepi()
         assertEqual(self.gdb.p("$%s" % name), b)
+        assertEqual(self.gdb.p("$%s" % alias), b)
 
     def setup(self):
         # 0x13 is nop
@@ -86,38 +90,42 @@ class SimpleRegisterTest(GdbTest):
 
 class SimpleS0Test(SimpleRegisterTest):
     def test(self):
-        self.check_reg("s0")
+        self.check_reg("s0", "x8")
 
 class SimpleS1Test(SimpleRegisterTest):
     def test(self):
-        self.check_reg("s1")
+        self.check_reg("s1", "x9")
 
 class SimpleT0Test(SimpleRegisterTest):
     def test(self):
-        self.check_reg("t0")
+        self.check_reg("t0", "x5")
 
 class SimpleT1Test(SimpleRegisterTest):
     def test(self):
-        self.check_reg("t1")
+        self.check_reg("t1", "x6")
 
 class SimpleF18Test(SimpleRegisterTest):
-    def check_reg(self, name):
+    def check_reg(self, name, alias):
         self.gdb.p_raw("$mstatus=$mstatus | 0x00006000")
         self.gdb.stepi()
         a = random.random()
         b = random.random()
         self.gdb.p_raw("$%s=%f" % (name, a))
+        assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - a), .001)
         self.gdb.stepi()
         assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - a), .001)
-        self.gdb.p_raw("$%s=%f" % (name, b))
+        assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - a), .001)
+        self.gdb.p_raw("$%s=%f" % (alias, b))
+        assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
         self.gdb.stepi()
         assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
+        assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - b), .001)
 
     def early_applicable(self):
         return self.hart.extensionSupported('F')
 
     def test(self):
-        self.check_reg("f18")
+        self.check_reg("f18", "fs2")
 
 class SimpleMemoryTest(GdbTest):
     def access_test(self, size, data_type):
