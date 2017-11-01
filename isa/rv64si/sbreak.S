@@ -24,6 +24,7 @@ RVTEST_CODE_BEGIN
 
   li TESTNUM, 2
 
+do_break:
   sbreak
   j fail
 
@@ -34,6 +35,9 @@ RVTEST_CODE_BEGIN
 stvec_handler:
   li t1, CAUSE_BREAKPOINT
   csrr t0, scause
+  bne t0, t1, fail
+  la t1, do_break
+  csrr t0, sepc
   bne t0, t1, fail
   j pass
 
