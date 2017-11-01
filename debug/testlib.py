@@ -504,8 +504,8 @@ class Gdb(object):
             if m:
                 threads.append(Thread(*m.groups()))
         assert threads
-        # >>>if not threads:
-        # >>>    threads.append(Thread('1', '1', 'Default', '???'))
+        #>>>if not threads:
+        #>>>    threads.append(Thread('1', '1', 'Default', '???'))
         return threads
 
     def thread(self, thread):
@@ -750,9 +750,9 @@ class GdbTest(BaseTest):
         BaseTest.classSetup(self)
 
         if gdb_cmd:
-            self.gdb = Gdb(self.server.gdb_ports, gdb_cmd, timeout = self.target.timeout_sec,  binary=self.binary)
+            self.gdb = Gdb(self.server.gdb_ports, gdb_cmd, timeout=self.target.timeout_sec, binary=self.binary)
         else:
-            self.gdb = Gdb(self.server.gdb_ports, timeout = self.target.timeout_sec, binary=self.binary)
+            self.gdb = Gdb(self.server.gdb_ports, timeout=self.target.timeout_sec, binary=self.binary)
 
         self.logs += self.gdb.lognames()
 
