@@ -207,7 +207,7 @@ class MemTestBlock(GdbTest):
         self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name,
             self.hart.ram, self.hart.ram + self.length))
         self.gdb.command("shell cat %s" % b.name)
-        for line in b:
+        for line in b.xreadlines():
             record_type, address, line_data = ihex_parse(line)
             if record_type == 0:
                 written_data = data[address:address+len(line_data)]

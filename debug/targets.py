@@ -173,7 +173,7 @@ def target(parsed):
     found = []
     for name in dir(module):
         definition = getattr(module, name)
-        if type(definition) == type and issubclass(definition, Target):
+        if isinstance(definition, type) and issubclass(definition, Target):
             found.append(definition)
     assert len(found) == 1, "%s does not define exactly one subclass of " \
             "targets.Target" % parsed.target

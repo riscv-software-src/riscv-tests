@@ -555,7 +555,7 @@ def run_all_tests(module, target, parsed):
 
     for name in dir(module):
         definition = getattr(module, name)
-        if type(definition) == type and hasattr(definition, 'test') and \
+        if isinstance(definition, type) and hasattr(definition, 'test') and \
                 (not parsed.test or any(test in name for test in parsed.test)):
             todo.append((name, definition, None))
 
@@ -670,7 +670,6 @@ class BaseTest(object):
         compile_args = getattr(self, 'compile_args', None)
         if compile_args:
             if compile_args not in BaseTest.compiled:
-                # pylint: disable=star-args
                 BaseTest.compiled[compile_args] = \
                         self.target.compile(self.hart, *compile_args)
         self.binary = BaseTest.compiled.get(compile_args)
