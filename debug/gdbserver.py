@@ -863,6 +863,8 @@ def main():
     parsed = parser.parse_args()
     target = targets.target(parsed)
 
+    testlib.print_log_names = parsed.print_log_names
+
     if parsed.xlen:
         target.xlen = parsed.xlen
 

@@ -12,6 +12,9 @@ import traceback
 
 import pexpect
 
+print_log_names = False
+real_stdout = sys.stdout
+
 # Note that gdb comes with its own testsuite. I was unable to figure out how to
 # run that testsuite against the spike simulator.
 
@@ -70,6 +73,8 @@ class Spike(object):
         self.logfile = tempfile.NamedTemporaryFile(prefix="spike-",
                 suffix=".log")
         self.logname = self.logfile.name
+        if print_log_names:
+            real_stdout.write("Temporary spike log: %s\n" % self.logname)
         self.logfile.write("+ %s\n" % " ".join(cmd))
         self.logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
@@ -182,7 +187,6 @@ class VcsSim(object):
 class Openocd(object):
     logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
     logname = logfile.name
-    print "OpenOCD Temporary Log File: %s" % logname
 
     def __init__(self, server_cmd=None, config=None, debug=False, timeout=60):
         self.timeout = timeout
@@ -221,6 +225,8 @@ class Openocd(object):
             cmd.append("-d")
 
         logfile = open(Openocd.logname, "w")
+        if print_log_names:
+            real_stdout.write("Temporary OpenOCD log: %s\n" % Openocd.logname)
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
 
@@ -332,6 +338,8 @@ class Gdb(object):
             logfile = tempfile.NamedTemporaryFile(prefix="gdb@%d-" % port,
                     suffix=".log")
             self.logfiles.append(logfile)
+            if print_log_names:
+                real_stdout.write("Temporary gdb log: %s\n" % logfile.name)
             child = pexpect.spawn(cmd)
             child.logfile = logfile
             child.logfile.write("+ %s\n" % cmd)
@@ -589,10 +597,11 @@ def run_tests(parsed, target, todo):
         log_fd.write("Test: %s\n" % name)
         log_fd.write("Target: %s\n" % type(target).__name__)
         start = time.time()
+        global real_stdout  # pylint: disable=global-statement
         real_stdout = sys.stdout
         sys.stdout = log_fd
         try:
-            result = instance.run(real_stdout)
+            result = instance.run()
             log_fd.write("Result: %s\n" % result)
         finally:
             sys.stdout = real_stdout
@@ -626,6 +635,9 @@ def add_test_run_options(parser):
             help="Exit as soon as any test fails.")
     parser.add_argument("--print-failures", action="store_true",
             help="When a test fails, print the log file to stdout.")
+    parser.add_argument("--print-log-names", "--pln", action="store_true",
+            help="Print names of temporary log files as soon as they are "
+            "created.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
     parser.add_argument("--gdb",
@@ -702,7 +714,7 @@ class BaseTest(object):
     def postMortem(self):
         pass
 
-    def run(self, real_stdout):
+    def run(self):
         """
         If compile_args is set, compile a program and set self.binary.
 
@@ -721,8 +733,6 @@ class BaseTest(object):
 
         try:
             self.classSetup()
-            real_stdout.write("[%s] Temporary logs: %s\n" % (
-                type(self).__name__, ", ".join(self.logs)))
             self.setup()
             result = self.test()    # pylint: disable=no-member
         except TestNotApplicable:
