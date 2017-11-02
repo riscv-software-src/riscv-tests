@@ -311,14 +311,20 @@ class Gdb(object):
     """A single gdb class which can interact with one or more gdb instances."""
 
     # pylint: disable=too-many-public-methods
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, ports,
             cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb"),
-            timeout=60,
-            binary=None):
+            timeout=60, binary=None):
         assert ports
 
+        self.ports = ports
+        self.cmd = cmd
+        self.timeout = timeout
+        self.binary = binary
+
         self.stack = []
+        self.harts = {}
 
         self.logfiles = []
         self.children = []
@@ -332,8 +338,8 @@ class Gdb(object):
             self.children.append(child)
         self.active_child = self.children[0]
 
-        self.harts = {}
-        for port, child in zip(ports, self.children):
+    def connect(self):
+        for port, child in zip(self.ports, self.children):
             self.select_child(child)
             self.wait()
             self.command("set confirm off")
@@ -341,10 +347,10 @@ class Gdb(object):
             self.command("set height 0")
             # Force consistency.
             self.command("set print entry-values no")
-            self.command("set remotetimeout %d" % timeout)
+            self.command("set remotetimeout %d" % self.timeout)
             self.command("target extended-remote localhost:%d" % port)
-            if binary:
-                self.command("file %s" % binary)
+            if self.binary:
+                self.command("file %s" % self.binary)
             threads = self.threads()
             for t in threads:
                 hartid = None
@@ -759,11 +765,14 @@ class GdbTest(BaseTest):
         BaseTest.classSetup(self)
 
         if gdb_cmd:
-            self.gdb = Gdb(self.server.gdb_ports, gdb_cmd, timeout=self.target.timeout_sec, binary=self.binary)
+            self.gdb = Gdb(self.server.gdb_ports, gdb_cmd,
+                    timeout=self.target.timeout_sec, binary=self.binary)
         else:
-            self.gdb = Gdb(self.server.gdb_ports, timeout=self.target.timeout_sec, binary=self.binary)
+            self.gdb = Gdb(self.server.gdb_ports,
+                    timeout=self.target.timeout_sec, binary=self.binary)
 
         self.logs += self.gdb.lognames()
+        self.gdb.connect()
 
         self.gdb.global_command("set arch riscv:rv%d" % self.hart.xlen)
         self.gdb.global_command("set remotetimeout %d" %
