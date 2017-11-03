@@ -180,5 +180,10 @@ def target(parsed):
 
     t = found[0](parsed.target, parsed)
     assert t.harts, "%s doesn't have any harts defined!" % t.name
+    for h in t.harts :
+        if (h.xlen == 0):
+            h.xlen = parsed.xlen
+        elif (h.xlen != parsed.xlen):
+            raise Exception("Hart had a specified XLEN of %d and target had a specified XLEN of %d, they must match." % (h.xlen, parsed.xlen))
 
     return t
