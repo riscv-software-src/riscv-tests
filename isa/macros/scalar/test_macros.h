@@ -423,6 +423,31 @@ test_ ## testnum: \
   .result; \
   .popsection
 
+#define TEST_FP_OP_D32_INTERNAL( testnum, flags, result, val1, val2, val3, code... ) \
+test_ ## testnum: \
+  li  TESTNUM, testnum; \
+  la  a0, test_ ## testnum ## _data ;\
+  fld f0, 0(a0); \
+  fld f1, 8(a0); \
+  fld f2, 16(a0); \
+  lw  a3, 24(a0); \
+  lw  t1, 28(a0); \
+  code; \
+  fsflags a1, x0; \
+  li a2, flags; \
+  bne a0, a3, fail; \
+  bne t1, t2, fail; \
+  bne a1, a2, fail; \
+  .pushsection .data; \
+  .align 3; \
+  test_ ## testnum ## _data: \
+  .double val1; \
+  .double val2; \
+  .double val3; \
+  .result; \
+  .popsection
+
+// TODO: make 32-bit variant
 #define TEST_FCVT_S_D( testnum, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, 0, double result, val1, 0.0, 0.0, \
                     fcvt.s.d f3, f0; fcvt.d.s f3, f3; fmv.x.d a0, f3)
@@ -435,6 +460,7 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, float result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.s a0, f3)
 
+// TODO: make 32-bit variant
 #define TEST_FP_OP1_D( testnum, inst, flags, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, double result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.d a0, f3)
@@ -443,6 +469,7 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.s a0, f3)
 
+// TODO: make 32-bit variant
 #define TEST_FP_OP1_D_DWORD_RESULT( testnum, inst, flags, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.d a0, f3)
@@ -450,6 +477,11 @@ test_ ## testnum: \
 #define TEST_FP_OP2_S( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_S_INTERNAL( testnum, flags, float result, val1, val2, 0.0, \
                     inst f3, f0, f1; fmv.x.s a0, f3)
+
+#define TEST_FP_OP2_D32( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_D32_INTERNAL( testnum, flags, double result, val1, val2, 0.0, \
+                    inst f3, f0, f1; fsd f3, 0(a0); lw t2, 4(a0); lw a0, 0(a0))
+// ^: store computation result in address from a0, load high-word into t2
 
 #define TEST_FP_OP2_D( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, double result, val1, val2, 0.0, \
@@ -459,6 +491,7 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, float result, val1, val2, val3, \
                     inst f3, f0, f1, f2; fmv.x.s a0, f3)
 
+// TODO: make 32-bit variant
 #define TEST_FP_OP3_D( testnum, inst, flags, result, val1, val2, val3 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, double result, val1, val2, val3, \
                     inst f3, f0, f1, f2; fmv.x.d a0, f3)
@@ -467,6 +500,7 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, word result, val1, 0.0, 0.0, \
                     inst a0, f0, rm)
 
+// TODO: make 32-bit variant
 #define TEST_FP_INT_OP_D( testnum, inst, flags, result, val1, rm ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
                     inst a0, f0, rm)
@@ -475,6 +509,7 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, word result, val1, val2, 0.0, \
                     inst a0, f0, f1)
 
+// TODO: make 32-bit variant
 #define TEST_FP_CMP_OP_D( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, val2, 0.0, \
                     inst a0, f0, f1)
@@ -483,6 +518,7 @@ test_ ## testnum: \
   TEST_CASE(testnum, a0, correct, li a0, input; fmv.s.x fa0, a0; \
                     fclass.s a0, fa0)
 
+// TODO: make 32-bit variant
 #define TEST_FCLASS_D(testnum, correct, input) \
   TEST_CASE(testnum, a0, correct, li a0, input; fmv.d.x fa0, a0; \
                     fclass.d a0, fa0)
@@ -503,6 +539,7 @@ test_ ## testnum: \
   .float result; \
   .popsection
 
+// TODO: make 32-bit variant
 #define TEST_INT_FP_OP_D( testnum, inst, result, val1 ) \
 test_ ## testnum: \
   li  TESTNUM, testnum; \
