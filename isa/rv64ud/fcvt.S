@@ -13,6 +13,15 @@
 RVTEST_RV64UF
 RVTEST_CODE_BEGIN
 
+#if __riscv_xlen == 32
+    # Replace the function with the 32-bit variant defined in test_macros.h
+    #undef TEST_INT_FP_OP_D
+    #define TEST_INT_FP_OP_D TEST_INT_FP_OP_D32
+
+    #undef TEST_FCVT_S_D
+    #define TEST_FCVT_S_D TEST_FCVT_S_D32
+#endif
+
   #-------------------------------------------------------------
   # Arithmetic tests
   #-------------------------------------------------------------
@@ -34,7 +43,7 @@ RVTEST_CODE_BEGIN
   TEST_FCVT_S_D(10, -1.5, -1.5)
   TEST_FCVT_D_S(11, -1.5, -1.5)
 
-# TODO: make 32-bit friendly version
+#if __riscv_xlen >= 64
   TEST_CASE(12, a0, 0x7ff8000000000000,
     la a1, test_data_22;
     ld a2, 0(a1);
@@ -43,6 +52,9 @@ RVTEST_CODE_BEGIN
     fcvt.d.s f2, f2;
     fmv.x.d a0, f2;
   )
+#else
+    # TODO: make 32-bit friendly version
+#endif
 
   TEST_PASSFAIL
 
