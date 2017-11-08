@@ -423,6 +423,7 @@ test_ ## testnum: \
   .result; \
   .popsection
 
+// TODO: assign a separate mem location for the comparison address
 #define TEST_FP_OP_D32_INTERNAL( testnum, flags, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
   li  TESTNUM, testnum; \
@@ -555,6 +556,25 @@ test_ ## testnum: \
   test_ ## testnum ## _data: \
   .double result; \
   .popsection
+
+// We need some special handling here to allow 64-bit comparison in 32-bit arch
+// TODO: find a better name and clean up when intended for general usage?
+#define TEST_LDST_D32( testnum, testreg1, testreg2, correctval, code... ) \
+test_ ## testnum: \
+    code; \
+    la  x31, test_ ## testnum ## _data ; \
+    lw  x29, 0(x31); \
+    lw  x31, 4(x31); \
+    li  TESTNUM, testnum; \
+    bne testreg1, x29, fail;\
+    bne testreg2, x31, fail;\
+    .pushsection .data; \
+    .align 3; \
+    test_ ## testnum ## _data: \
+    .dword correctval; \
+    .popsection
+
+// ^ x30 is used in some other macros, to avoid issues we use x31 for upper word
 
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in TESTNUM)
