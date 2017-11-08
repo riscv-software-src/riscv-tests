@@ -461,7 +461,11 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, float result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.s a0, f3)
 
-// TODO: make 32-bit variant
+#define TEST_FP_OP1_D32( testnum, inst, flags, result, val1 ) \
+  TEST_FP_OP_D32_INTERNAL( testnum, flags, double result, val1, 0.0, 0.0, \
+                    inst f3, f0; fsd f3, 0(a0); lw t2, 4(a0); lw a0, 0(a0))
+// ^: store computation result in address from a0, load high-word into t2
+
 #define TEST_FP_OP1_D( testnum, inst, flags, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, double result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.d a0, f3)
@@ -470,7 +474,11 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.s a0, f3)
 
-// TODO: make 32-bit variant
+#define TEST_FP_OP1_D32_DWORD_RESULT( testnum, inst, flags, result, val1 ) \
+  TEST_FP_OP_D32_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
+                    inst f3, f0; fsd f3, 0(a0); lw t2, 4(a0); lw a0, 0(a0))
+// ^: store computation result in address from a0, load high-word into t2
+
 #define TEST_FP_OP1_D_DWORD_RESULT( testnum, inst, flags, result, val1 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, 0.0, 0.0, \
                     inst f3, f0; fmv.x.d a0, f3)
