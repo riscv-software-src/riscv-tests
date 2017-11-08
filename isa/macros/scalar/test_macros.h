@@ -522,7 +522,10 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, word result, val1, val2, 0.0, \
                     inst a0, f0, f1)
 
-// TODO: make 32-bit variant
+#define TEST_FP_CMP_OP_D32( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_D32_INTERNAL( testnum, flags, dword result, val1, val2, 0.0, \
+                    inst a0, f0, f1; li t2, 0)
+
 #define TEST_FP_CMP_OP_D( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, val1, val2, 0.0, \
                     inst a0, f0, f1)
