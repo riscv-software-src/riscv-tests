@@ -13,6 +13,7 @@
 RVTEST_RV64UF
 RVTEST_CODE_BEGIN
 
+#TODO: make 32-bit compatible version
 #define TEST_FSGNJD(n, insn, new_sign, rs1_sign, rs2_sign) \
   TEST_CASE(n, a0, 0x123456789abcdef0 | (-(new_sign) << 63), \
     li a1, ((rs1_sign) << 63) | 0x123456789abcdef0; \

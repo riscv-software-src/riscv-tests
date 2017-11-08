@@ -519,7 +519,17 @@ test_ ## testnum: \
   TEST_CASE(testnum, a0, correct, li a0, input; fmv.s.x fa0, a0; \
                     fclass.s a0, fa0)
 
-// TODO: make 32-bit variant
+#define TEST_FCLASS_D32(testnum, correct, input) \
+  TEST_CASE(testnum, a0, correct, \
+            la a0, test_ ## testnum ## _data ;\
+            fld fa0, 0(a0); \
+            fclass.d a0, fa0) \
+    .pushsection .data; \
+    .align 3; \
+    test_ ## testnum ## _data: \
+    .dword input; \
+    .popsection
+
 #define TEST_FCLASS_D(testnum, correct, input) \
   TEST_CASE(testnum, a0, correct, li a0, input; fmv.d.x fa0, a0; \
                     fclass.d a0, fa0)

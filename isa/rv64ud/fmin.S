@@ -13,6 +13,12 @@
 RVTEST_RV64UF
 RVTEST_CODE_BEGIN
 
+#if __riscv_xlen == 32
+    # Replace the function with the 32-bit variant defined in test_macros.h
+    #undef TEST_FP_OP2_D
+    #define TEST_FP_OP2_D TEST_FP_OP2_D32
+#endif
+
   #-------------------------------------------------------------
   # Arithmetic tests
   #-------------------------------------------------------------

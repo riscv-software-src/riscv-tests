@@ -23,15 +23,18 @@ RVTEST_CODE_BEGIN
   TEST_INT_FP_OP_D(4, fcvt.d.wu,                   2.0,  2);
   TEST_INT_FP_OP_D(5, fcvt.d.wu,            4294967294, -2);
 
+#if __riscv_xlen >= 64
   TEST_INT_FP_OP_D(6,  fcvt.d.l,                   2.0,  2);
   TEST_INT_FP_OP_D(7,  fcvt.d.l,                  -2.0, -2);
 
   TEST_INT_FP_OP_D(8, fcvt.d.lu,                   2.0,  2);
   TEST_INT_FP_OP_D(9, fcvt.d.lu, 1.8446744073709552e19, -2);
+#endif
 
   TEST_FCVT_S_D(10, -1.5, -1.5)
   TEST_FCVT_D_S(11, -1.5, -1.5)
 
+# TODO: make 32-bit friendly version
   TEST_CASE(12, a0, 0x7ff8000000000000,
     la a1, test_data_22;
     ld a2, 0(a1);
