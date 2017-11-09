@@ -53,7 +53,15 @@ RVTEST_CODE_BEGIN
     fmv.x.d a0, f2;
   )
 #else
-    # TODO: make 32-bit friendly version
+  TEST_CASE_D32(12, a0, a1, 0x7ff8000000000000,
+    la a1, test_data_22;
+    fld f2, 0(a1);
+    fcvt.s.d f2, f2;
+    fcvt.d.s f2, f2;
+    fsd f2, 0(a1);
+    lw a0, 0(a1);
+    lw a1, 4(a1)
+  )
 #endif
 
   TEST_PASSFAIL

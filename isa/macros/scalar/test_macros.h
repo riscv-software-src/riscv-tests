@@ -611,7 +611,7 @@ test_ ## testnum: \
 
 // We need some special handling here to allow 64-bit comparison in 32-bit arch
 // TODO: find a better name and clean up when intended for general usage?
-#define TEST_LDST_D32( testnum, testreg1, testreg2, correctval, code... ) \
+#define TEST_CASE_D32( testnum, testreg1, testreg2, correctval, code... ) \
 test_ ## testnum: \
     code; \
     la  x31, test_ ## testnum ## _data ; \
