@@ -26,13 +26,14 @@ RVTEST_CODE_BEGIN
 
   # For RV64, make sure UXL encodes RV64.  (UXL does not exist for RV32.)
 #if __riscv_xlen == 64
-  # If running in M mode, read misa to check existence of U mode.
+  # If running in M mode, use mstatus.MPP to check existence of U mode.
   # Otherwise, if in S mode, then U mode must exist and we don't need to check.
 #ifdef __MACHINE_MODE
-  csrr a0, misa
-  srli a0, a0, 'U' - 'A'
-  andi a0, a0, 1
-  beqz a0, 1f
+  li t0, MSTATUS_MPP
+  csrc mstatus, t0
+  csrr t1, mstatus
+  and t0, t0, t1
+  bnez t0, 1f
 #endif
   # If U mode is present, UXL should be 2 (XLEN = 64-bit)
   TEST_CASE(13, a0, SSTATUS_UXL & (SSTATUS_UXL << 1), csrr a0, sstatus; li a1, SSTATUS_UXL; and a0, a0, a1)
