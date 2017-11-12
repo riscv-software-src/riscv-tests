@@ -23,6 +23,7 @@ RVTEST_CODE_BEGIN
   #define stvec_handler mtvec_handler
 #endif
 
+  .align 2
   .option norvc
 
   # Without RVC, the jalr should trap, and the handler will skip ahead.

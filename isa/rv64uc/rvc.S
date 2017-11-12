@@ -13,11 +13,12 @@
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
+  .align 2
   .option push
   .option norvc
 
   #define RVC_TEST_CASE(n, r, v, code...) \
-    TEST_CASE (n, r, v, .option push; .option rvc; code; .option pop)
+    TEST_CASE (n, r, v, .option push; .option rvc; code; .align 2; .option pop)
 
   // Make sure fetching a 4-byte instruction across a page boundary works.
   li TESTNUM, 2
