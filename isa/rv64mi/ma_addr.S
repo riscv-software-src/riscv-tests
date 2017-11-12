@@ -13,6 +13,7 @@
 RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
+  .align 2
   .option norvc
 
   la s0, data

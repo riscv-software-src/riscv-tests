@@ -43,6 +43,7 @@ target_2:
   #-------------------------------------------------------------
 
   .option push
+  .align 2
   .option norvc
   TEST_CASE( 7, t0, 4, \
     li  t0, 1; \
