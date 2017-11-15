@@ -184,6 +184,6 @@ def target(parsed):
         if (h.xlen == 0):
             h.xlen = parsed.xlen
         elif (h.xlen != parsed.xlen):
-            raise Exception("Hart had a specified XLEN of %d and target had a specified XLEN of %d, they must match." % (h.xlen, parsed.xlen))
+            raise Exception("The target has an XLEN of %d, but the command line specified an XLEN of %d. They must match." % (h.xlen, parsed.xlen))
 
     return t
