@@ -814,6 +814,11 @@ class PrivTest(GdbTest):
 class PrivRw(PrivTest):
     def test(self):
         """Test reading/writing priv."""
+        # Disable physical memory protection by allowing U mode access to all
+        # memory.
+        self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
+        self.gdb.p("$pmpaddr0=0x%x" % ((self.hart.ram + self.hart.ram_size) >> 2))
+
         # Leave the PC at _start, where the first 4 instructions should be
         # legal in any mode.
         for privilege in range(4):
