@@ -814,6 +814,8 @@ class PrivTest(GdbTest):
 class PrivRw(PrivTest):
     def test(self):
         """Test reading/writing priv."""
+        # Leave the PC at _start, where the first 4 instructions should be
+        # legal in any mode.
         for privilege in range(4):
             self.gdb.p("$priv=%d" % privilege)
             self.gdb.stepi()
