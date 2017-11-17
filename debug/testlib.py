@@ -825,15 +825,21 @@ class ExamineTarget(GdbTest):
             hart.misa = self.gdb.p("$misa")
 
             txt = "RV"
-            if (hart.misa >> 30) == 1:
-                txt += "32"
-            elif (hart.misa >> 62) == 2:
-                txt += "64"
-            elif (hart.misa >> 126) == 3:
-                txt += "128"
+            misa_xlen = 0
+            if ((hart.misa & 0xFFFFFFFF) >> 30) == 1:
+                misa_xlen = 32
+            elif ((hart.misa & 0xFFFFFFFFFFFFFFFF) >> 62) == 2:
+                misa_xlen = 64
+            elif ((hart.misa & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) >> 126) == 3:
+                misa_xlen = 128
             else:
                 raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
                         self.hart.misa)
+
+            if (misa_xlen != hart.xlen):
+                raise TestFailed("MISA reported XLEN of %d but we were expecting XLEN of %d\n" % (misa_xlen, hart.xlen))
+
+            txt += ("%d" % misa_xlen)
 
             for i in range(26):
                 if hart.misa & (1<<i):
