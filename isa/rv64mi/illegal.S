@@ -130,6 +130,17 @@ synchronous_exception:
   csrr t0, mcause
   bne t0, t1, fail
   csrr t0, mepc
+
+  # Make sure mtval contains either 0 or the instruction word.
+  csrr t2, mbadaddr
+  beqz t2, 1f
+  lhu t3, 0(t0)
+  lhu t4, 2(t0)
+  slli t4, t4, 16
+  or t3, t3, t4
+  bne t2, t3, fail
+1:
+
   la t1, bad2
   beq t0, t1, 2f
   la t1, bad3
