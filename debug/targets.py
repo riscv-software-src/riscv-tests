@@ -153,10 +153,10 @@ def add_target_options(parser):
             help="The command to use to start the debug server (e.g. OpenOCD)")
 
     xlen_group = parser.add_mutually_exclusive_group()
-    xlen_group.add_argument("--32", action="store_const", const=32, dest="xlen", default=0,
-            help="Force the target to be 32-bit.")
-    xlen_group.add_argument("--64", action="store_const", const=64, dest="xlen", default=0,
-            help="Force the target to be 64-bit.")
+    xlen_group.add_argument("--32", action="store_const", const=32,
+            dest="xlen", default=0, help="Force the target to be 32-bit.")
+    xlen_group.add_argument("--64", action="store_const", const=64,
+            dest="xlen", default=0, help="Force the target to be 64-bit.")
 
     parser.add_argument("--isolate", action="store_true",
             help="Try to run in such a way that multiple instances can run at "
@@ -180,11 +180,13 @@ def target(parsed):
 
     t = found[0](parsed.target, parsed)
     assert t.harts, "%s doesn't have any harts defined!" % t.name
-    if (parsed.xlen > 0):
-        for h in t.harts :
-            if (h.xlen == 0):
+    if parsed.xlen > 0:
+        for h in t.harts:
+            if h.xlen == 0:
                 h.xlen = parsed.xlen
-            elif (h.xlen != parsed.xlen):
-                raise Exception("The target hart specified an XLEN of %d, but the command line specified an XLEN of %d. They must match." % (h.xlen, parsed.xlen))
+            elif h.xlen != parsed.xlen:
+                raise Exception("The target hart specified an XLEN of %d, but "\
+                        "the command line specified an XLEN of %d. They must "\
+                        "match." % (h.xlen, parsed.xlen))
 
     return t

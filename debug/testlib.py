@@ -836,8 +836,9 @@ class ExamineTarget(GdbTest):
                 raise TestFailed("Couldn't determine XLEN from $misa (0x%x)" %
                         self.hart.misa)
 
-            if (misa_xlen != hart.xlen):
-                raise TestFailed("MISA reported XLEN of %d but we were expecting XLEN of %d\n" % (misa_xlen, hart.xlen))
+            if misa_xlen != hart.xlen:
+                raise TestFailed("MISA reported XLEN of %d but we were "\
+                        "expecting XLEN of %d\n" % (misa_xlen, hart.xlen))
 
             txt += ("%d" % misa_xlen)
 
