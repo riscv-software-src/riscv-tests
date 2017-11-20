@@ -606,6 +606,7 @@ def run_tests(parsed, target, todo):
         finally:
             sys.stdout = real_stdout
             log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
+            log_fd.flush()
         print "[%s] %s in %.2fs" % (name, result, time.time() - start)
         if result not in good_results and parsed.print_failures:
             sys.stdout.write(open(log_name).read())
