@@ -51,6 +51,8 @@ RVTEST_CODE_BEGIN
 1:
 
   li TESTNUM, 1
+  la t2, saddr
+saddr:
   scall
   j fail
 
@@ -61,6 +63,8 @@ RVTEST_CODE_BEGIN
 stvec_handler:
   csrr t0, scause
   bne t0, t1, fail
+  csrr t0, sepc
+  bne t0, t2, fail
   j pass
 
 RVTEST_CODE_END
