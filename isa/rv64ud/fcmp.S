@@ -17,6 +17,12 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
+#if __riscv_xlen == 32
+    # Replace the function with the 32-bit variant defined in test_macros.h
+    #undef TEST_FP_CMP_OP_D
+    #define TEST_FP_CMP_OP_D TEST_FP_CMP_OP_D32
+#endif
+
   TEST_FP_CMP_OP_D( 2, feq.d, 0x00, 1, -1.36, -1.36)
   TEST_FP_CMP_OP_D( 3, fle.d, 0x00, 1, -1.36, -1.36)
   TEST_FP_CMP_OP_D( 4, flt.d, 0x00, 0, -1.36, -1.36)
