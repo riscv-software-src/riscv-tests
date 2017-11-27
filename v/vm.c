@@ -225,13 +225,13 @@ void vm_boot(uintptr_t test_addr)
   l1pt[PTES_PER_PT-1] = ((pte_t)kernel_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
   kernel_l2pt[PTES_PER_PT-1] = (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D;
   user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
-  uintptr_t vm_choice = SPTBR_MODE_SV39;
+  uintptr_t vm_choice = SATP_MODE_SV39;
 #else
   l1pt[PTES_PER_PT-1] = (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D;
-  uintptr_t vm_choice = SPTBR_MODE_SV32;
+  uintptr_t vm_choice = SATP_MODE_SV32;
 #endif
   write_csr(sptbr, ((uintptr_t)l1pt >> PGSHIFT) |
-                   (vm_choice * (SPTBR_MODE & ~(SPTBR_MODE<<1))));
+                   (vm_choice * (SATP_MODE & ~(SATP_MODE<<1))));
 
   // Set up PMPs if present, ignoring illegal instruction trap if not.
   uintptr_t pmpc = PMP_NAPOT | PMP_R | PMP_W | PMP_X;
