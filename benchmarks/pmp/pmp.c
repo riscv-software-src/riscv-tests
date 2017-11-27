@@ -38,12 +38,12 @@ static void init_pt()
   l3pt[SCRATCH / RISCV_PGSIZE] = ((uintptr_t)scratch >> RISCV_PGSHIFT << PTE_PPN_SHIFT) | PTE_A | PTE_D | PTE_V | PTE_R | PTE_W;
 #if __riscv_xlen == 64
   l2pt[0] = ((uintptr_t)l3pt >> RISCV_PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
-  uintptr_t vm_choice = SPTBR_MODE_SV39;
+  uintptr_t vm_choice = SATP_MODE_SV39;
 #else
-  uintptr_t vm_choice = SPTBR_MODE_SV32;
+  uintptr_t vm_choice = SATP_MODE_SV32;
 #endif
   write_csr(sptbr, ((uintptr_t)l1pt >> RISCV_PGSHIFT) |
-                   (vm_choice * (SPTBR_MODE & ~(SPTBR_MODE<<1))));
+                   (vm_choice * (SATP_MODE & ~(SATP_MODE<<1))));
   write_csr(pmpcfg0, (PMP_NAPOT | PMP_R) << 16);
   write_csr(pmpaddr2, -1);
 }

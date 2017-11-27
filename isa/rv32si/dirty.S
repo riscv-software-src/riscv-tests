@@ -4,7 +4,7 @@
 #undef RVTEST_RV64M
 #define RVTEST_RV64M RVTEST_RV32M
 
-#undef SPTBR_MODE_SV39
-#define SPTBR_MODE_SV39 SPTBR_MODE_SV32
+#undef SATP_MODE_SV39
+#define SATP_MODE_SV39 SATP_MODE_SV32
 
 #include "../rv64si/dirty.S"
