@@ -142,9 +142,10 @@ class Spike(object):
         return self.process.wait(*args, **kwargs)
 
 class VcsSim(object):
-    logname = "simv.log"
+    logfile = tempfile.NamedTemporaryFile(prefix='simv', suffix='.log')
+    logname = logfile.name
 
-    def __init__(self, sim_cmd=None, debug=False):
+    def __init__(self, sim_cmd=None, debug=False, timeout=300):
         if sim_cmd:
             cmd = shlex.split(sim_cmd)
         else:
@@ -153,14 +154,19 @@ class VcsSim(object):
         if debug:
             cmd[0] = cmd[0] + "-debug"
             cmd += ["+vcdplusfile=output/gdbserver.vpd"]
+
         logfile = open(self.logname, "w")
+        if print_log_names:
+            real_stdout.write("Temporary VCS log: %s\n" % self.logname)
         logfile.write("+ %s\n" % " ".join(cmd))
         logfile.flush()
+
         listenfile = open(self.logname, "r")
         listenfile.seek(0, 2)
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile)
         done = False
+        start = time.time()
         while not done:
             # Fail if VCS exits early
             exit_code = self.process.poll()
@@ -176,6 +182,10 @@ class VcsSim(object):
                 done = True
                 self.port = int(match.group(1))
                 os.environ['JTAG_VPI_PORT'] = str(self.port)
+
+            if (time.time() - start) > timeout:
+                raise Exception("Timed out waiting for VCS to listen for JTAG "
+                        "vpi")
 
     def __del__(self):
         try:
