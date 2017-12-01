@@ -396,6 +396,8 @@ class Registers(DebugTest):
             output = self.gdb.command(cmd)
             for reg in ('zero', 'ra', 'sp', 'gp', 'tp'):
                 assertIn(reg, output)
+            for line in output.splitlines():
+                assertRegexpMatches(line, r"^\S")
 
         #TODO
         # mcpuid is one of the few registers that should have the high bit set
