@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 import traceback
+import pipes
 
 import pexpect
 
@@ -237,7 +238,11 @@ class Openocd(object):
         logfile = open(Openocd.logname, "w")
         if print_log_names:
             real_stdout.write("Temporary OpenOCD log: %s\n" % Openocd.logname)
-        logfile.write("+ %s\n" % " ".join(cmd))
+        env_entries = ("REMOTE_BITBANG_HOST", "REMOTE_BITBANG_PORT")
+        env_entries = [key for key in env_entries if key in os.environ]
+        logfile.write("+ %s%s\n" % (
+            "".join("%s=%s " % (key, os.environ[key]) for key in env_entries),
+            " ".join(map(pipes.quote, cmd))))
         logfile.flush()
 
         self.gdb_ports = []
