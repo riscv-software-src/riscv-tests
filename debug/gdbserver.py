@@ -106,23 +106,26 @@ class SimpleT1Test(SimpleRegisterTest):
 
 class SimpleF18Test(SimpleRegisterTest):
     def check_reg(self, name, alias):
-        self.gdb.p_raw("$mstatus=$mstatus | 0x00006000")
-        self.gdb.stepi()
-        a = random.random()
-        b = random.random()
-        self.gdb.p_raw("$%s=%f" % (name, a))
-        assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - a), .001)
-        self.gdb.stepi()
-        assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - a), .001)
-        assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - a), .001)
-        self.gdb.p_raw("$%s=%f" % (alias, b))
-        assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
-        self.gdb.stepi()
-        assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
-        assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - b), .001)
-
-    def early_applicable(self):
-        return self.hart.extensionSupported('F')
+        if self.hart.extensionSupported('F'):
+            self.gdb.p_raw("$mstatus=$mstatus | 0x00006000")
+            self.gdb.stepi()
+            a = random.random()
+            b = random.random()
+            self.gdb.p_raw("$%s=%f" % (name, a))
+            assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - a), .001)
+            self.gdb.stepi()
+            assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - a), .001)
+            assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - a), .001)
+            self.gdb.p_raw("$%s=%f" % (alias, b))
+            assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
+            self.gdb.stepi()
+            assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
+            assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - b), .001)
+        else:
+            output = self.gdb.p_raw("$" + name)
+            assertEqual(output, "void")
+            output = self.gdb.p_raw("$" + alias)
+            assertEqual(output, "void")
 
     def test(self):
         self.check_reg("f18", "fs2")
