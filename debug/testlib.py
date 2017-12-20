@@ -800,7 +800,6 @@ class GdbTest(BaseTest):
         self.logs += self.gdb.lognames()
         self.gdb.connect()
 
-        self.gdb.global_command("set arch riscv:rv%d" % self.hart.xlen)
         self.gdb.global_command("set remotetimeout %d" %
             self.target.timeout_sec)
 
