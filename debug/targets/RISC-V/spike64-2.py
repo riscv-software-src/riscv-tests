@@ -9,4 +9,4 @@ class spike64_2(targets.Target):
     timeout_sec = 60
 
     def create(self):
-        return testlib.Spike(self)
+        return testlib.Spike(self, isa="RV64IMAFD")

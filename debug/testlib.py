@@ -56,10 +56,12 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         raise Exception("Compile failed!")
 
 class Spike(object):
-    def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True):
+    def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
+            isa=None):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
+        self.isa = isa
 
         if target.harts:
             harts = target.harts
@@ -109,10 +111,12 @@ class Spike(object):
         assert len(set(t.xlen for t in harts)) == 1, \
                 "All spike harts must have the same XLEN"
 
-        if harts[0].xlen == 32:
-            cmd += ["--isa", "RV32G"]
+        if self.isa:
+            isa = self.isa
         else:
-            cmd += ["--isa", "RV64G"]
+            isa = "RV%dG" % harts[0].xlen
+
+        cmd += ["--isa", isa]
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"

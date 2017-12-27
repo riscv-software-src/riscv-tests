@@ -121,6 +121,12 @@ class SimpleF18Test(SimpleRegisterTest):
             self.gdb.stepi()
             assertLess(abs(float(self.gdb.p_raw("$%s" % name)) - b), .001)
             assertLess(abs(float(self.gdb.p_raw("$%s" % alias)) - b), .001)
+
+            size = self.gdb.p("sizeof($%s)" % name)
+            if self.hart.extensionSupported('D'):
+                assertEqual(size, 8)
+            else:
+                assertEqual(size, 4)
         else:
             output = self.gdb.p_raw("$" + name)
             assertEqual(output, "void")

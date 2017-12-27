@@ -9,4 +9,4 @@ class spike32_2(targets.Target):
     timeout_sec = 30
 
     def create(self):
-        return testlib.Spike(self)
+        return testlib.Spike(self, isa="RV32IMAFC")

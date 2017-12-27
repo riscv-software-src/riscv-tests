@@ -15,4 +15,5 @@ class spike32(targets.Target):
     timeout_sec = 30
 
     def create(self):
-        return testlib.Spike(self)
+        # 64-bit FPRs on 32-bit target
+        return testlib.Spike(self, isa="RV32IMAFDC")
