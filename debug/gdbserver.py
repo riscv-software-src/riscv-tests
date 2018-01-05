@@ -574,6 +574,34 @@ class MulticoreRunHaltStepiTest(GdbTest):
                 stepped_pc = self.gdb.p("$pc")
                 assertNotEqual(pc, stepped_pc)
 
+class MulticoreRunAllHaltOne(GdbTest):
+    compile_args = ("programs/multicore.c", "-DMULTICORE")
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
+    def setup(self):
+        self.gdb.select_hart(self.target.harts[0])
+        self.gdb.load()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.p("$pc=_start")
+
+    def test(self):
+        if not self.gdb.one_hart_per_gdb():
+            return 'not_applicable'
+
+        # Run harts in reverse order
+        for h in reversed(self.target.harts):
+            self.gdb.select_hart(h)
+            self.gdb.c(wait=False)
+
+        self.gdb.interrupt()
+        # Give OpenOCD time to call poll() on both harts, which is what causes
+        # the bug.
+        time.sleep(1)
+        self.gdb.p("buf", fmt="")
+
 class StepTest(GdbTest):
     compile_args = ("programs/step.S", )
 

@@ -390,11 +390,17 @@ class Gdb(object):
                         hartid = max(self.harts) + 1
                     else:
                         hartid = 0
-                self.harts[hartid] = (child, t)
+                # solo: True iff this is the only thread on this child
+                self.harts[hartid] = {'child': child,
+                        'thread': t,
+                        'solo': len(threads) == 1}
 
     def __del__(self):
         for child in self.children:
             del child
+
+    def one_hart_per_gdb(self):
+        return all(h['solo'] for h in self.harts.itervalues())
 
     def lognames(self):
         return [logfile.name for logfile in self.logfiles]
@@ -403,10 +409,11 @@ class Gdb(object):
         self.active_child = child
 
     def select_hart(self, hart):
-        child, thread = self.harts[hart.id]
-        self.select_child(child)
-        output = self.command("thread %s" % thread.id)
-        assert "Unknown" not in output
+        h = self.harts[hart.id]
+        self.select_child(h['child'])
+        if not h['solo']:
+            output = self.command("thread %s" % h['thread'].id, timeout=10)
+            assert "Unknown" not in output
 
     def push_state(self):
         self.stack.append({
