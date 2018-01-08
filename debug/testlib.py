@@ -329,6 +329,12 @@ class CannotAccess(Exception):
         Exception.__init__(self)
         self.address = address
 
+class CouldNotFetch(Exception):
+    def __init__(self, regname, explanation):
+        Exception.__init__(self)
+        self.regname = regname
+        self.explanation = explanation
+
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
@@ -514,6 +520,9 @@ class Gdb(object):
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
+        m = re.search(r"Could not fetch register \"(\w+)\"; (.*)$", output)
+        if m:
+            raise CouldNotFetch(m.group(1), m.group(2))
         rhs = output.split('=')[-1]
         return self.parse_string(rhs)
 

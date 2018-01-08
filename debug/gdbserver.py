@@ -855,9 +855,13 @@ class PrivRw(PrivTest):
         """Test reading/writing priv."""
         # Disable physical memory protection by allowing U mode access to all
         # memory.
-        self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
-        self.gdb.p("$pmpaddr0=0x%x" %
-                ((self.hart.ram + self.hart.ram_size) >> 2))
+        try:
+            self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
+            self.gdb.p("$pmpaddr0=0x%x" %
+                    ((self.hart.ram + self.hart.ram_size) >> 2))
+        except testlib.CouldNotFetch:
+            # PMP registers are optional
+            pass
 
         # Leave the PC at _start, where the first 4 instructions should be
         # legal in any mode.
