@@ -660,10 +660,15 @@ class TriggerLoadAddressInstant(TriggerTest):
         self.gdb.command("b just_before_read_loop")
         self.gdb.c()
         read_loop = self.gdb.p("&read_loop")
+        read_again = self.gdb.p("&read_again")
         self.gdb.command("rwatch data")
         self.gdb.c()
         # Accept hitting the breakpoint before or after the load instruction.
         assertIn(self.gdb.p("$pc"), [read_loop, read_loop + 4])
+        assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
+
+        self.gdb.c()
+        assertIn(self.gdb.p("$pc"), [read_again, read_again + 4])
         assertEqual(self.gdb.p("$a0"), self.gdb.p("&data"))
 
 # FIXME: Triggers aren't quite working yet

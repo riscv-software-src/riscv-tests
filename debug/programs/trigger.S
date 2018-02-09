@@ -10,16 +10,6 @@
 # define REGBYTES 4
 #endif
 
-#undef MCONTROL_TYPE
-#undef MCONTROL_DMODE
-#if __riscv_xlen == 64
-# define MCONTROL_TYPE    (0xf<<(64-4))
-# define MCONTROL_DMODE   (1<<(64-5))
-#else
-# define MCONTROL_TYPE    (0xf<<(32-4))
-# define MCONTROL_DMODE   (1<<(32-5))
-#endif
-
         .global         main
 
         .section        .text
@@ -31,7 +21,10 @@ just_before_read_loop:
         li      t2, 16
 read_loop:
         lw      t1, 0(a0)
+        addi    t1, t1, 1
         addi    t0, t0, 1
+read_again:
+        lw      t1, 0(a0)
         addi    a0, a0, 4
         blt     t0, t2, read_loop
 

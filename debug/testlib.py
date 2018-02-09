@@ -835,6 +835,7 @@ class GdbTest(BaseTest):
         if not self.gdb:
             return
         self.gdb.interrupt()
+        self.gdb.command("disassemble")
         self.gdb.command("info registers all", timeout=10)
 
     def classTeardown(self):
