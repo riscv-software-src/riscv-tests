@@ -57,11 +57,12 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
 
 class Spike(object):
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
-            isa=None):
+            isa=None, progbufsize=None):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
         self.isa = isa
+        self.progbufsize = progbufsize
 
         if target.harts:
             harts = target.harts
@@ -117,6 +118,10 @@ class Spike(object):
             isa = "RV%dG" % harts[0].xlen
 
         cmd += ["--isa", isa]
+
+        if not self.progbufsize is None:
+            cmd += ["--progsize", str(self.progbufsize)]
+            cmd += ["--debug-sba", "32"]
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
