@@ -106,6 +106,80 @@ RVTEST_CODE_BEGIN
   j fail
 2:
 
+#ifdef __MACHINE_MODE
+  # If RVC can be disabled, then disabling it should cause a misaligned
+  # instruction exception on the next instruction.  (This test assumes
+  # no other extensions that support misalignment are present.)
+  li TESTNUM, 8
+  csrr t2, misa
+  andi t2, t2, 1 << ('c' - 'a')
+  beqz t2, 2f
+
+  la t0, 1f
+  .option rvc
+  c.nop
+  csrci misa, 1 << ('c' - 'a')
+1:
+  c.j 1f
+  .option norvc
+
+  # If we got here, we trapped.  Re-enable RVC and proceed.
+  csrsi misa, 1 << ('c' - 'a')
+  j 2f
+
+1:
+  # If we got here, we didn't trap, so RVC had better be enabled.
+  csrr t2, misa
+  andi t2, t2, 1 << ('c' - 'a')
+  beqz t2, fail
+
+2:
+  # mret to a misaligned mepc should either align the mepc or raise a
+  # misaligned instruction exception.
+  la t0, 1f
+  addi t0, t0, -2
+  csrw mepc, t0
+
+  # Try to disable RVC; if it can't be disabled, skip the test.
+  csrci misa, 1 << ('c' - 'a')
+  csrr t2, misa
+  andi t2, t2, 1 << ('c' - 'a')
+  bnez t2, 2f
+
+  li t2, MSTATUS_MPP
+  csrs mstatus, t2
+  mret
+
+  # If the implementation chose to align mepc, mret will transfer control
+  # to this branch.  Otherwise, it will transfer control two bytes into
+  # the branch, which happens to be the illegal instruction c.unimp.
+  # But c.unimp should not be executed, since the PC is misaligned.
+  beqz x0, 1f
+1:
+  j 2f
+
+test8_handler:
+  # verify trap cause
+  li a1, CAUSE_MISALIGNED_FETCH
+  csrr a0, mcause
+  bne a0, a1, fail
+
+  # check that mepc == t0, and advance mepc past the misalignment
+  csrr a0, mepc
+  bne a0, t0, fail
+  addi a0, a0, 2
+  csrw mepc, a0
+
+  # check that badaddr == t0 or zero
+  csrr a0, mbadaddr
+  beqz a0, 1f
+  bne a0, t0, fail
+1:
+  mret
+
+2:
+#endif
+
   j pass
 
   TEST_PASSFAIL
@@ -113,7 +187,7 @@ RVTEST_CODE_BEGIN
   .align 2
   .global stvec_handler
 stvec_handler:
-  # tests 2, 4, 5, and 6 should trap
+  # tests 2, 4, 5, 6, and 8 should trap
   li a0, 2
   beq TESTNUM, a0, 1f
   li a0, 4
@@ -122,6 +196,10 @@ stvec_handler:
   beq TESTNUM, a0, 1f
   li a0, 6
   beq TESTNUM, a0, 1f
+#ifdef __MACHINE_MODE
+  li a0, 8
+  beq TESTNUM, a0, test8_handler
+#endif
   j fail
 1:
 
