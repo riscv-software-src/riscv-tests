@@ -117,6 +117,7 @@ class Spike(object):
             isa = "RV%dG" % harts[0].xlen
 
         cmd += ["--isa", isa]
+        cmd += ["--debug-auth"]
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
