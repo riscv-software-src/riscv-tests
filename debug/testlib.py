@@ -118,6 +118,7 @@ class Spike(object):
             isa = "RV%dG" % harts[0].xlen
 
         cmd += ["--isa", isa]
+        cmd += ["--debug-auth"]
 
         if not self.progbufsize is None:
             cmd += ["--progsize", str(self.progbufsize)]
