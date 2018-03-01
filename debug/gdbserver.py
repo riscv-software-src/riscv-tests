@@ -136,6 +136,19 @@ class SimpleF18Test(SimpleRegisterTest):
     def test(self):
         self.check_reg("f18", "fs2")
 
+class SimpleNoExistTest(GdbTest):
+    def test(self):
+        try:
+            self.gdb.p("$csr2288")
+            assert False, "Reading csr2288 should have failed"
+        except testlib.CouldNotFetch:
+            pass
+        try:
+            self.gdb.p("$csr2288=5")
+            assert False, "Writing csr2288 should have failed"
+        except testlib.CouldNotFetch:
+            pass
+
 class SimpleMemoryTest(GdbTest):
     def access_test(self, size, data_type):
         assertEqual(self.gdb.p("sizeof(%s)" % data_type), size)
