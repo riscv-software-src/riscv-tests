@@ -643,6 +643,7 @@ def run_tests(parsed, target, todo):
         try:
             result = instance.run()
             log_fd.write("Result: %s\n" % result)
+            log_fd.write("Logfile: %s\n" % log_name)
         finally:
             sys.stdout = real_stdout
             log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
