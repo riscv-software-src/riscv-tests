@@ -424,7 +424,7 @@ class Gdb(object):
         h = self.harts[hart.id]
         self.select_child(h['child'])
         if not h['solo']:
-            output = self.command("thread %s" % h['thread'].id, timeout=10)
+            output = self.command("thread %s" % h['thread'].id, ops=5)
             assert "Unknown" not in output
 
     def push_state(self):
@@ -440,8 +440,11 @@ class Gdb(object):
         """Wait for prompt."""
         self.active_child.expect(r"\(gdb\)")
 
-    def command(self, command, timeout=6000):
-        """timeout is in seconds"""
+    def command(self, command, ops=1):
+        """ops is the estimated number of operations gdb will have to perform
+        to perform this command. It is used to compute a timeout based on
+        self.timeout."""
+        timeout = ops * self.timeout
         self.active_child.sendline(command)
         self.active_child.expect("\n", timeout=timeout)
         self.active_child.expect(r"\(gdb\)", timeout=timeout)
@@ -454,7 +457,7 @@ class Gdb(object):
                 self.select_child(child)
                 self.command(command)
 
-    def c(self, wait=True, timeout=-1, async=False):
+    def c(self, wait=True, async=False):
         """
         Dumb c command.
         In RTOS mode, gdb will resume all harts.
@@ -465,13 +468,14 @@ class Gdb(object):
             async = "&"
         else:
             async = ""
+        ops = 10
         if wait:
-            output = self.command("c%s" % async, timeout=timeout)
+            output = self.command("c%s" % async, ops=ops)
             assert "Continuing" in output
             return output
         else:
             self.active_child.sendline("c%s" % async)
-            self.active_child.expect("Continuing")
+            self.active_child.expect("Continuing", timeout=ops * self.timeout)
 
     def c_all(self):
         """
@@ -538,28 +542,28 @@ class Gdb(object):
         return value
 
     def stepi(self):
-        output = self.command("stepi", timeout=60)
+        output = self.command("stepi", ops=10)
         return output
 
     def load(self):
-        output = self.command("load", timeout=6000)
+        output = self.command("load", ops=1000)
         assert "failed" not in  output
         assert "Transfer rate" in output
 
     def b(self, location):
-        output = self.command("b %s" % location)
+        output = self.command("b %s" % location, ops=5)
         assert "not defined" not in output
         assert "Breakpoint" in output
         return output
 
     def hbreak(self, location):
-        output = self.command("hbreak %s" % location)
+        output = self.command("hbreak %s" % location, ops=5)
         assert "not defined" not in output
         assert "Hardware assisted breakpoint" in output
         return output
 
     def threads(self):
-        output = self.command("info threads")
+        output = self.command("info threads", ops=100)
         threads = []
         for line in output.splitlines():
             m = re.match(
@@ -842,8 +846,8 @@ class GdbTest(BaseTest):
         if not self.gdb:
             return
         self.gdb.interrupt()
-        self.gdb.command("disassemble")
-        self.gdb.command("info registers all", timeout=10)
+        self.gdb.command("disassemble", ops=20)
+        self.gdb.command("info registers all", ops=100)
 
     def classTeardown(self):
         del self.gdb
