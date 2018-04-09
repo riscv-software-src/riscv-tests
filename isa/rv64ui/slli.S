@@ -36,9 +36,9 @@ RVTEST_CODE_BEGIN
   TEST_IMM_OP( 16, slli, 0x1090909080000000, 0x0000000021212121, 31 );
 
 #if __riscv_xlen == 64
-  TEST_RR_OP( 50, sll, 0x8000000000000000, 0x0000000000000001, 63 );
-  TEST_RR_OP( 51, sll, 0xffffff8000000000, 0xffffffffffffffff, 39 );
-  TEST_RR_OP( 52, sll, 0x0909080000000000, 0x0000000021212121, 43 );
+  TEST_IMM_OP( 50, slli, 0x8000000000000000, 0x0000000000000001, 63 );
+  TEST_IMM_OP( 51, slli, 0xffffff8000000000, 0xffffffffffffffff, 39 );
+  TEST_IMM_OP( 52, slli, 0x0909080000000000, 0x0000000021212121, 43 );
 #endif
 
   #-------------------------------------------------------------
