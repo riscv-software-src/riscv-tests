@@ -835,7 +835,7 @@ class DownloadTest(GdbTest):
     def test(self):
         self.gdb.load()
         self.gdb.command("b _exit")
-        self.gdb.c(timeout=60)
+        self.gdb.c()
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 
