@@ -594,8 +594,12 @@ class PrivateState(object):
         self.gdb.pop_state()
 
 def run_all_tests(module, target, parsed):
-    if not os.path.exists(parsed.logs):
+    try:
         os.makedirs(parsed.logs)
+    except OSError:
+        # There's a race where multiple instances of the test program might
+        # decide to create the logs directory at the same time.
+        pass
 
     overall_start = time.time()
 
