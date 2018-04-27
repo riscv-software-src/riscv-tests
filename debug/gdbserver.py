@@ -881,6 +881,13 @@ class PrivRw(PrivTest):
             # PMP registers are optional
             pass
 
+        # Ensure Virtual Memory is disabled if applicable (SATP register is not reset)
+        try:
+           self.gdb.p("$satp=0")
+        except testlib.CouldNotFetch:
+           # SATP only exists if you have S mode.
+           pass
+        
         # Leave the PC at _start, where the first 4 instructions should be
         # legal in any mode.
         for privilege in range(4):
