@@ -106,6 +106,7 @@ wait_until_initialized:      # Wait for hart 0 to perform initialization.
   j     _init
 
 
+.align 2
 trap_entry:
   addi sp, sp, -32*REGBYTES
 
