@@ -82,6 +82,6 @@ RVTEST_DATA_BEGIN
 coreid: .word 0
 barrier: .word 0
 foo: .word 0
-.align 10
+.skip 1024
 fooTest3: .word 0
 RVTEST_DATA_END
