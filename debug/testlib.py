@@ -861,10 +861,8 @@ class GdbTest(BaseTest):
         del self.gdb
         BaseTest.classTeardown(self)
 
-class GdbSingleHartTest(GdbTest):
-    def classSetup(self):
-        GdbTest.classSetup(self)
-
+    def parkOtherHarts(self):
+        """Park harts besides the currently selected one in loop_forever()."""
         for hart in self.target.harts:
             # Park all harts that we're not using in a safe place.
             if hart != self.hart:
@@ -872,6 +870,11 @@ class GdbSingleHartTest(GdbTest):
                 self.gdb.p("$pc=loop_forever")
 
         self.gdb.select_hart(self.hart)
+
+class GdbSingleHartTest(GdbTest):
+    def classSetup(self):
+        GdbTest.classSetup(self)
+        self.parkOtherHarts()
 
 class ExamineTarget(GdbTest):
     def test(self):
