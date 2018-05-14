@@ -835,13 +835,22 @@ class DownloadTest(GdbTest):
         self.gdb.command("file %s" % self.binary)
 
     def test(self):
-        self.gdb.load()
-        # Some hart will get there first! Let them race in RTOS mode.
-        for hart in self.target.harts:
-            self.gdb.select_hart(hart)
-            self.gdb.p("$pc=_start")
-            self.gdb.command("b _exit")
-
+        # Some hart will compete the CRC calculation first!
+        # Let them race in RTOS mode.
+        # In non-RTOS mode, only one hart will continue.
+        # This loop will fail because the others won't know 
+        # about '_start'. But if that is the case, they
+        # won't run on the `continue` either, so we don't really care.
+        try:
+            self.gdb.load()
+            for hart in self.target.harts:
+                self.gdb.select_hart(hart)
+                self.gdb.p("$pc=_start")
+        except ValueError: #invalid literal for int() with base 0: 'No symbol table is loaded.  Use the "file" command.'
+            pass
+        finally:
+            
+        self.gdb.select_hart(self.hart)
         self.gdb.c()
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
