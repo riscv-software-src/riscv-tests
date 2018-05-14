@@ -830,10 +830,11 @@ class DownloadTest(GdbTest):
 
         self.binary = self.target.compile(self.hart, self.download_c.name,
                 "programs/checksum.c")
-        self.gdb.command("file %s" % self.binary)
+        self.gdb.global_command("file %s" % self.binary)
 
     def test(self):
         self.gdb.load()
+        self.parkOtherHarts()
         self.gdb.command("b _exit")
         self.gdb.c()
         assertEqual(self.gdb.p("status"), self.crc)
