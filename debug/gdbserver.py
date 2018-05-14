@@ -351,9 +351,7 @@ class DebugSymbols(DebugTest):
 
 class DebugBreakpoint(DebugTest):
     def test(self):
-
         self.gdb.b("rot13")
-
         # The breakpoint should be hit exactly 2 times.
         for _ in range(2):
             output = self.gdb.c()
