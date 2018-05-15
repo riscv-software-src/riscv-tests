@@ -549,6 +549,8 @@ class Gdb(object):
         output = self.command("load", ops=1000)
         assert "failed" not in  output
         assert "Transfer rate" in output
+        output = self.command("compare-sections", ops=1000)
+        assert "MIS" not in output
 
     def b(self, location):
         output = self.command("b %s" % location, ops=5)
@@ -852,21 +854,27 @@ class GdbTest(BaseTest):
         self.gdb.interrupt()
         self.gdb.command("disassemble", ops=20)
         self.gdb.command("info registers all", ops=100)
+        self.gdb.command("flush regs")
+        self.gdb.command("info threads", ops=100)
 
     def classTeardown(self):
         del self.gdb
         BaseTest.classTeardown(self)
 
-class GdbSingleHartTest(GdbTest):
-    def classSetup(self):
-        GdbTest.classSetup(self)
-
+    def parkOtherHarts(self):
+        """Park harts besides the currently selected one in loop_forever()."""
         for hart in self.target.harts:
             # Park all harts that we're not using in a safe place.
             if hart != self.hart:
                 self.gdb.select_hart(hart)
                 self.gdb.p("$pc=loop_forever")
+
         self.gdb.select_hart(self.hart)
+
+class GdbSingleHartTest(GdbTest):
+    def classSetup(self):
+        GdbTest.classSetup(self)
+        self.parkOtherHarts()
 
 class ExamineTarget(GdbTest):
     def test(self):

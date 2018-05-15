@@ -615,7 +615,7 @@ class MulticoreRunAllHaltOne(GdbTest):
         time.sleep(1)
         self.gdb.p("buf", fmt="")
 
-class StepTest(GdbTest):
+class StepTest(GdbSingleHartTest):
     compile_args = ("programs/step.S", )
 
     def setup(self):
@@ -634,7 +634,7 @@ class StepTest(GdbTest):
             pc = self.gdb.p("$pc")
             assertEqual("%x" % (pc - main_address), "%x" % expected)
 
-class TriggerTest(GdbTest):
+class TriggerTest(GdbSingleHartTest):
     compile_args = ("programs/trigger.S", )
     def setup(self):
         self.gdb.load()
@@ -753,7 +753,7 @@ class TriggerDmode(TriggerTest):
         assertIn("clear_triggers", output)
         self.check_triggers((1<<6) | (1<<0), 0xfeedac00)
 
-class RegsTest(GdbTest):
+class RegsTest(GdbSingleHartTest):
     compile_args = ("programs/regs.S", )
     def setup(self):
         self.gdb.load()
@@ -830,16 +830,17 @@ class DownloadTest(GdbTest):
 
         self.binary = self.target.compile(self.hart, self.download_c.name,
                 "programs/checksum.c")
-        self.gdb.command("file %s" % self.binary)
+        self.gdb.global_command("file %s" % self.binary)
 
     def test(self):
         self.gdb.load()
+        self.parkOtherHarts()
         self.gdb.command("b _exit")
         self.gdb.c()
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 
-#class MprvTest(GdbTest):
+#class MprvTest(GdbSingleHartTest):
 #    compile_args = ("programs/mprv.S", )
 #    def setup(self):
 #        self.gdb.load()
@@ -852,7 +853,7 @@ class DownloadTest(GdbTest):
 #        output = self.gdb.command("p/x *(int*)(((char*)&data)-0x80000000)")
 #        assertIn("0xbead", output)
 
-class PrivTest(GdbTest):
+class PrivTest(GdbSingleHartTest):
     compile_args = ("programs/priv.S", )
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
