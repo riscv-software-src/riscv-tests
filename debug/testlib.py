@@ -477,7 +477,7 @@ class Gdb(object):
             self.active_child.sendline("c%s" % async)
             self.active_child.expect("Continuing", timeout=ops * self.timeout)
 
-    def c_all(self):
+    def c_all(self, wait=True):
         """
         Resume every hart.
 
@@ -494,14 +494,19 @@ class Gdb(object):
                 child.sendline("c")
                 child.expect("Continuing")
 
-            # Now wait for them all to halt
-            for child in self.children:
-                child.expect(r"\(gdb\)")
+            if wait:
+                for child in self.children:
+                    child.expect(r"\(gdb\)")
 
     def interrupt(self):
         self.active_child.send("\003")
         self.active_child.expect(r"\(gdb\)", timeout=6000)
         return self.active_child.before.strip()
+
+    def interrupt_all(self):
+        for child in self.children:
+            self.select_child(child)
+            self.interrupt()
 
     def x(self, address, size='w'):
         output = self.command("x/%s %s" % (size, address))
