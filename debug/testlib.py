@@ -660,6 +660,8 @@ def run_tests(parsed, target, todo):
             result = instance.run()
             log_fd.write("Result: %s\n" % result)
             log_fd.write("Logfile: %s\n" % log_name)
+            log_fd.write("Reproduce: %s %s %s\n" % (sys.argv[0], parsed.target,
+                name))
         finally:
             sys.stdout = real_stdout
             log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
