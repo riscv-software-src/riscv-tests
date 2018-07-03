@@ -692,7 +692,8 @@ class TriggerLoadAddressInstant(TriggerTest):
         self.gdb.c()
         read_loop = self.gdb.p("&read_loop")
         read_again = self.gdb.p("&read_again")
-        self.gdb.command("rwatch data")
+        data = self.gdb.p("&data")
+        self.gdb.command("rwatch *0x%x" % data)
         self.gdb.c()
         # Accept hitting the breakpoint before or after the load instruction.
         assertIn(self.gdb.p("$pc"), [read_loop, read_loop + 4])
@@ -719,7 +720,8 @@ class TriggerStoreAddressInstant(TriggerTest):
         self.gdb.command("b just_before_write_loop")
         self.gdb.c()
         write_loop = self.gdb.p("&write_loop")
-        self.gdb.command("watch data")
+        data = self.gdb.p("&data")
+        self.gdb.command("watch *0x%x" % data)
         self.gdb.c()
         # Accept hitting the breakpoint before or after the store instruction.
         assertIn(self.gdb.p("$pc"), [write_loop, write_loop + 4])
