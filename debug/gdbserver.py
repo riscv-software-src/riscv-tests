@@ -652,6 +652,29 @@ class StepTest(GdbSingleHartTest):
             pc = self.gdb.p("$pc")
             assertEqual("%x" % (pc - main_address), "%x" % expected)
 
+class JumpHbreak(GdbSingleHartTest):
+    """'jump' resumes execution at location. Execution stops again immediately
+    if there is a breakpoint there.
+    That second line can be trouble."""
+    compile_args = ("programs/trigger.S", )
+
+    def early_applicable(self):
+        return self.hart.instruction_hardware_breakpoint_count >= 1
+
+    def setup(self):
+        self.gdb.load()
+        self.gdb.hbreak("main")
+        self.gdb.c()
+        self.gdb.command("delete 1")
+
+    def test(self):
+        self.gdb.b("read_loop")
+        self.gdb.command("hbreak just_before_read_loop")
+        output = self.gdb.command("jump just_before_read_loop")
+        assertRegexpMatches(output, r"Breakpoint \d, just_before_read_loop ")
+        output = self.gdb.c()
+        assertRegexpMatches(output, r"Breakpoint \d, read_loop ")
+
 class TriggerTest(GdbSingleHartTest):
     compile_args = ("programs/trigger.S", )
     def setup(self):
