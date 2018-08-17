@@ -21,6 +21,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
+.global mtvec_handler
 mtvec_handler:
   # Trapping on test 3 is good.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.
