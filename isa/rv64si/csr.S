@@ -82,13 +82,13 @@ RVTEST_CODE_BEGIN
   beqz a0, finish # if no user mode, skip the rest of these checks
 #endif /* __MACHINE_MODE */
   la t0, user_mode_end
-  srli t0, t0, 2
+  srli t0, t0, PMP_SHIFT
   csrr t1, pmpcfg0
   csrw pmpaddr0, t0
   csrr t1, pmpaddr0
   bne t0, t1, fail
-  li t0, 0x07   # giving read, write and execute permissions
-  or t0, t0, 8  # setting mode to TOR
+  li t0, (PMP_R | PMP_W | PMP_X)   # giving read, write and execute permissions
+  or t0, t0, PMP_TOR  # setting mode to TOR
   li t1, 255
   csrrc t1, pmpcfg0, t1
   csrrs t1, pmpcfg0, t0
