@@ -95,8 +95,6 @@ RVTEST_CODE_BEGIN
   andi  t1, t1, 255
   bne t0, t1, fail
 #endif /* __MACHINE_MODE */
-  .global no_pmp_implemented
-  no_pmp_implemented:
 
   # jump to user land
   li t0, SSTATUS_SPP
