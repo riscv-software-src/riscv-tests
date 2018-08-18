@@ -80,7 +80,6 @@ RVTEST_CODE_BEGIN
   srli a0, a0, 20 # a0 = a0 >> 20
   andi a0, a0, 1  # a0 = a0 & 1
   beqz a0, finish # if no user mode, skip the rest of these checks
-#endif /* __MACHINE_MODE */
   la t0, user_mode_end
   srli t0, t0, PMP_SHIFT
   csrr t1, pmpcfg0
@@ -95,6 +94,7 @@ RVTEST_CODE_BEGIN
   csrr  t1, pmpcfg0
   andi  t1, t1, 255
   bne t0, t1, fail
+#endif /* __MACHINE_MODE */
   .global no_pmp_implemented
   no_pmp_implemented:
 
