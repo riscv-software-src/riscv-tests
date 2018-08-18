@@ -81,6 +81,22 @@ RVTEST_CODE_BEGIN
   andi a0, a0, 1  # a0 = a0 & 1
   beqz a0, finish # if no user mode, skip the rest of these checks
 #endif /* __MACHINE_MODE */
+  la t0, user_mode_end
+  srli t0, t0, 2
+  csrr t1, pmpcfg0
+  csrw pmpaddr0, t0
+  csrr t1, pmpaddr0
+  bne t0, t1, fail
+  li t0, 0x07   # giving read, write and execute permissions
+  or t0, t0, 8  # setting mode to TOR
+  li t1, 255
+  csrrc t1, pmpcfg0, t1
+  csrrs t1, pmpcfg0, t0
+  csrr  t1, pmpcfg0
+  andi  t1, t1, 255
+  bne t0, t1, fail
+  .global no_pmp_implemented
+  no_pmp_implemented:
 
   # jump to user land
   li t0, SSTATUS_SPP
@@ -103,10 +119,15 @@ RVTEST_CODE_BEGIN
 #else
   TEST_CASE(12, x0, 0, nop)
 #endif
-
+  scall
 finish:
   RVTEST_PASS
 
+  .align 2
+  .global user_mode_end
+user_mode_end:
+  nop
+  
   # We should only fall through to this if scall failed.
   TEST_PASSFAIL
 
