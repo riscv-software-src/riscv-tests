@@ -34,8 +34,8 @@ RVTEST_CODE_BEGIN
   # Otherwise, if in S mode, then U mode must exist and we don't need to check.
   li t0, MSTATUS_MPP
   csrc mstatus, t0
-  csrr t1, mstatus
-  and t0, t0, t1
+  csrr t2, mstatus
+  and t0, t0, t2
   beqz t0, 1f
 
   # If U mode doesn't exist, mcause should indicate ECALL from M mode.
