@@ -552,58 +552,58 @@ class MulticoreRegTest(GdbTest):
                 value = self.gdb.p("$x%d" % n)
                 assertEqual(value, hart.index * 0x800 + n - 1)
 
-class MulticoreRunHaltStepiTest(GdbTest):
-    compile_args = ("programs/multicore.c", "-DMULTICORE")
-
-    def early_applicable(self):
-        return len(self.target.harts) > 1
-
-    def setup(self):
-        self.gdb.load()
-        for hart in self.target.harts:
-            self.gdb.select_hart(hart)
-            self.gdb.p("$mhartid")
-            self.gdb.p("$pc=_start")
-
-    def test(self):
-        previous_hart_count = [0 for h in self.target.harts]
-        previous_interrupt_count = [0 for h in self.target.harts]
-        # Check 10 times
-        for i in range(10):
-            # 3 attempts for each time we want the check to pass
-            for attempt in range(3):
-                self.gdb.global_command("echo round %d attempt %d\\n" % (i,
-                    attempt))
-                self.gdb.c_all(wait=False)
-                time.sleep(2)
-                self.gdb.interrupt_all()
-                hart_count = self.gdb.p("hart_count")
-                interrupt_count = self.gdb.p("interrupt_count")
-                ok = True
-                for i, h in enumerate(self.target.harts):
-                    if hart_count[i] <= previous_hart_count[i]:
-                        ok = False
-                        break
-                    if interrupt_count[i] <= previous_interrupt_count[i]:
-                        ok = False
-                        break
-                    self.gdb.p("$mie")
-                    self.gdb.p("$mip")
-                    self.gdb.p("$mstatus")
-                    self.gdb.p("$priv")
-                    self.gdb.p("buf", fmt="")
-                    self.gdb.select_hart(h)
-                    pc = self.gdb.p("$pc")
-                    self.gdb.stepi()
-                    stepped_pc = self.gdb.p("$pc")
-                    assertNotEqual(pc, stepped_pc)
-                previous_hart_count = hart_count
-                previous_interrupt_count = interrupt_count
-                if ok:
-                    break
-            else:
-                assert False, \
-                        "hart count or interrupt didn't increment as expected"
+#class MulticoreRunHaltStepiTest(GdbTest):
+#    compile_args = ("programs/multicore.c", "-DMULTICORE")
+#
+#    def early_applicable(self):
+#        return len(self.target.harts) > 1
+#
+#    def setup(self):
+#        self.gdb.load()
+#        for hart in self.target.harts:
+#            self.gdb.select_hart(hart)
+#            self.gdb.p("$mhartid")
+#            self.gdb.p("$pc=_start")
+#
+#    def test(self):
+#        previous_hart_count = [0 for h in self.target.harts]
+#        previous_interrupt_count = [0 for h in self.target.harts]
+#        # Check 10 times
+#        for i in range(10):
+#            # 3 attempts for each time we want the check to pass
+#            for attempt in range(3):
+#                self.gdb.global_command("echo round %d attempt %d\\n" % (i,
+#                    attempt))
+#                self.gdb.c_all(wait=False)
+#                time.sleep(2)
+#                self.gdb.interrupt_all()
+#                hart_count = self.gdb.p("hart_count")
+#                interrupt_count = self.gdb.p("interrupt_count")
+#                ok = True
+#                for i, h in enumerate(self.target.harts):
+#                    if hart_count[i] <= previous_hart_count[i]:
+#                        ok = False
+#                        break
+#                    if interrupt_count[i] <= previous_interrupt_count[i]:
+#                        ok = False
+#                        break
+#                    self.gdb.p("$mie")
+#                    self.gdb.p("$mip")
+#                    self.gdb.p("$mstatus")
+#                    self.gdb.p("$priv")
+#                    self.gdb.p("buf", fmt="")
+#                    self.gdb.select_hart(h)
+#                    pc = self.gdb.p("$pc")
+#                    self.gdb.stepi()
+#                    stepped_pc = self.gdb.p("$pc")
+#                    assertNotEqual(pc, stepped_pc)
+#                previous_hart_count = hart_count
+#                previous_interrupt_count = interrupt_count
+#                if ok:
+#                    break
+#            else:
+#                assert False, \
+#                        "hart count or interrupt didn't increment as expected"
 
 class MulticoreRunAllHaltOne(GdbTest):
     compile_args = ("programs/multicore.c", "-DMULTICORE")
