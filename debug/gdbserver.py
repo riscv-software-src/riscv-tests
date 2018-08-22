@@ -633,6 +633,34 @@ class MulticoreRunAllHaltOne(GdbTest):
         time.sleep(1)
         self.gdb.p("buf", fmt="")
 
+class MulticoreRtosSwitchActiveHartTest(GdbTest):
+    compile_args = ("programs/multicore.c", "-DMULTICORE")
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
+    def setup(self):
+        self.gdb.select_hart(self.target.harts[0])
+        self.gdb.load()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.p("$pc=_start")
+
+    def test(self):
+        if self.gdb.one_hart_per_gdb():
+            return 'not_applicable'
+
+        # Set breakpoint near '_start' label to increase the chances of a situation
+        # when all harts hit breakpoint immediately and simultaneously.
+        self.gdb.b("set_trap_handler")
+
+        # Check that all harts hit breakpoint one by one.
+        for _ in range(len(self.target.harts)):
+            output = self.gdb.c()
+            assertIn("hit Breakpoint", output)
+            assertIn("set_trap_handler", output)
+            assertNotIn("received signal SIGTRAP", output)
+
 class StepTest(GdbSingleHartTest):
     compile_args = ("programs/step.S", )
 
