@@ -650,8 +650,9 @@ class MulticoreRtosSwitchActiveHartTest(GdbTest):
         if self.gdb.one_hart_per_gdb():
             return 'not_applicable'
 
-        # Set breakpoint near '_start' label to increase the chances of a situation
-        # when all harts hit breakpoint immediately and simultaneously.
+        # Set breakpoint near '_start' label to increase the chances of a
+        # situation when all harts hit breakpoint immediately and
+        # simultaneously.
         self.gdb.b("set_trap_handler")
 
         # Check that all harts hit breakpoint one by one.
