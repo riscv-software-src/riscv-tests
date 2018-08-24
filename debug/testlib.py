@@ -299,7 +299,13 @@ class Openocd(object):
 
     def __del__(self):
         try:
-            self.process.kill()
+            self.process.terminate()
+            start = time.time()
+            while time.time() < start + 10000:
+                if self.process.poll():
+                    break
+            else:
+                self.process.kill()
             self.process.wait()
         except (OSError, AttributeError):
             pass
@@ -715,11 +721,14 @@ def header(title, dash='-', length=78):
     else:
         print dash * length
 
-def print_log(path):
-    header(path)
-    for l in open(path, "r"):
+def print_log_handle(name, handle):
+    header(name)
+    for l in handle:
         sys.stdout.write(l)
     print
+
+def print_log(path):
+    print_log_handle(path, open(path, "r"))
 
 class BaseTest(object):
     compiled = {}
@@ -816,10 +825,15 @@ class BaseTest(object):
             return result
 
         finally:
+            # Get handles to logs before the files are deleted.
+            logs = []
             for log in self.logs:
-                print_log(log)
-            header("End of logs")
+                logs.append((log, open(log, "r")))
+
             self.classTeardown()
+            for name, handle in logs:
+                print_log_handle(name, handle)
+            header("End of logs")
 
         if not result:
             result = 'pass'
