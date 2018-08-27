@@ -12,7 +12,8 @@ import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegexpMatches, assertLess
-from testlib import GdbTest, GdbSingleHartTest, TestFailed, assertTrue
+from testlib import GdbTest, GdbSingleHartTest, TestFailed
+#from testlib import assertTrue
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
