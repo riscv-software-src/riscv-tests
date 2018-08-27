@@ -7,6 +7,7 @@ class spike64_2_rtos(targets.Target):
     harts = [spike64.spike64_hart(), spike64.spike64_hart()]
     openocd_config_path = "spike-rtos.cfg"
     timeout_sec = 60
+    implements_custom_test = True
 
     def create(self):
         return testlib.Spike(self)

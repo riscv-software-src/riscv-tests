@@ -13,6 +13,7 @@ class spike32(targets.Target):
     harts = [spike32_hart()]
     openocd_config_path = "spike-1.cfg"
     timeout_sec = 30
+    implements_custom_test = True
 
     def create(self):
         # 64-bit FPRs on 32-bit target

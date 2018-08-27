@@ -137,6 +137,36 @@ class SimpleF18Test(SimpleRegisterTest):
     def test(self):
         self.check_reg("f18", "fs2")
 
+class CustomRegisterTest(SimpleRegisterTest):
+    def early_applicable(self):
+        return self.target.implements_custom_test
+
+    def check_custom(self, magic):
+        regs = self.gdb.info_registers("custom")
+        assertEqual(set(regs.keys()),
+                set(("custom1",
+                    "custom12345",
+                    "custom12346",
+                    "custom12347",
+                    "custom12348")))
+        for name, value in regs.iteritems():
+            number = int(name[6:])
+            if number % 2:
+                expect = number + magic
+                assertIn(value, (expect, expect + (1<<32)))
+            else:
+                assertIn("Could not fetch register", value)
+
+    def test(self):
+        self.check_custom(0)
+
+        # Now test writing
+        magic = 6667
+        self.gdb.p("$custom12345=%d" % (12345 + magic))
+        self.gdb.stepi()
+
+        self.check_custom(magic)
+
 class SimpleNoExistTest(GdbTest):
     def test(self):
         try:

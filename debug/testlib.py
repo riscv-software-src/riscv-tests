@@ -552,6 +552,18 @@ class Gdb(object):
         value = shlex.split(output.split('=')[-1].strip())[1]
         return value
 
+    def info_registers(self, group):
+        output = self.command("info registers %s" % group)
+        result = {}
+        for line in output.splitlines():
+            if "Could not fetch" in line:
+                name, value = line.split(None, 1)
+            else:
+                name, hex_value, _ = line.split(None, 2)
+                value = int(hex_value, 0)
+            result[name] = value
+        return result
+
     def stepi(self):
         output = self.command("stepi", ops=10)
         return output
