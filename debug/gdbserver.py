@@ -142,7 +142,8 @@ class CustomRegisterTest(SimpleRegisterTest):
         return self.target.implements_custom_test
 
     def check_custom(self, magic):
-        regs = self.gdb.info_registers("custom")
+        regs = {k: v for k, v in self.gdb.info_registers("all").iteritems()
+                if k.startswith("custom")}
         assertEqual(set(regs.keys()),
                 set(("custom1",
                     "custom12345",

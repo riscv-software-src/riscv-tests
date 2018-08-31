@@ -556,12 +556,12 @@ class Gdb(object):
         output = self.command("info registers %s" % group)
         result = {}
         for line in output.splitlines():
+            parts = line.split()
+            name = parts[0]
             if "Could not fetch" in line:
-                name, value = line.split(None, 1)
+                result[name] = " ".join(parts[1:])
             else:
-                name, hex_value, _ = line.split(None, 2)
-                value = int(hex_value, 0)
-            result[name] = value
+                result[name] = int(parts[1], 0)
         return result
 
     def stepi(self):
