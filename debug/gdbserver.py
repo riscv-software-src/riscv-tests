@@ -13,7 +13,7 @@ import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegexpMatches, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
-#from testlib import assertTrue
+from testlib import assertTrue
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -985,9 +985,6 @@ class PrivTest(GdbSingleHartTest):
             self.supported.add(2)
         self.supported.add(3)
 
-class PrivRw(PrivTest):
-    def test(self):
-        """Test reading/writing priv."""
         # Disable physical memory protection by allowing U mode access to all
         # memory.
         try:
@@ -1006,6 +1003,9 @@ class PrivRw(PrivTest):
             # SATP only exists if you have S mode.
             pass
 
+class PrivRw(PrivTest):
+    def test(self):
+        """Test reading/writing priv."""
         # Leave the PC at _start, where the first 4 instructions should be
         # legal in any mode.
         for privilege in range(4):
@@ -1016,29 +1016,28 @@ class PrivRw(PrivTest):
             if privilege in self.supported:
                 assertEqual(actual, privilege)
 
-# XXX temporarily disabling this test
-#class PrivChange(PrivTest):
-#    def test(self):
-#        """Test that the core's privilege level actually changes."""
-#
-#        if 0 not in self.supported:
-#            return 'not_applicable'
-#
-#        self.gdb.b("main")
-#        self.gdb.c()
-#
-#        # Machine mode
-#        self.gdb.p("$priv=3")
-#        main_address = self.gdb.p("$pc")
-#        self.gdb.stepi()
-#        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
-#
-#        # User mode
-#        self.gdb.p("$priv=0")
-#        self.gdb.stepi()
-#        # Should have taken an exception, so be nowhere near main.
-#        pc = self.gdb.p("$pc")
-#        assertTrue(pc < main_address or pc > main_address + 0x100)
+class PrivChange(PrivTest):
+    def test(self):
+        """Test that the core's privilege level actually changes."""
+
+        if 0 not in self.supported:
+            return 'not_applicable'
+
+        self.gdb.b("main")
+        self.gdb.c()
+
+        # Machine mode
+        self.gdb.p("$priv=3")
+        main_address = self.gdb.p("$pc")
+        self.gdb.stepi()
+        assertEqual("%x" % self.gdb.p("$pc"), "%x" % (main_address+4))
+
+        # User mode
+        self.gdb.p("$priv=0")
+        self.gdb.stepi()
+        # Should have taken an exception, so be nowhere near main.
+        pc = self.gdb.p("$pc")
+        assertTrue(pc < main_address or pc > main_address + 0x100)
 
 parsed = None
 def main():
