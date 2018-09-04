@@ -1015,6 +1015,32 @@ class PrivRw(PrivTest):
             if privilege in self.supported:
                 assertEqual(actual, privilege)
 
+class ComplianceTest(GdbTest):
+
+    def test(self):
+        output = self.gdb.command("monitor riscv test_compliance")
+        #TODO: Fix OpenOCD to remove the -rtos riscv requirement
+        assert(("ALL TESTS PASSED") in output or ("Please run with -rtos riscv to run compliance test.") in output)
+
+    def compile(self):
+        pass
+
+class SystemBusAccessConfigRegTest(GdbTest):
+
+    def test(self):
+        result = self.gdb.command("monitor riscv dmi_read 0x38")
+        if (int(result, base=16) == 0):
+            return 'not_applicable'
+        
+        self.gdb.command("monitor riscv set_prefer_sba on")
+        command = "monitor riscv test_sba_config_reg 0x%08x %d 0x%08x off" % (
+            self.target.harts[0].ram,                # base address to target
+            min(self.target.harts[0].ram_size, 100), # size to target
+            self.target.harts[0].ram - 4)            # Illegal region to target
+        print command
+        output = self.gdb.command(command)
+        assert("ALL TESTS PASSED") in output
+        
 # XXX temporarily disabling this test
 #class PrivChange(PrivTest):
 #    def test(self):
