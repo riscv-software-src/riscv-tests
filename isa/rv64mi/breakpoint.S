@@ -29,7 +29,7 @@ RVTEST_CODE_BEGIN
 
   la a2, 1f
   csrw tdata2, a2
-  li a0, MCONTROL_M | MCONTROL_EXECUTE
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_EXECUTE
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
