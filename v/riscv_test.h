@@ -15,6 +15,10 @@
 #undef RVTEST_CODE_BEGIN
 #define RVTEST_CODE_BEGIN                                               \
         .text;                                                          \
+        .global extra_boot;                                             \
+extra_boot:                                                             \
+        EXTRA_INIT                                                      \
+        ret;                                                            \
         .global userstart;                                              \
 userstart:                                                              \
         init
