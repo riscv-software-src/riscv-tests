@@ -35,6 +35,13 @@ RVTEST_CODE_BEGIN
   TEST_IMM_OP( 15, sraiw, 0xfffffffffffe0606, 0xffffffff81818181, 14 );
   TEST_IMM_OP( 16, sraiw, 0xffffffffffffffff, 0xffffffff81818181, 31 );
 
+  # Verify that shifts ignore top 32 (using true 64-bit values)
+
+  TEST_IMM_OP( 44, sraiw, 0x0000000012345678, 0xffffffff12345678, 0 );
+  TEST_IMM_OP( 45, sraiw, 0x0000000001234567, 0xffffffff12345678, 4 );
+  TEST_IMM_OP( 46, sraiw, 0xffffffff92345678, 0x0000000092345678, 0 );
+  TEST_IMM_OP( 47, sraiw, 0xfffffffff9234567, 0x0000000092345678, 4 );
+
   #-------------------------------------------------------------
   # Source/Destination tests
   #-------------------------------------------------------------
