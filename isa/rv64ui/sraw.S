@@ -43,6 +43,13 @@ RVTEST_CODE_BEGIN
   TEST_RR_OP( 20, sraw, 0xfffffffffffe0606, 0xffffffff81818181, 0xffffffffffffffee );
   TEST_RR_OP( 21, sraw, 0xffffffffffffffff, 0xffffffff81818181, 0xffffffffffffffff );
 
+  # Verify that shifts ignore top 32 (using true 64-bit values)
+
+  TEST_RR_OP( 44, sraw, 0x0000000012345678, 0xffffffff12345678, 0 );
+  TEST_RR_OP( 45, sraw, 0x0000000001234567, 0xffffffff12345678, 4 );
+  TEST_RR_OP( 46, sraw, 0xffffffff92345678, 0x0000000092345678, 0 );
+  TEST_RR_OP( 47, sraw, 0xfffffffff9234567, 0x0000000092345678, 4 );
+
   #-------------------------------------------------------------
   # Source/Destination tests
   #-------------------------------------------------------------
