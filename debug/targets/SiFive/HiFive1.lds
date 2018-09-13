@@ -34,3 +34,5 @@ SECTIONS
   /* End of uninitalized data segement */
   _end = .;
 }
+
+ASSERT(_end < 0x80004000, "program is too large")
