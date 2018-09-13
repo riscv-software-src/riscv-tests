@@ -191,6 +191,7 @@ loop_forever:
   j loop_forever
 
   // Fill the stack with data so we can see if it was overrun.
+  .section .data
   .align 4
 stack_bottom:
   .fill NHARTS * STACK_SIZE/4, 4, 0x22446688
