@@ -303,6 +303,62 @@ class InstantChangePc(GdbTest):
         self.gdb.stepi()
         assertEqual((self.hart.ram + 8), self.gdb.p("$pc"))
 
+class ProgramTest(GdbSingleHartTest):
+    # Include malloc so that gdb can make function calls. I suspect this malloc
+    # will silently blow through the memory set aside for it, so be careful.
+    compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+
+    def setup(self):
+        self.gdb.load()
+        self.gdb.b("_exit")
+
+    def exit(self, expected_result=10):
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
+        assertEqual(self.gdb.p("status"), expected_result)
+
+class ProgramHwWatchpoint(ProgramTest):
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+        self.gdb.watch("counter == 5")
+        # Currently the watchpoint is generating a trap at init and all updates
+        for _ in range(11):
+            output = self.gdb.c()
+            assertIn("Trace/breakpoint trap", output)
+        # The watchpoint is going out of scope
+        output = self.gdb.c()
+        assertIn("Watchpoint", output)
+        assertIn("deleted", output)
+        self.exit()
+
+class ProgramSwWatchpoint(ProgramTest):
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+        self.gdb.swatch("counter == 5")
+        # The watchpoint is triggered when the expression changes
+        output = self.gdb.c()
+        assertIn("Watchpoint", output)
+        assertIn("counter == 5", output)
+        output = self.gdb.p_raw("counter")
+        assertIn("5", output)
+        output = self.gdb.c()
+        assertIn("Watchpoint", output)
+        assertIn("counter == 5", output)
+        output = self.gdb.p_raw("counter")
+        assertIn("6", output)
+        output = self.gdb.c()
+        # The watchpoint is going out of scope
+        assertIn("Watchpoint", output)
+        assertIn("deleted", output)
+        self.exit()
+
 class DebugTest(GdbSingleHartTest):
     # Include malloc so that gdb can make function calls. I suspect this malloc
     # will silently blow through the memory set aside for it, so be careful.

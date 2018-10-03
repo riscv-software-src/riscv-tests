@@ -587,6 +587,21 @@ class Gdb(object):
         assert "Hardware assisted breakpoint" in output
         return output
 
+    def watch(self, expr):
+        output = self.command("watch %s" % expr, ops=5)
+        assert "not defined" not in output
+        assert "atchpoint" in output
+        return output
+
+    def swatch(self, expr):
+        hstate = self.command("show can-use-hw-watchpoints")
+        self.command("set can-use-hw-watchpoints 0")
+        output = self.command("watch %s" % expr, ops=5)
+        assert "not defined" not in output
+        assert "atchpoint" in output
+        self.command("set can-use-hw-watchpoints 1")
+        return output
+
     def threads(self):
         output = self.command("info threads", ops=100)
         threads = []
