@@ -662,29 +662,35 @@ def run_tests(parsed, target, todo):
     count = 0
 
     for name, definition, hart in todo:
-        log_name = os.path.join(parsed.logs, "%s-%s-%s.log" %
-                (time.strftime("%Y%m%d-%H%M%S"), type(target).__name__, name))
-        log_fd = open(log_name, 'w')
-        print "[%s] Starting > %s" % (name, log_name)
-        instance = definition(target, hart)
-        sys.stdout.flush()
-        log_fd.write("Test: %s\n" % name)
-        log_fd.write("Target: %s\n" % type(target).__name__)
-        start = time.time()
-        global real_stdout  # pylint: disable=global-statement
-        real_stdout = sys.stdout
-        sys.stdout = log_fd
-        try:
-            result = instance.run()
-            log_fd.write("Result: %s\n" % result)
-            log_fd.write("Logfile: %s\n" % log_name)
-            log_fd.write("Reproduce: %s %s %s\n" % (sys.argv[0], parsed.target,
-                name))
-        finally:
-            sys.stdout = real_stdout
-            log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
-            log_fd.flush()
-        print "[%s] %s in %.2fs" % (name, result, time.time() - start)
+        for attempt in range(5):
+            log_name = os.path.join(parsed.logs, "%s-%s-%s.log" %
+                    (time.strftime("%Y%m%d-%H%M%S"), type(target).__name__,
+                        name))
+            log_fd = open(log_name, 'w')
+            print "[%s] Starting attempt #%d > %s" % (name, attempt, log_name)
+            instance = definition(target, hart)
+            sys.stdout.flush()
+            log_fd.write("Test: %s\n" % name)
+            log_fd.write("Target: %s\n" % type(target).__name__)
+            start = time.time()
+            global real_stdout  # pylint: disable=global-statement
+            real_stdout = sys.stdout
+            sys.stdout = log_fd
+            try:
+                result = instance.run()
+                log_fd.write("Result: %s\n" % result)
+                log_fd.write("Logfile: %s\n" % log_name)
+                log_fd.write("Reproduce: %s %s %s\n" % (sys.argv[0],
+                    parsed.target,
+                    name))
+            finally:
+                sys.stdout = real_stdout
+                log_fd.write("Time elapsed: %.2fs\n" % (time.time() - start))
+                log_fd.flush()
+            print "[%s] %s in %.2fs" % (name, result, time.time() - start)
+            if result != 'usb-error':
+                # Retry usb errors.
+                break
         if result not in good_results and parsed.print_failures:
             sys.stdout.write(open(log_name).read())
         sys.stdout.flush()
@@ -733,14 +739,26 @@ def header(title, dash='-', length=78):
     else:
         print dash * length
 
-def print_log_handle(name, handle):
+def print_log_handle(name, handle, regex=None):
     header(name)
+    matches = []
     for l in handle:
         sys.stdout.write(l)
+        if regex:
+            m = regex.search(l)
+            if m:
+                matches.append(m)
     print
+    return matches
 
 def print_log(path):
     print_log_handle(path, open(path, "r"))
+
+def grep_log(path, regex):
+    for line in open(path, "r"):
+        m = re.search(regex, line)
+        if m:
+            return m
 
 class BaseTest(object):
     compiled = {}
@@ -812,20 +830,7 @@ class BaseTest(object):
 
         self.start = time.time()
 
-        try:
-            self.classSetup()
-            self.setup()
-            result = self.test()    # pylint: disable=no-member
-        except TestNotApplicable:
-            result = "not_applicable"
-        except Exception as e: # pylint: disable=broad-except
-            if isinstance(e, TestFailed):
-                result = "fail"
-            else:
-                result = "exception"
-            if isinstance(e, TestFailed):
-                header("Message")
-                print e.message
+        def print_errors():
             header("Traceback")
             traceback.print_exc(file=sys.stdout)
             try:
@@ -834,6 +839,22 @@ class BaseTest(object):
                 header("postMortem Exception")
                 print e
                 traceback.print_exc(file=sys.stdout)
+
+        try:
+            self.classSetup()
+            self.setup()
+            result = self.test()    # pylint: disable=no-member
+        except TestNotApplicable:
+            result = "not_applicable"
+        except TestFailed as e:
+            result = "fail"
+            header("Message")
+            print e.message
+            print_errors()
+            return result
+        except Exception as e: # pylint: disable=broad-except
+            result = "exception"
+            print_errors()
             return result
 
         finally:
@@ -844,7 +865,10 @@ class BaseTest(object):
 
             self.classTeardown()
             for name, handle in logs:
-                print_log_handle(name, handle)
+                matches = print_log_handle(name, handle, re.compile(
+                    r"Timed out handling USB events in mpsse_flush"))
+                if matches:
+                    result = 'usb-error'
             header("End of logs")
 
         if not result:
