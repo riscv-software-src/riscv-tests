@@ -306,7 +306,8 @@ class InstantChangePc(GdbTest):
 class ProgramTest(GdbSingleHartTest):
     # Include malloc so that gdb can make function calls. I suspect this malloc
     # will silently blow through the memory set aside for it, so be careful.
-    compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+    compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC",
+            "-DDEFINE_FREE")
 
     def setup(self):
         self.gdb.load()
@@ -325,10 +326,12 @@ class ProgramHwWatchpoint(ProgramTest):
         assertIn("Breakpoint", output)
         assertIn("main", output)
         self.gdb.watch("counter == 5")
-        # Currently the watchpoint is generating a trap at init and all updates
-        for _ in range(11):
-            output = self.gdb.c()
-            assertIn("Trace/breakpoint trap", output)
+        # Watchpoint hits when counter becomes 5.
+        output = self.gdb.c()
+        assertEqual(self.gdb.p("counter"), 5)
+        # Watchpoint hits when counter no longer is 5.
+        output = self.gdb.c()
+        assertEqual(self.gdb.p("counter"), 6)
         # The watchpoint is going out of scope
         output = self.gdb.c()
         assertIn("Watchpoint", output)

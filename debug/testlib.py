@@ -594,7 +594,7 @@ class Gdb(object):
         return output
 
     def swatch(self, expr):
-        hstate = self.command("show can-use-hw-watchpoints")
+        self.command("show can-use-hw-watchpoints")
         self.command("set can-use-hw-watchpoints 0")
         output = self.command("watch %s" % expr, ops=5)
         assert "not defined" not in output
