@@ -579,7 +579,9 @@ class Gdb(object):
         output = self.command("b %s" % location, ops=5)
         assert "not defined" not in output
         assert "Breakpoint" in output
-        return output
+        m = re.search(r"Breakpoint (\d+),? ", output)
+        assert m, output
+        return int(m.group(1))
 
     def hbreak(self, location):
         output = self.command("hbreak %s" % location, ops=5)

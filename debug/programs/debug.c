@@ -53,8 +53,11 @@ int main()
 
     volatile int i = 0;
     int j = 0;
-    char *fox = "The quick brown fox jumps of the lazy dog.";
+    static char fox[43];
     unsigned int checksum = 0;
+
+    /* fox needs to be writable, but the string could be in ROM. */
+    strcpy(fox, "The quick brown fox jumps of the lazy dog.");
 
 start:
     while (i)

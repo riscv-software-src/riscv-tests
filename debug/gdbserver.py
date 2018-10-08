@@ -921,9 +921,12 @@ class RegsTest(GdbSingleHartTest):
     compile_args = ("programs/regs.S", )
     def setup(self):
         self.gdb.load()
-        self.gdb.b("main")
+        main_bp = self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint ", output)
+        assertIn("main", output)
+        self.gdb.command("delete %d" % main_bp)
         self.gdb.b("handle_trap")
-        self.gdb.c()
 
 class WriteGprs(RegsTest):
     def test(self):
@@ -932,16 +935,16 @@ class WriteGprs(RegsTest):
         self.gdb.p("$pc=write_regs")
         for i, r in enumerate(regs):
             self.gdb.p("$%s=%d" % (r, (0xdeadbeef<<i)+17))
-        self.gdb.p("$x1=data")
+        self.gdb.p("$x1=&data")
         self.gdb.command("b all_done")
         output = self.gdb.c()
         assertIn("Breakpoint ", output)
 
         # Just to get this data in the log.
-        self.gdb.command("x/30gx data")
+        self.gdb.command("x/30gx &data")
         self.gdb.command("info registers")
         for n in range(len(regs)):
-            assertEqual(self.gdb.x("data+%d" % (8*n), 'g'),
+            assertEqual(self.gdb.x("(char*)(&data)+%d" % (8*n), 'g'),
                     ((0xdeadbeef<<n)+17) & ((1<<self.hart.xlen)-1))
 
 class WriteCsrs(RegsTest):
@@ -955,7 +958,7 @@ class WriteCsrs(RegsTest):
         assertEqual(self.gdb.p("$mscratch"), 123)
 
         self.gdb.p("$pc=write_regs")
-        self.gdb.p("$x1=data")
+        self.gdb.p("$x1=&data")
         self.gdb.command("b all_done")
         self.gdb.command("c")
 
