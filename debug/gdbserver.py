@@ -433,12 +433,14 @@ class DebugExit(DebugTest):
 
 class DebugSymbols(DebugTest):
     def test(self):
-        self.gdb.b("main")
-        self.gdb.b("rot13")
+        bp = self.gdb.b("main")
         output = self.gdb.c()
         assertIn(", main ", output)
+        self.gdb.command("delete %d" % bp)
+        bp = self.gdb.b("rot13")
         output = self.gdb.c()
         assertIn(", rot13 ", output)
+        self.gdb.command("delete %d" % bp)
 
 class DebugBreakpoint(DebugTest):
     def test(self):
@@ -462,6 +464,7 @@ class Hwbp1(DebugTest):
             self.gdb.b("main")
             self.gdb.c()
 
+        self.gdb.command("delete")
         self.gdb.hbreak("rot13")
         # The breakpoint should be hit exactly 2 times.
         for _ in range(2):
@@ -469,6 +472,7 @@ class Hwbp1(DebugTest):
             self.gdb.p("$pc")
             assertRegexpMatches(output, r"[bB]reakpoint")
             assertIn("rot13 ", output)
+        self.gdb.b("_exit")
         self.exit()
 
 class Hwbp2(DebugTest):
@@ -476,6 +480,7 @@ class Hwbp2(DebugTest):
         if self.hart.instruction_hardware_breakpoint_count < 2:
             return 'not_applicable'
 
+        self.gdb.command("delete")
         self.gdb.hbreak("main")
         self.gdb.hbreak("rot13")
         # We should hit 3 breakpoints.
@@ -484,6 +489,8 @@ class Hwbp2(DebugTest):
             self.gdb.p("$pc")
             assertRegexpMatches(output, r"[bB]reakpoint")
             assertIn("%s " % expected, output)
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
         self.exit()
 
 class TooManyHwbp(DebugTest):
@@ -799,11 +806,13 @@ class TriggerTest(GdbSingleHartTest):
     compile_args = ("programs/trigger.S", )
     def setup(self):
         self.gdb.load()
-        self.gdb.b("_exit")
         self.gdb.b("main")
         self.gdb.c()
+        self.gdb.command("delete")
 
     def exit(self):
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("_exit", output)

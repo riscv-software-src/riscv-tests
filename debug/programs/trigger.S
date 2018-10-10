@@ -93,7 +93,7 @@ read_triggers:
 1:      SREG    zero, 0(a0)
         ret
 
-        .data
+        .section .data
         .align  3
 data:   .word   0x40
         .word   0x41
