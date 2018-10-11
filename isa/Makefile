@@ -63,6 +63,10 @@ $$($(1)_v_tests): $(1)-v-%: $(1)/%.S
 	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(src_dir)/../env/v -I$(src_dir)/macros/scalar -T$(src_dir)/../env/v/link.ld $(src_dir)/../env/v/entry.S $(src_dir)/../env/v/*.c $$< -o $$@
 $(1)_tests += $$($(1)_v_tests)
 
+$$($(1)_u_tests): $(1)-u-%: $(1)/%.S
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(src_dir)/../env/u -I$(src_dir)/macros/scalar -T$(src_dir)/../env/u/link.ld $(src_dir)/../env/u/entry.S $(src_dir)/../env/u/*.c $$< -o $$@
+$(1)_tests += $$($(1)_u_tests)
+
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
 
 $(1): $$($(1)_tests_dump)
