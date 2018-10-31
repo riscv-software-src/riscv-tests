@@ -311,9 +311,10 @@ class ProgramTest(GdbSingleHartTest):
 
     def setup(self):
         self.gdb.load()
-        self.gdb.b("_exit")
 
     def exit(self, expected_result=10):
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("_exit", output)
@@ -321,10 +322,11 @@ class ProgramTest(GdbSingleHartTest):
 
 class ProgramHwWatchpoint(ProgramTest):
     def test(self):
-        self.gdb.b("main")
+        mainbp = self.gdb.b("main")
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("main", output)
+        self.gdb.command("delete %d" % mainbp)
         self.gdb.watch("counter == 5")
         # Watchpoint hits when counter becomes 5.
         output = self.gdb.c()
@@ -498,7 +500,7 @@ class TooManyHwbp(DebugTest):
         for i in range(30):
             self.gdb.hbreak("*rot13 + %d" % (i * 4))
 
-        output = self.gdb.c()
+        output = self.gdb.c(checkOutput=False)
         assertIn("Cannot insert hardware breakpoint", output)
         # Clean up, otherwise the hardware breakpoints stay set and future
         # tests may fail.
@@ -916,15 +918,21 @@ class TriggerDmode(TriggerTest):
         return triggers
 
     def test(self):
+        # If we want this test to run from flash, we can't have any software
+        # breakpoints set.
+
         self.gdb.command("hbreak write_load_trigger")
-        self.gdb.b("clear_triggers")
         self.gdb.p("$pc=write_store_trigger")
         output = self.gdb.c()
         assertIn("write_load_trigger", output)
         self.check_triggers((1<<6) | (1<<1), 0xdeadbee0)
+        self.gdb.command("delete")
+        self.gdb.command("hbreak clear_triggers")
         output = self.gdb.c()
         assertIn("clear_triggers", output)
         self.check_triggers((1<<6) | (1<<0), 0xfeedac00)
+        self.gdb.command("delete")
+        self.exit()
 
 class RegsTest(GdbSingleHartTest):
     compile_args = ("programs/regs.S", )
