@@ -79,6 +79,9 @@ class Target(object):
     # hardware will every do that.
     implements_custom_test = False
 
+    # Target uses the DTM Version 0.13 for memory accesses
+    uses_dtm_version_013 = False
+
     # Internal variables:
     directory = None
     temporary_files = []

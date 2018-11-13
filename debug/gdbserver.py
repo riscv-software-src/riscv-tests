@@ -232,6 +232,58 @@ class MemTest64(SimpleMemoryTest):
 #            assertEqual(e.address, 0xdeadbeef)
 #        self.gdb.p("*((int*)0x%x)=6874742" % self.hart.ram)
 
+class MemTestBlockReadInvalid(GdbTest):
+    zero_values = "00 00 00 00 00 00 00 00"
+    real_values = "EF BE AD DE 78 56 34 12"
+
+    def early_applicable(self):
+        return self.target.uses_dtm_version_013
+
+    def test(self):
+        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (self.hart.ram + 0))
+        self.gdb.p("*((int*)0x%x) = 0x12345678" % (self.hart.ram + 4))
+
+        # read before start of memory
+        self.memory_test(self.hart.ram - 8,
+                         self.hart.ram,
+                         self.zero_values)
+
+        # read across start of memory
+        self.memory_test(self.hart.ram - 8,
+                         self.hart.ram + 8,
+                         self.zero_values + " " + self.real_values)
+
+        # read after start of memory
+        self.memory_test(self.hart.ram,
+                         self.hart.ram + 8,
+                         self.real_values)
+
+        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (self.hart.ram + self.hart.ram_size - 8))
+        self.gdb.p("*((int*)0x%x) = 0x12345678" % (self.hart.ram + self.hart.ram_size - 4))
+
+        # read before end of memory
+        self.memory_test(self.hart.ram + self.hart.ram_size - 8,
+                         self.hart.ram + self.hart.ram_size,
+                         self.real_values)
+
+        # read across end of memory
+        self.memory_test(self.hart.ram + self.hart.ram_size - 8,
+                         self.hart.ram + self.hart.ram_size + 8,
+                         self.real_values + " " + self.zero_values)
+
+        # read after end of memory
+        self.memory_test(self.hart.ram + self.hart.ram_size,
+                         self.hart.ram + self.hart.ram_size + 8,
+                         self.zero_values)
+
+    def memory_test(self, start_addr, end_addr, expected_values):
+        dump = tempfile.NamedTemporaryFile(suffix=".simdata")
+        self.gdb.command("dump verilog memory %s 0x%x 0x%x" % (dump.name, start_addr, end_addr))
+        self.gdb.command("shell cat %s" % dump.name)
+        line = dump.readline()
+        line = dump.readline()
+        assertEqual(line.strip(' \t\n\r'), expected_values)
+
 class MemTestBlock(GdbTest):
     length = 1024
     line_length = 16
