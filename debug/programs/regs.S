@@ -52,6 +52,7 @@ write_regs:
 all_done:
         j       all_done
 
+        .section .bss
         .balign  16
 data:
         .fill   64, 8, 0

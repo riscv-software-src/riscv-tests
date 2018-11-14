@@ -463,7 +463,7 @@ class Gdb(object):
                 self.select_child(child)
                 self.command(command)
 
-    def c(self, wait=True, async=False):
+    def c(self, wait=True, async=False, checkOutput=True):
         """
         Dumb c command.
         In RTOS mode, gdb will resume all harts.
@@ -477,7 +477,9 @@ class Gdb(object):
         ops = 10
         if wait:
             output = self.command("c%s" % async, ops=ops)
-            assert "Continuing" in output
+            if checkOutput:
+                assert "Continuing" in output
+                assert "Could not insert hardware" not in output
             return output
         else:
             self.active_child.sendline("c%s" % async)
@@ -579,7 +581,9 @@ class Gdb(object):
         output = self.command("b %s" % location, ops=5)
         assert "not defined" not in output
         assert "Breakpoint" in output
-        return output
+        m = re.search(r"Breakpoint (\d+),? ", output)
+        assert m, output
+        return int(m.group(1))
 
     def hbreak(self, location):
         output = self.command("hbreak %s" % location, ops=5)
@@ -900,6 +904,7 @@ class GdbTest(BaseTest):
         if not self.gdb:
             return
         self.gdb.interrupt()
+        self.gdb.command("info breakpoints")
         self.gdb.command("disassemble", ops=20)
         self.gdb.command("info registers all", ops=100)
         self.gdb.command("flush regs")

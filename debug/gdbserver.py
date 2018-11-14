@@ -363,9 +363,10 @@ class ProgramTest(GdbSingleHartTest):
 
     def setup(self):
         self.gdb.load()
-        self.gdb.b("_exit")
 
     def exit(self, expected_result=10):
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("_exit", output)
@@ -373,10 +374,11 @@ class ProgramTest(GdbSingleHartTest):
 
 class ProgramHwWatchpoint(ProgramTest):
     def test(self):
-        self.gdb.b("main")
+        mainbp = self.gdb.b("main")
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("main", output)
+        self.gdb.command("delete %d" % mainbp)
         self.gdb.watch("counter == 5")
         # Watchpoint hits when counter becomes 5.
         output = self.gdb.c()
@@ -485,12 +487,14 @@ class DebugExit(DebugTest):
 
 class DebugSymbols(DebugTest):
     def test(self):
-        self.gdb.b("main")
-        self.gdb.b("rot13")
+        bp = self.gdb.b("main")
         output = self.gdb.c()
         assertIn(", main ", output)
+        self.gdb.command("delete %d" % bp)
+        bp = self.gdb.b("rot13")
         output = self.gdb.c()
         assertIn(", rot13 ", output)
+        self.gdb.command("delete %d" % bp)
 
 class DebugBreakpoint(DebugTest):
     def test(self):
@@ -514,6 +518,7 @@ class Hwbp1(DebugTest):
             self.gdb.b("main")
             self.gdb.c()
 
+        self.gdb.command("delete")
         self.gdb.hbreak("rot13")
         # The breakpoint should be hit exactly 2 times.
         for _ in range(2):
@@ -521,6 +526,7 @@ class Hwbp1(DebugTest):
             self.gdb.p("$pc")
             assertRegexpMatches(output, r"[bB]reakpoint")
             assertIn("rot13 ", output)
+        self.gdb.b("_exit")
         self.exit()
 
 class Hwbp2(DebugTest):
@@ -528,6 +534,7 @@ class Hwbp2(DebugTest):
         if self.hart.instruction_hardware_breakpoint_count < 2:
             return 'not_applicable'
 
+        self.gdb.command("delete")
         self.gdb.hbreak("main")
         self.gdb.hbreak("rot13")
         # We should hit 3 breakpoints.
@@ -536,6 +543,8 @@ class Hwbp2(DebugTest):
             self.gdb.p("$pc")
             assertRegexpMatches(output, r"[bB]reakpoint")
             assertIn("%s " % expected, output)
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
         self.exit()
 
 class TooManyHwbp(DebugTest):
@@ -543,7 +552,7 @@ class TooManyHwbp(DebugTest):
         for i in range(30):
             self.gdb.hbreak("*rot13 + %d" % (i * 4))
 
-        output = self.gdb.c()
+        output = self.gdb.c(checkOutput=False)
         assertIn("Cannot insert hardware breakpoint", output)
         # Clean up, otherwise the hardware breakpoints stay set and future
         # tests may fail.
@@ -851,11 +860,13 @@ class TriggerTest(GdbSingleHartTest):
     compile_args = ("programs/trigger.S", )
     def setup(self):
         self.gdb.load()
-        self.gdb.b("_exit")
         self.gdb.b("main")
         self.gdb.c()
+        self.gdb.command("delete")
 
     def exit(self):
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("_exit", output)
@@ -959,23 +970,32 @@ class TriggerDmode(TriggerTest):
         return triggers
 
     def test(self):
+        # If we want this test to run from flash, we can't have any software
+        # breakpoints set.
+
         self.gdb.command("hbreak write_load_trigger")
-        self.gdb.b("clear_triggers")
         self.gdb.p("$pc=write_store_trigger")
         output = self.gdb.c()
         assertIn("write_load_trigger", output)
         self.check_triggers((1<<6) | (1<<1), 0xdeadbee0)
+        self.gdb.command("delete")
+        self.gdb.command("hbreak clear_triggers")
         output = self.gdb.c()
         assertIn("clear_triggers", output)
         self.check_triggers((1<<6) | (1<<0), 0xfeedac00)
+        self.gdb.command("delete")
+        self.exit()
 
 class RegsTest(GdbSingleHartTest):
     compile_args = ("programs/regs.S", )
     def setup(self):
         self.gdb.load()
-        self.gdb.b("main")
+        main_bp = self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint ", output)
+        assertIn("main", output)
+        self.gdb.command("delete %d" % main_bp)
         self.gdb.b("handle_trap")
-        self.gdb.c()
 
 class WriteGprs(RegsTest):
     def test(self):
@@ -984,16 +1004,16 @@ class WriteGprs(RegsTest):
         self.gdb.p("$pc=write_regs")
         for i, r in enumerate(regs):
             self.gdb.p("$%s=%d" % (r, (0xdeadbeef<<i)+17))
-        self.gdb.p("$x1=data")
+        self.gdb.p("$x1=&data")
         self.gdb.command("b all_done")
         output = self.gdb.c()
         assertIn("Breakpoint ", output)
 
         # Just to get this data in the log.
-        self.gdb.command("x/30gx data")
+        self.gdb.command("x/30gx &data")
         self.gdb.command("info registers")
         for n in range(len(regs)):
-            assertEqual(self.gdb.x("data+%d" % (8*n), 'g'),
+            assertEqual(self.gdb.x("(char*)(&data)+%d" % (8*n), 'g'),
                     ((0xdeadbeef<<n)+17) & ((1<<self.hart.xlen)-1))
 
 class WriteCsrs(RegsTest):
@@ -1007,7 +1027,7 @@ class WriteCsrs(RegsTest):
         assertEqual(self.gdb.p("$mscratch"), 123)
 
         self.gdb.p("$pc=write_regs")
-        self.gdb.p("$x1=data")
+        self.gdb.p("$x1=&data")
         self.gdb.command("b all_done")
         self.gdb.command("c")
 
