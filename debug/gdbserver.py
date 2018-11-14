@@ -237,7 +237,7 @@ class MemTestBlockReadInvalid(GdbTest):
     real_values = "EF BE AD DE 78 56 34 12"
 
     def early_applicable(self):
-        return self.target.uses_dtm_version_013
+        return self.target.invalid_memory_returns_zero
 
     def test(self):
         self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (self.hart.ram + 0))
@@ -282,7 +282,7 @@ class MemTestBlockReadInvalid(GdbTest):
         self.gdb.command("shell cat %s" % dump.name)
         line = dump.readline()
         line = dump.readline()
-        assertEqual(line.strip(' \t\n\r'), expected_values)
+        assertEqual(line.strip(), expected_values)
 
 class MemTestBlock(GdbTest):
     length = 1024

@@ -10,4 +10,4 @@ class U500Hart(targets.Hart):
 class U500(targets.Target):
     openocd_config_path = "Freedom.cfg"
     harts = [U500Hart()]
-    uses_dtm_version_013 = True
+    invalid_memory_returns_zero = True

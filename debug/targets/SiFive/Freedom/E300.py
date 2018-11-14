@@ -10,4 +10,4 @@ class E300Hart(targets.Hart):
 class E300(targets.Target):
     openocd_config_path = "Freedom.cfg"
     harts = [E300Hart()]
-    uses_dtm_version_013 = True
+    invalid_memory_returns_zero = True
