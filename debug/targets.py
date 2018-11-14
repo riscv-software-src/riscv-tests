@@ -79,6 +79,9 @@ class Target(object):
     # hardware will every do that.
     implements_custom_test = False
 
+    # When true it indicates that reading invalid memory doesn't return an error
+    invalid_memory_returns_zero = False
+
     # Internal variables:
     directory = None
     temporary_files = []
