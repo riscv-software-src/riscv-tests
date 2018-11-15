@@ -11,13 +11,20 @@ instbasedir     := $(DESTDIR)$(prefix)
 bmarkdir        := $(abs_top_src_dir)/benchmarks
 isa_src_dir     := $(abs_top_src_dir)/isa
 debug_src_dir   := $(abs_top_src_dir)/debug
+all_list        := @BENCHMARKS@ @ISA@
+install_list    := $(addprefix install_, $(all_list))
 
-all: benchmarks isa
 
-install: all
+all: $(all_list)
+
+install: $(install_list)
+
+install_isa: isa
 	install -d $(instbasedir)/share/riscv-tests/isa
-	install -d $(instbasedir)/share/riscv-tests/benchmarks
 	install -p -m 644 `find isa -maxdepth 1 -type f` $(instbasedir)/share/riscv-tests/isa
+
+install_benchmarks: benchmarks
+	install -d $(instbasedir)/share/riscv-tests/benchmarks
 	install -p -m 644 `find benchmarks -maxdepth 1 -type f` $(instbasedir)/share/riscv-tests/benchmarks
 
 benchmarks:

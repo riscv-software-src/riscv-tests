@@ -584,6 +584,8 @@ PACKAGE_URL=''
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 XLEN
+BENCHMARKS
+ISA
 OBJEXT
 EXEEXT
 ac_ct_CC
@@ -633,6 +635,8 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 with_xlen
+with_benchmarks
+with_isa
 '
       ac_precious_vars='build_alias
 host_alias
@@ -2533,6 +2537,19 @@ else
 
 fi
 
+BENCHMARKS=benchmarks
+if test "${with_benchmarks+set}" = set; then :
+  if test $with_benchmarks = no; then :
+    BENCHMARKS=
+  fi
+fi
+
+ISA=isa
+if test "${with_isa+set}" = set; then :
+  if test $with_isa = no; then :
+    ISA=
+  fi
+fi
 
 
 ac_config_files="$ac_config_files Makefile"
