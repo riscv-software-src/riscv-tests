@@ -258,8 +258,10 @@ class MemTestBlockReadInvalid(GdbTest):
                          self.hart.ram + 8,
                          self.real_values)
 
-        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (self.hart.ram + self.hart.ram_size - 8))
-        self.gdb.p("*((int*)0x%x) = 0x12345678" % (self.hart.ram + self.hart.ram_size - 4))
+        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (self.hart.ram +
+            self.hart.ram_size - 8))
+        self.gdb.p("*((int*)0x%x) = 0x12345678" % (self.hart.ram +
+            self.hart.ram_size - 4))
 
         # read before end of memory
         self.memory_test(self.hart.ram + self.hart.ram_size - 8,
@@ -278,7 +280,8 @@ class MemTestBlockReadInvalid(GdbTest):
 
     def memory_test(self, start_addr, end_addr, expected_values):
         dump = tempfile.NamedTemporaryFile(suffix=".simdata")
-        self.gdb.command("dump verilog memory %s 0x%x 0x%x" % (dump.name, start_addr, end_addr))
+        self.gdb.command("dump verilog memory %s 0x%x 0x%x" % (dump.name,
+            start_addr, end_addr))
         self.gdb.command("shell cat %s" % dump.name)
         line = dump.readline()
         line = dump.readline()
