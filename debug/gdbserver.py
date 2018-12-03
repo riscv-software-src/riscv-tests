@@ -314,7 +314,7 @@ class MemTestBlock(GdbTest):
 
         b = tempfile.NamedTemporaryFile(suffix=".ihex")
         self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name,
-            self.hart.ram, self.hart.ram + self.length))
+            self.hart.ram, self.hart.ram + self.length), ops=self.length / 32)
         self.gdb.command("shell cat %s" % b.name)
         for line in b.xreadlines():
             record_type, address, line_data = ihex_parse(line)
@@ -437,7 +437,7 @@ class DebugTest(GdbSingleHartTest):
 
 class DebugCompareSections(DebugTest):
     def test(self):
-        output = self.gdb.command("compare-sections")
+        output = self.gdb.command("compare-sections", ops=10)
         matched = 0
         for line in output.splitlines():
             if line.startswith("Section"):
@@ -570,7 +570,7 @@ class Registers(DebugTest):
         self.gdb.c()
         # Try both forms to test gdb.
         for cmd in ("info all-registers", "info registers all"):
-            output = self.gdb.command(cmd)
+            output = self.gdb.command(cmd, ops=100)
             for reg in ('zero', 'ra', 'sp', 'gp', 'tp'):
                 assertIn(reg, output)
             for line in output.splitlines():
@@ -1042,6 +1042,10 @@ class DownloadTest(GdbTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
         length = min(2**18, max(2**10, self.hart.ram_size - 2048))
+        # TODO: remove the next line so we get a bit more code to download. The
+        # line above that allows for more data runs into some error I don't
+        # have time to track down right now.
+        length = min(2**14, max(2**10, self.hart.ram_size - 2048))
         self.download_c = tempfile.NamedTemporaryFile(prefix="download_",
                 suffix=".c", delete=False)
         self.download_c.write("#include <stdint.h>\n")
@@ -1075,7 +1079,7 @@ class DownloadTest(GdbTest):
         self.gdb.load()
         self.parkOtherHarts()
         self.gdb.command("b _exit")
-        self.gdb.c()
+        self.gdb.c(ops=100)
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 

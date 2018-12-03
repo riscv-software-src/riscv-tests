@@ -463,7 +463,7 @@ class Gdb(object):
                 self.select_child(child)
                 self.command(command)
 
-    def c(self, wait=True, async=False, checkOutput=True):
+    def c(self, wait=True, async=False, checkOutput=True, ops=10):
         """
         Dumb c command.
         In RTOS mode, gdb will resume all harts.
@@ -474,7 +474,6 @@ class Gdb(object):
             async = "&"
         else:
             async = ""
-        ops = 10
         if wait:
             output = self.command("c%s" % async, ops=ops)
             if checkOutput:
