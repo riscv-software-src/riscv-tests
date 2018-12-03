@@ -1041,7 +1041,7 @@ class WriteCsrs(RegsTest):
 class DownloadTest(GdbTest):
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
-        length = min(2**10, self.hart.ram_size - 2048)
+        length = min(2**18, max(2**10, self.hart.ram_size - 2048))
         self.download_c = tempfile.NamedTemporaryFile(prefix="download_",
                 suffix=".c", delete=False)
         self.download_c.write("#include <stdint.h>\n")
