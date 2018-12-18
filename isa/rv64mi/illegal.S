@@ -134,11 +134,12 @@ synchronous_exception:
   # Make sure mtval contains either 0 or the instruction word.
   csrr t2, mbadaddr
   beqz t2, 1f
-  lhu t3, 0(t0)
-  lhu t4, 2(t0)
-  slli t4, t4, 16
-  or t3, t3, t4
-  bne t2, t3, fail
+  lhu t1, 0(t0)
+  xor t2, t2, t1
+  lhu t1, 2(t0)
+  slli t1, t1, 16
+  xor t2, t2, t1
+  bnez t2, fail
 1:
 
   la t1, bad2
