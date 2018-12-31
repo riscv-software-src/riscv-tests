@@ -10,4 +10,5 @@ class spike32_2(targets.Target):
     implements_custom_test = True
 
     def create(self):
-        return testlib.Spike(self, progbufsize=0, dmi_rti=4)
+        return testlib.Spike(self, progbufsize=0, dmi_rti=4,
+                support_abstract_csr=True)

@@ -10,4 +10,5 @@ class spike64_2(targets.Target):
     implements_custom_test = True
 
     def create(self):
-        return testlib.Spike(self, isa="RV64IMAFD", abstract_rti=30)
+        return testlib.Spike(self, isa="RV64IMAFD", abstract_rti=30,
+                support_abstract_csr=False)
