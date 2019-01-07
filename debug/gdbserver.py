@@ -70,6 +70,8 @@ def srec_parse(line):
     elif typ == 'S7':
         # ignore execution start field
         return 7, 0, 0
+    else:
+        raise TestFailed("Unsupported SREC type %r." % typ)
 
 def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
