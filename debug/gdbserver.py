@@ -51,16 +51,27 @@ def ihex_line(address, record_type, data):
     line += "%02X\n" % ((256-check)%256)
     return line
 
-def ihex_parse(line):
-    assert line.startswith(":")
-    line = line[1:]
-    data_len = int(line[:2], 16)
-    address = int(line[2:6], 16)
-    record_type = int(line[6:8], 16)
+def srec_parse(line):
+    assert line.startswith('S')
+    typ = line[:2]
+    count = int(line[2:4], 16)
     data = ""
-    for i in range(data_len):
-        data += "%c" % int(line[8+2*i:10+2*i], 16)
-    return record_type, address, data
+    if typ == 'S0':
+        # header
+        return 0, 0, 0
+    elif typ == 'S3':
+        # data with 32-bit address
+        # Any higher bits were chopped off.
+        address = int(line[4:12], 16)
+        for i in range(6, count+1):
+            data += "%c" % int(line[2*i:2*i+2], 16)
+        # Ignore the checksum.
+        return 3, address, data
+    elif typ == 'S7':
+        # ignore execution start field
+        return 7, 0, 0
+    else:
+        raise TestFailed("Unsupported SREC type %r." % typ)
 
 def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
@@ -291,17 +302,22 @@ class MemTestBlock(GdbTest):
     length = 1024
     line_length = 16
 
-    def test(self):
-        a = tempfile.NamedTemporaryFile(suffix=".ihex")
+    def write(self, temporary_file):
         data = ""
         for i in range(self.length / self.line_length):
             line_data = "".join(["%c" % random.randrange(256)
                 for _ in range(self.line_length)])
             data += line_data
-            a.write(ihex_line(i * self.line_length, 0, line_data))
-        a.flush()
+            temporary_file.write(ihex_line(i * self.line_length, 0, line_data))
+        temporary_file.flush()
+        return data
+
+    def test(self):
+        a = tempfile.NamedTemporaryFile(suffix=".ihex")
+        data = self.write(a)
 
         self.gdb.command("shell cat %s" % a.name)
+        self.gdb.command("monitor riscv reset_delays 50")
         self.gdb.command("restore %s 0x%x" % (a.name, self.hart.ram))
         increment = 19 * 4
         for offset in range(0, self.length, increment) + [self.length-4]:
@@ -312,19 +328,26 @@ class MemTestBlock(GdbTest):
                     (ord(data[offset+3]) << 24)
             assertEqual(value, written)
 
-        b = tempfile.NamedTemporaryFile(suffix=".ihex")
-        self.gdb.command("dump ihex memory %s 0x%x 0x%x" % (b.name,
+        b = tempfile.NamedTemporaryFile(suffix=".srec")
+        self.gdb.command("monitor riscv reset_delays 100")
+        self.gdb.command("dump srec memory %s 0x%x 0x%x" % (b.name,
             self.hart.ram, self.hart.ram + self.length), ops=self.length / 32)
         self.gdb.command("shell cat %s" % b.name)
+        highest_seen = 0
         for line in b.xreadlines():
-            record_type, address, line_data = ihex_parse(line)
-            if record_type == 0:
-                written_data = data[address:address+len(line_data)]
+            record_type, address, line_data = srec_parse(line)
+            if record_type == 3:
+                offset = address - (self.hart.ram & 0xffffffff)
+                written_data = data[offset:offset+len(line_data)]
+                highest_seen += len(line_data)
                 if line_data != written_data:
                     raise TestFailed(
-                            "Data mismatch at 0x%x; wrote %s but read %s" % (
-                                address, readable_binary_string(written_data),
+                            "Data mismatch at 0x%x (offset 0x%x); wrote %s but "
+                            "read %s" % (
+                                self.hart.ram + offset, offset,
+                                readable_binary_string(written_data),
                                 readable_binary_string(line_data)))
+        assertEqual(highest_seen, self.length)
 
 class InstantHaltTest(GdbTest):
     def test(self):
