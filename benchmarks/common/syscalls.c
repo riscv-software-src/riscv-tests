@@ -95,13 +95,15 @@ int __attribute__((weak)) main(int argc, char** argv)
 
 static void init_tls()
 {
+#if ENABLE_THREADS
   register void* thread_pointer asm("tp");
   extern char _tls_data;
-  extern __thread char _tdata_begin, _tdata_end, _tbss_end;
+  extern THREAD_LOCAL char _tdata_begin, _tdata_end, _tbss_end;
   size_t tdata_size = &_tdata_end - &_tdata_begin;
   memcpy(thread_pointer, &_tls_data, tdata_size);
   size_t tbss_size = &_tbss_end - &_tdata_end;
   memset(thread_pointer + tdata_size, 0, tbss_size);
+#endif
 }
 
 void _init(int cid, int nc)
@@ -126,8 +128,8 @@ void _init(int cid, int nc)
 #undef putchar
 int putchar(int ch)
 {
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  static THREAD_LOCAL char buf[64] __attribute__((aligned(64)));
+  static THREAD_LOCAL int buflen = 0;
 
   buf[buflen++] = ch;
 

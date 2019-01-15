@@ -9,10 +9,10 @@ void __attribute__((noinline)) matmul(const int coreid, const int ncores, const 
 	//-----------------------------------------------------------------version 2.16, optimize v2.15 get rid of tempb. MSI 83K.w/ test one 81K.
 
 	
-	static __thread data_t TempA[8];
-	static __thread data_t TempB[8];
-	static __thread data_t TempC[8];
-	static __thread int j,m,n;
+	static THREAD_LOCAL data_t TempA[8];
+	static THREAD_LOCAL data_t TempB[8];
+	static THREAD_LOCAL data_t TempC[8];
+	static THREAD_LOCAL int j,m,n;
 	
 			if(coreid == 1 || ncores == 1 )
 	{

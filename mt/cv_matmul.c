@@ -7,9 +7,9 @@ void __attribute__((noinline)) matmul(const int coreid, const int ncores, const 
 {
 	//----------------------------------------------------------------version 2.11 optmize j,use core 1 j from 0 to 15 MSI 98k i = j*lda
 	//----------------------------------------------------------------version 2.12 not use i = j *lda MSI  95k
-	static __thread data_t TempA[8];
-	static __thread data_t TempB[8];
-	static __thread int j,m,n,i,k;
+	static THREAD_LOCAL data_t TempA[8];
+	static THREAD_LOCAL data_t TempB[8];
+	static THREAD_LOCAL int j,m,n,i,k;
 	
 	if(coreid == 1 || ncores == 1)
 	{

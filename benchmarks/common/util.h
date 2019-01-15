@@ -6,8 +6,19 @@
 extern void setStats(int enable);
 
 #include <stdint.h>
+#include "config.h"
 
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
+
+#ifndef ENABLE_THREADS
+#define ENABLE_THREADS 1
+#endif
+
+#if ENABLE_THREADS
+#define THREAD_LOCAL __thread
+#else
+#define THREAD_LOCAL
+#endif
 
 static int verify(int n, const volatile int* test, const int* verify)
 {
@@ -45,7 +56,7 @@ static void __attribute__((noinline)) barrier(int ncores)
 {
   static volatile int sense;
   static volatile int count;
-  static __thread int threadsense;
+  static THREAD_LOCAL int threadsense;
 
   __sync_synchronize();
 

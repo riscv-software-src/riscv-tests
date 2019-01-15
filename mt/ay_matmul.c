@@ -6,11 +6,11 @@
 void __attribute__((noinline)) matmul(const int coreid, const int ncores, const int lda,  const data_t A[], const data_t B[], data_t C[] )
 {
   if(coreid > 1) return; 
-  static __thread int i, j, k;
-  static __thread data_t tempA0, tempA1, tempA2, tempA3, tempA4, tempA5, tempA6, tempA7;
-  static __thread data_t tempC0, tempC1, tempC2, tempC3, tempC4, tempC5, tempC6, tempC7, tempC8, tempC9, tempC10, tempC11, tempC12, tempC13, tempC14, tempC15;
+  static THREAD_LOCAL int i, j, k;
+  static THREAD_LOCAL data_t tempA0, tempA1, tempA2, tempA3, tempA4, tempA5, tempA6, tempA7;
+  static THREAD_LOCAL data_t tempC0, tempC1, tempC2, tempC3, tempC4, tempC5, tempC6, tempC7, tempC8, tempC9, tempC10, tempC11, tempC12, tempC13, tempC14, tempC15;
 
-  static __thread int start, end, jStride, jToRow, jToCol;
+  static THREAD_LOCAL int start, end, jStride, jToRow, jToCol;
   
   start = coreid << 9;
   end = ((ncores == 1) ? 2 : (coreid+1) ) << 9;

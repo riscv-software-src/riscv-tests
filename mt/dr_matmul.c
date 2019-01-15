@@ -17,7 +17,7 @@ void __attribute__((noinline)) matmul(const int coreid, const int ncores, const 
   int jBLOCK = 32;
   int iBLOCK = 16;
   int kBLOCK = 32;
-  static __thread int tB[4096]; //__thread
+  static THREAD_LOCAL int tB[4096]; //THREAD_LOCAL
   int startInd = coreid*(lda/ncores);
   int endInd = (coreid+1)*(lda/ncores);
 

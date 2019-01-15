@@ -11,6 +11,7 @@ instbasedir     := $(DESTDIR)$(prefix)
 bmarkdir        := $(abs_top_src_dir)/benchmarks
 isa_src_dir     := $(abs_top_src_dir)/isa
 debug_src_dir   := $(abs_top_src_dir)/debug
+enable_multi_threads := @MULTI_THREADS@
 
 all: benchmarks isa
 
