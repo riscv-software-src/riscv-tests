@@ -56,13 +56,16 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
         raise Exception("Compile failed!")
 
 class Spike(object):
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
-            isa=None, progbufsize=None):
+            isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
         self.isa = isa
         self.progbufsize = progbufsize
+        self.dmi_rti = dmi_rti
+        self.abstract_rti = abstract_rti
 
         if target.harts:
             harts = target.harts
@@ -123,6 +126,12 @@ class Spike(object):
         if not self.progbufsize is None:
             cmd += ["--progsize", str(self.progbufsize)]
             cmd += ["--debug-sba", "32"]
+
+        if not self.dmi_rti is None:
+            cmd += ["--dmi-rti", str(self.dmi_rti)]
+
+        if not self.abstract_rti is None:
+            cmd += ["--abstract-rti", str(self.abstract_rti)]
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"

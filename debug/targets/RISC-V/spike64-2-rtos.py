@@ -10,4 +10,4 @@ class spike64_2_rtos(targets.Target):
     implements_custom_test = True
 
     def create(self):
-        return testlib.Spike(self)
+        return testlib.Spike(self, abstract_rti=30)
