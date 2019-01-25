@@ -310,12 +310,11 @@ class Openocd(object):
         try:
             self.process.terminate()
             start = time.time()
-            while time.time() < start + 10000:
+            while time.time() < start + 10:
                 if self.process.poll():
                     break
             else:
                 self.process.kill()
-            self.process.wait()
         except (OSError, AttributeError):
             pass
 
@@ -514,9 +513,9 @@ class Gdb(object):
                 for child in self.children:
                     child.expect(r"\(gdb\)")
 
-    def interrupt(self):
+    def interrupt(self, ops=1):
         self.active_child.send("\003")
-        self.active_child.expect(r"\(gdb\)", timeout=6000)
+        self.active_child.expect(r"\(gdb\)", timeout=self.timeout * ops)
         return self.active_child.before.strip()
 
     def interrupt_all(self):
@@ -563,7 +562,7 @@ class Gdb(object):
         return value
 
     def info_registers(self, group):
-        output = self.command("info registers %s" % group)
+        output = self.command("info registers %s" % group, ops=5)
         result = {}
         for line in output.splitlines():
             parts = line.split()

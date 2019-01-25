@@ -269,10 +269,10 @@ class MemTestBlockReadInvalid(GdbTest):
                          self.hart.ram + 8,
                          self.real_values)
 
-        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" % (self.hart.ram +
-            self.hart.ram_size - 8))
-        self.gdb.p("*((int*)0x%x) = 0x12345678" % (self.hart.ram +
-            self.hart.ram_size - 4))
+        self.gdb.p("*((int*)0x%x) = 0xdeadbeef" %
+                (self.hart.ram + self.hart.ram_size - 8))
+        self.gdb.p("*((int*)0x%x) = 0x12345678" %
+                (self.hart.ram + self.hart.ram_size - 4))
 
         # read before end of memory
         self.memory_test(self.hart.ram + self.hart.ram_size - 8,
@@ -291,8 +291,8 @@ class MemTestBlockReadInvalid(GdbTest):
 
     def memory_test(self, start_addr, end_addr, expected_values):
         dump = tempfile.NamedTemporaryFile(suffix=".simdata")
-        self.gdb.command("dump verilog memory %s 0x%x 0x%x" % (dump.name,
-            start_addr, end_addr))
+        self.gdb.command("dump verilog memory %s 0x%x 0x%x" %
+                (dump.name, start_addr, end_addr))
         self.gdb.command("shell cat %s" % dump.name)
         line = dump.readline()
         line = dump.readline()
@@ -593,7 +593,7 @@ class Registers(DebugTest):
         self.gdb.c()
         # Try both forms to test gdb.
         for cmd in ("info all-registers", "info registers all"):
-            output = self.gdb.command(cmd, ops=100)
+            output = self.gdb.command(cmd, ops=20)
             for reg in ('zero', 'ra', 'sp', 'gp', 'tp'):
                 assertIn(reg, output)
             for line in output.splitlines():
@@ -707,7 +707,9 @@ class MulticoreRegTest(GdbTest):
         for hart in self.target.harts:
             self.gdb.select_hart(hart)
             # Check register values.
-            hart_id = self.gdb.p("$x1")
+            x1 = self.gdb.p("$x1")
+            hart_id = self.gdb.p("$mhartid")
+            assertEqual(x1, hart_id)
             assertNotIn(hart_id, hart_ids)
             hart_ids.append(hart_id)
             for n in range(2, 32):
