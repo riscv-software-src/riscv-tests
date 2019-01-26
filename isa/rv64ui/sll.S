@@ -35,7 +35,7 @@ RVTEST_CODE_BEGIN
   TEST_RR_OP( 15, sll, 0x0000084848484000, 0x0000000021212121, 14 );
   TEST_RR_OP( 16, sll, 0x1090909080000000, 0x0000000021212121, 31 );
 
-  # Verify that shifts only use bottom six bits
+  # Verify that shifts only use bottom six(rv64) or five(rv32) bits
 
   TEST_RR_OP( 17, sll, 0x0000000021212121, 0x0000000021212121, 0xffffffffffffffc0 );
   TEST_RR_OP( 18, sll, 0x0000000042424242, 0x0000000021212121, 0xffffffffffffffc1 );
