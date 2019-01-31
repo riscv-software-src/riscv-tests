@@ -472,8 +472,8 @@ class DebugFunctionCall(DebugTest):
     def test(self):
         self.gdb.b("main:start")
         self.gdb.c()
-        assertEqual(self.gdb.p('fib(6)'), 8)
-        assertEqual(self.gdb.p('fib(7)'), 13)
+        assertEqual(self.gdb.p('fib(6)', ops=10), 8)
+        assertEqual(self.gdb.p('fib(7)', ops=10), 13)
         self.exit()
 
 class DebugChangeString(DebugTest):
