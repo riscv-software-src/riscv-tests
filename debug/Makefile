@@ -6,7 +6,8 @@ GDBSERVER_PY = $(src_dir)/gdbserver.py
 
 default: spike$(XLEN) spike$(XLEN)-2
 
-all-tests: spike32 spike32-2 spike32-2-rtos spike64 spike64-2 spike64-2-rtos
+all-tests: spike32 spike32-2 spike32-2-rtos spike32-2-hwthread \
+	spike64 spike64-2 spike64-2-rtos spike64-2-hwthread
 
 all:	pylint all-tests
 

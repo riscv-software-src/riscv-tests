@@ -310,12 +310,11 @@ class Openocd(object):
         try:
             self.process.terminate()
             start = time.time()
-            while time.time() < start + 10000:
+            while time.time() < start + 10:
                 if self.process.poll():
                     break
             else:
                 self.process.kill()
-            self.process.wait()
         except (OSError, AttributeError):
             pass
 
@@ -402,7 +401,7 @@ class Gdb(object):
             # Force consistency.
             self.command("set print entry-values no")
             self.command("set remotetimeout %d" % self.timeout)
-            self.command("target extended-remote localhost:%d" % port)
+            self.command("target extended-remote localhost:%d" % port, ops=10)
             if self.binary:
                 self.command("file %s" % self.binary)
             threads = self.threads()
@@ -472,7 +471,7 @@ class Gdb(object):
                 self.select_child(child)
                 self.command(command)
 
-    def c(self, wait=True, async=False, checkOutput=True, ops=10):
+    def c(self, wait=True, async=False, checkOutput=True, ops=20):
         """
         Dumb c command.
         In RTOS mode, gdb will resume all harts.
@@ -514,9 +513,9 @@ class Gdb(object):
                 for child in self.children:
                     child.expect(r"\(gdb\)")
 
-    def interrupt(self):
+    def interrupt(self, ops=1):
         self.active_child.send("\003")
-        self.active_child.expect(r"\(gdb\)", timeout=6000)
+        self.active_child.expect(r"\(gdb\)", timeout=self.timeout * ops)
         return self.active_child.before.strip()
 
     def interrupt_all(self):
@@ -546,8 +545,8 @@ class Gdb(object):
         else:
             return int(text, 0)
 
-    def p(self, obj, fmt="/x"):
-        output = self.command("p%s %s" % (fmt, obj))
+    def p(self, obj, fmt="/x", ops=1):
+        output = self.command("p%s %s" % (fmt, obj), ops=ops)
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
@@ -563,7 +562,7 @@ class Gdb(object):
         return value
 
     def info_registers(self, group):
-        output = self.command("info registers %s" % group)
+        output = self.command("info registers %s" % group, ops=5)
         result = {}
         for line in output.splitlines():
             parts = line.split()
@@ -914,9 +913,9 @@ class GdbTest(BaseTest):
         self.gdb.interrupt()
         self.gdb.command("info breakpoints")
         self.gdb.command("disassemble", ops=20)
-        self.gdb.command("info registers all", ops=100)
+        self.gdb.command("info registers all", ops=20)
         self.gdb.command("flush regs")
-        self.gdb.command("info threads", ops=100)
+        self.gdb.command("info threads", ops=20)
 
     def classTeardown(self):
         del self.gdb
