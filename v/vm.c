@@ -6,6 +6,14 @@
 
 #include "riscv_test.h"
 
+#if __riscv_xlen == 32
+# define SATP_MODE_CHOICE SATP_MODE_SV32
+#elif defined(Sv48)
+# define SATP_MODE_CHOICE SATP_MODE_SV48
+#else
+# define SATP_MODE_CHOICE SATP_MODE_SV39
+#endif
+
 void trap_entry();
 void pop_tf(trapframe_t*);
 
@@ -62,13 +70,21 @@ void wtf()
 
 #define l1pt pt[0]
 #define user_l2pt pt[1]
-#if __riscv_xlen == 64
+#if SATP_MODE_CHOICE == SATP_MODE_SV48
+# define NPT 6
+# define kernel_l2pt pt[2]
+# define kernel_l3pt pt[3]
+# define user_l3pt pt[4]
+# define user_llpt pt[5]
+#elif SATP_MODE_CHOICE == SATP_MODE_SV39
 # define NPT 4
-#define kernel_l2pt pt[2]
-# define user_l3pt pt[3]
-#else
+# define kernel_l2pt pt[2]
+# define user_llpt pt[3]
+#elif SATP_MODE_CHOICE == SATP_MODE_SV32
 # define NPT 2
-# define user_l3pt user_l2pt
+# define user_llpt user_l2pt
+#else
+# error Unknown SATP_MODE_CHOICE
 #endif
 pte_t pt[NPT][PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 
@@ -100,10 +116,10 @@ static void evict(unsigned long addr)
   if (node->addr)
   {
     // check accessed and dirty bits
-    assert(user_l3pt[addr/PGSIZE] & PTE_A);
+    assert(user_llpt[addr/PGSIZE] & PTE_A);
     uintptr_t sstatus = set_csr(sstatus, SSTATUS_SUM);
     if (memcmp((void*)addr, uva2kva(addr), PGSIZE)) {
-      assert(user_l3pt[addr/PGSIZE] & PTE_D);
+      assert(user_llpt[addr/PGSIZE] & PTE_D);
       memcpy((void*)addr, uva2kva(addr), PGSIZE);
     }
     write_csr(sstatus, sstatus);
@@ -125,12 +141,12 @@ void handle_fault(uintptr_t addr, uintptr_t cause)
   assert(addr >= PGSIZE && addr < MAX_TEST_PAGES * PGSIZE);
   addr = addr/PGSIZE*PGSIZE;
 
-  if (user_l3pt[addr/PGSIZE]) {
-    if (!(user_l3pt[addr/PGSIZE] & PTE_A)) {
-      user_l3pt[addr/PGSIZE] |= PTE_A;
+  if (user_llpt[addr/PGSIZE]) {
+    if (!(user_llpt[addr/PGSIZE] & PTE_A)) {
+      user_llpt[addr/PGSIZE] |= PTE_A;
     } else {
-      assert(!(user_l3pt[addr/PGSIZE] & PTE_D) && cause == CAUSE_STORE_PAGE_FAULT);
-      user_l3pt[addr/PGSIZE] |= PTE_D;
+      assert(!(user_llpt[addr/PGSIZE] & PTE_D) && cause == CAUSE_STORE_PAGE_FAULT);
+      user_llpt[addr/PGSIZE] |= PTE_D;
     }
     flush_page(addr);
     return;
@@ -143,7 +159,7 @@ void handle_fault(uintptr_t addr, uintptr_t cause)
     freelist_tail = 0;
 
   uintptr_t new_pte = (node->addr >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V | PTE_U | PTE_R | PTE_W | PTE_X;
-  user_l3pt[addr/PGSIZE] = new_pte | PTE_A | PTE_D;
+  user_llpt[addr/PGSIZE] = new_pte | PTE_A | PTE_D;
   flush_page(addr);
 
   assert(user_mapping[addr/PGSIZE].addr == 0);
@@ -153,7 +169,7 @@ void handle_fault(uintptr_t addr, uintptr_t cause)
   memcpy((void*)addr, uva2kva(addr), PGSIZE);
   write_csr(sstatus, sstatus);
 
-  user_l3pt[addr/PGSIZE] = new_pte;
+  user_llpt[addr/PGSIZE] = new_pte;
   flush_page(addr);
 
   __builtin___clear_cache(0,0);
@@ -221,17 +237,27 @@ void vm_boot(uintptr_t test_addr)
   // map user to lowermost megapage
   l1pt[0] = ((pte_t)user_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
   // map kernel to uppermost megapage
-#if __riscv_xlen == 64
+#if SATP_MODE_CHOICE == SATP_MODE_SV48
+  l1pt[PTES_PER_PT-1] = ((pte_t)kernel_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
+  kernel_l2pt[PTES_PER_PT-1] = ((pte_t)kernel_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
+  kernel_l3pt[PTES_PER_PT-1] = (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D;
+  user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
+  user_l3pt[0] = ((pte_t)user_llpt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
+#elif SATP_MODE_CHOICE == SATP_MODE_SV39
   l1pt[PTES_PER_PT-1] = ((pte_t)kernel_l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
   kernel_l2pt[PTES_PER_PT-1] = (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D;
-  user_l2pt[0] = ((pte_t)user_l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
-  uintptr_t vm_choice = SATP_MODE_SV39;
-#else
+  user_l2pt[0] = ((pte_t)user_llpt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_V;
+#elif SATP_MODE_CHOICE == SATP_MODE_SV32
   l1pt[PTES_PER_PT-1] = (DRAM_BASE/RISCV_PGSIZE << PTE_PPN_SHIFT) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D;
-  uintptr_t vm_choice = SATP_MODE_SV32;
+#else
+# error
 #endif
-  write_csr(sptbr, ((uintptr_t)l1pt >> PGSHIFT) |
-                   (vm_choice * (SATP_MODE & ~(SATP_MODE<<1))));
+  uintptr_t vm_choice = SATP_MODE_CHOICE;
+  uintptr_t sptbr_value = ((uintptr_t)l1pt >> PGSHIFT)
+                        | (vm_choice * (SATP_MODE & ~(SATP_MODE<<1)));
+  write_csr(sptbr, sptbr_value);
+  if (read_csr(sptbr) != sptbr_value)
+    assert(!"unsupported satp mode");
 
   // Set up PMPs if present, ignoring illegal instruction trap if not.
   uintptr_t pmpc = PMP_NAPOT | PMP_R | PMP_W | PMP_X;
