@@ -11,6 +11,9 @@ all-tests: spike32 spike32-2 spike32-2-rtos spike32-2-hwthread \
 
 all:	pylint all-tests
 
+# Target to check all the multicore options.
+multi-tests: spike32-2 spike64-2-rtos spike32-2-hwthread
+
 pylint:
 	pylint --rcfile=pylint.rc `git ls-files '*.py'`
 

@@ -245,12 +245,12 @@ class Openocd(object):
         ]
 
         if config:
-            f = find_file(config)
-            if f is None:
+            self.config_file = find_file(config)
+            if self.config_file is None:
                 print "Unable to read file " + config
                 exit(1)
 
-            cmd += ["-f", f]
+            cmd += ["-f", self.config_file]
         if debug:
             cmd.append("-d")
 
@@ -317,6 +317,14 @@ class Openocd(object):
                 self.process.kill()
         except (OSError, AttributeError):
             pass
+
+    def smp(self):
+        """Return true iff OpenOCD internally sees the harts as part of an SMP
+        group."""
+        for line in file(self.config_file, "r"):
+            if "target smp" in line:
+                return True
+        return False
 
 class OpenocdCli(object):
     def __init__(self, port=4444):
@@ -967,9 +975,11 @@ class ExamineTarget(GdbTest):
             print txt,
 
 class TestFailed(Exception):
-    def __init__(self, message):
+    def __init__(self, message, comment=None):
         Exception.__init__(self)
         self.message = message
+        if comment:
+            self.message += ": %s" % comment
 
 class TestNotApplicable(Exception):
     def __init__(self, message):
@@ -980,25 +990,25 @@ def assertEqual(a, b):
     if a != b:
         raise TestFailed("%r != %r" % (a, b))
 
-def assertNotEqual(a, b):
+def assertNotEqual(a, b, comment=None):
     if a == b:
-        raise TestFailed("%r == %r" % (a, b))
+        raise TestFailed("%r == %r" % (a, b), comment)
 
 def assertIn(a, b):
     if a not in b:
         raise TestFailed("%r not in %r" % (a, b))
 
-def assertNotIn(a, b):
+def assertNotIn(a, b, comment=None):
     if a in b:
-        raise TestFailed("%r in %r" % (a, b))
+        raise TestFailed("%r in %r" % (a, b), comment)
 
 def assertGreater(a, b):
     if not a > b:
         raise TestFailed("%r not greater than %r" % (a, b))
 
-def assertLess(a, b):
+def assertLess(a, b, comment=None):
     if not a < b:
-        raise TestFailed("%r not less than %r" % (a, b))
+        raise TestFailed("%r not less than %r" % (a, b), comment)
 
 def assertTrue(a):
     if not a:

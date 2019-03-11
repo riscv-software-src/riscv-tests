@@ -842,6 +842,55 @@ class MulticoreRtosSwitchActiveHartTest(GdbTest):
             assertIn("set_trap_handler", output)
             assertNotIn("received signal SIGTRAP", output)
 
+class SmpSimultaneousRunHalt(GdbTest):
+    compile_args = ("programs/run_halt_timing.c", "-DMULTICORE")
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
+    def setup(self):
+        self.gdb.select_hart(self.target.harts[0])
+        self.gdb.load()
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            self.gdb.p("$pc=_start")
+
+    def test(self):
+        if self.gdb.one_hart_per_gdb() or not self.server.smp():
+            return 'not_applicable'
+
+        old_mtime = set()
+        for _ in range(5):
+            self.gdb.c_all(wait=False)
+            time.sleep(2)
+            self.gdb.interrupt_all()
+
+            mtime_value = []
+            counter = []
+            for hart in self.target.harts:
+                self.gdb.select_hart(hart)
+                mv = self.gdb.p("mtime_value")
+                assertNotIn(mv, old_mtime,
+                        "mtime doesn't appear to be changing at all")
+                mtime_value.append(mv)
+                c = self.gdb.p("counter")
+                assertNotEqual(c, 0,
+                        "counter didn't increment; code didn't run?")
+                counter.append(c)
+                self.gdb.p("counter=0")
+
+            old_mtime.update(mtime_value)
+
+            mtime_spread = max(mtime_value) - min(mtime_value)
+            print "mtime_spread:", mtime_spread
+            counter_spread = max(counter) - min(counter)
+            print "counter_spread:", counter_spread
+
+            assertLess(mtime_spread, 100 * len(self.target.harts),
+                    "Harts don't halt around the same time.")
+#TODO            assertLess(counter_spread, 100 * len(self.target.harts),
+#TODO                    "Harts don't resume around the same time.")
+
 class StepTest(GdbSingleHartTest):
     compile_args = ("programs/step.S", )
 
