@@ -17,26 +17,26 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
-#define TEST_SRL(n, v, a) \
+#define TEST_SRLI(n, v, a) \
   TEST_IMM_OP(n, srli, ((v) & ((1 << (__riscv_xlen-1) << 1) - 1)) >> (a), v, a)
 
-  TEST_SRL( 2,  0xffffffff80000000, 0  );
-  TEST_SRL( 3,  0xffffffff80000000, 1  );
-  TEST_SRL( 4,  0xffffffff80000000, 7  );
-  TEST_SRL( 5,  0xffffffff80000000, 14 );
-  TEST_SRL( 6,  0xffffffff80000001, 31 );
+  TEST_SRLI( 2,  0xffffffff80000000, 0  );
+  TEST_SRLI( 3,  0xffffffff80000000, 1  );
+  TEST_SRLI( 4,  0xffffffff80000000, 7  );
+  TEST_SRLI( 5,  0xffffffff80000000, 14 );
+  TEST_SRLI( 6,  0xffffffff80000001, 31 );
 
-  TEST_SRL( 7,  0xffffffffffffffff, 0  );
-  TEST_SRL( 8,  0xffffffffffffffff, 1  );
-  TEST_SRL( 9,  0xffffffffffffffff, 7  );
-  TEST_SRL( 10, 0xffffffffffffffff, 14 );
-  TEST_SRL( 11, 0xffffffffffffffff, 31 );
+  TEST_SRLI( 7,  0xffffffffffffffff, 0  );
+  TEST_SRLI( 8,  0xffffffffffffffff, 1  );
+  TEST_SRLI( 9,  0xffffffffffffffff, 7  );
+  TEST_SRLI( 10, 0xffffffffffffffff, 14 );
+  TEST_SRLI( 11, 0xffffffffffffffff, 31 );
 
-  TEST_SRL( 12, 0x0000000021212121, 0  );
-  TEST_SRL( 13, 0x0000000021212121, 1  );
-  TEST_SRL( 14, 0x0000000021212121, 7  );
-  TEST_SRL( 15, 0x0000000021212121, 14 );
-  TEST_SRL( 16, 0x0000000021212121, 31 );
+  TEST_SRLI( 12, 0x0000000021212121, 0  );
+  TEST_SRLI( 13, 0x0000000021212121, 1  );
+  TEST_SRLI( 14, 0x0000000021212121, 7  );
+  TEST_SRLI( 15, 0x0000000021212121, 14 );
+  TEST_SRLI( 16, 0x0000000021212121, 31 );
 
   #-------------------------------------------------------------
   # Source/Destination tests
