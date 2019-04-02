@@ -82,6 +82,9 @@ class Target(object):
     # When true it indicates that reading invalid memory doesn't return an error
     invalid_memory_returns_zero = False
 
+    # Supports simultaneous resume through hasel.
+    support_hasel = True
+
     # Internal variables:
     directory = None
     temporary_files = []

@@ -8,6 +8,7 @@ class spike64_2_rtos(targets.Target):
     openocd_config_path = "spike-rtos.cfg"
     timeout_sec = 60
     implements_custom_test = True
+    support_hasel = False
 
     def create(self):
-        return testlib.Spike(self, abstract_rti=30)
+        return testlib.Spike(self, abstract_rti=30, support_hasel=False)
