@@ -843,10 +843,10 @@ class MulticoreRtosSwitchActiveHartTest(GdbTest):
             assertNotIn("received signal SIGTRAP", output)
 
 class SmpSimultaneousRunHalt(GdbTest):
-    compile_args = ("programs/run_halt_timing.c", "-DMULTICORE")
+    compile_args = ("programs/run_halt_timing.S", "-DMULTICORE")
 
     def early_applicable(self):
-        return len(self.target.harts) > 1
+        return len(self.target.harts) > 1 and self.target.support_hasel
 
     def setup(self):
         self.gdb.select_hart(self.target.harts[0])
@@ -869,15 +869,16 @@ class SmpSimultaneousRunHalt(GdbTest):
             counter = []
             for hart in self.target.harts:
                 self.gdb.select_hart(hart)
-                mv = self.gdb.p("mtime_value")
+                mv = self.gdb.p("$s2")
                 assertNotIn(mv, old_mtime,
                         "mtime doesn't appear to be changing at all")
                 mtime_value.append(mv)
-                c = self.gdb.p("counter")
+                c = self.gdb.p("$s0")
                 assertNotEqual(c, 0,
                         "counter didn't increment; code didn't run?")
                 counter.append(c)
-                self.gdb.p("counter=0")
+                # Reset the counter for the next round.
+                self.gdb.p("$s0=0")
 
             old_mtime.update(mtime_value)
 
@@ -886,10 +887,14 @@ class SmpSimultaneousRunHalt(GdbTest):
             counter_spread = max(counter) - min(counter)
             print "counter_spread:", counter_spread
 
-            assertLess(mtime_spread, 100 * len(self.target.harts),
+            assertLess(mtime_spread, 101 * (len(self.target.harts) - 1),
                     "Harts don't halt around the same time.")
-#TODO            assertLess(counter_spread, 100 * len(self.target.harts),
-#TODO                    "Harts don't resume around the same time.")
+            # spike executes normal code 5000 instructions at a time, so we
+            # expect 5k instructions to be executed on one hart before the
+            # other gets to go. Our loop (unoptimized) is quite a few
+            # instructions, but allow for 5k anyway.
+            assertLess(counter_spread, 5001 * (len(self.target.harts) - 1),
+                    "Harts don't resume around the same time.")
 
 class StepTest(GdbSingleHartTest):
     compile_args = ("programs/step.S", )
