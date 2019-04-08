@@ -59,7 +59,7 @@ class Spike(object):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
-            support_hasel=True):
+            support_hasel=True, support_abstract_csr=True):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
@@ -67,6 +67,7 @@ class Spike(object):
         self.progbufsize = progbufsize
         self.dmi_rti = dmi_rti
         self.abstract_rti = abstract_rti
+        self.support_abstract_csr = support_abstract_csr
         self.support_hasel = support_hasel
 
         if target.harts:
@@ -134,6 +135,9 @@ class Spike(object):
 
         if not self.abstract_rti is None:
             cmd += ["--abstract-rti", str(self.abstract_rti)]
+
+        if not self.support_abstract_csr:
+            cmd.append("--debug-no-abstract-csr")
 
         if not self.support_hasel:
             cmd.append("--without-hasel")
@@ -790,7 +794,6 @@ class BaseTest(object):
             self.hart = hart
         else:
             self.hart = random.choice(target.harts)
-            self.hart = target.harts[-1]    #<<<
         self.server = None
         self.target_process = None
         self.binary = None

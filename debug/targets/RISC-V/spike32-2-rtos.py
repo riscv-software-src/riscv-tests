@@ -12,4 +12,4 @@ class spike32_2(targets.Target):
 
     def create(self):
         return testlib.Spike(self, progbufsize=0, dmi_rti=4,
-                support_hasel=False)
+                support_hasel=False, support_abstract_csr=True)

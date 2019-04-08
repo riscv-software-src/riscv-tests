@@ -12,4 +12,4 @@ class spike64_2(targets.Target):
 
     def create(self):
         return testlib.Spike(self, isa="RV64IMAFD", abstract_rti=30,
-                support_hasel=False)
+                support_hasel=False, support_abstract_csr=False)

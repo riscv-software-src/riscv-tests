@@ -11,4 +11,5 @@ class spike64_2_rtos(targets.Target):
     support_hasel = False
 
     def create(self):
-        return testlib.Spike(self, abstract_rti=30, support_hasel=False)
+        return testlib.Spike(self, abstract_rti=30, support_hasel=False,
+                support_abstract_csr=False)
