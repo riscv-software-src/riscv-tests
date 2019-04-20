@@ -48,10 +48,8 @@ RVTEST_CODE_BEGIN
   li TESTNUM, 4
   li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_LOAD
   csrw tdata1, a0
-  andi a0, a0, 0x7ff
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
-  andi a1, a1, 0x7ff
   bne a0, a1, 2f
   la a2, data1
   csrw tdata2, a2
@@ -69,10 +67,8 @@ RVTEST_CODE_BEGIN
   li TESTNUM, 6
   li a0, (2 << (__riscv_xlen - 4)) |  MCONTROL_M | MCONTROL_STORE
   csrw tdata1, a0
-  andi a0, a0, 0x7ff
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
-  andi a1, a1, 0x7ff
   bne a0, a1, 2f
 
   # Trap handler should skip this instruction.
