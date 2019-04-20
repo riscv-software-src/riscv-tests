@@ -21,19 +21,12 @@ RVTEST_CODE_BEGIN
   csrr a1, tselect
   bne x0, a1, pass
 
-  # Make sure there's a breakpoint there.
-  csrr a0, tdata1
-  srli a0, a0, __riscv_xlen - 4
-  li a1, 2
-  bne a0, a1, pass
-
   la a2, 1f
   csrw tdata2, a2
-  li a0, MCONTROL_M | MCONTROL_EXECUTE
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_EXECUTE
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
-  andi a1, a1, 0x7ff
   bne a0, a1, 2f
   .align 2
 1:
@@ -47,11 +40,10 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode reads.
   li TESTNUM, 4
-  li a0, MCONTROL_M | MCONTROL_LOAD
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_LOAD
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
-  andi a1, a1, 0x7ff
   bne a0, a1, 2f
   la a2, data1
   csrw tdata2, a2
@@ -67,11 +59,10 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode stores.
   li TESTNUM, 6
-  li a0, MCONTROL_M | MCONTROL_STORE
+  li a0, (2 << (__riscv_xlen - 4)) |  MCONTROL_M | MCONTROL_STORE
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
-  andi a1, a1, 0x7ff
   bne a0, a1, 2f
 
   # Trap handler should skip this instruction.
@@ -88,13 +79,7 @@ RVTEST_CODE_BEGIN
   csrr a1, tselect
   bne a0, a1, pass
 
-  # Make sure there's a breakpoint there.
-  csrr a0, tdata1
-  srli a0, a0, __riscv_xlen - 4
-  li a1, 2
-  bne a0, a1, pass
-
-  li a0, MCONTROL_M | MCONTROL_LOAD
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_LOAD
   csrw tdata1, a0
   la a3, data2
   csrw tdata2, a3
