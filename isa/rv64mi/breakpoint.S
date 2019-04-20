@@ -29,8 +29,9 @@ RVTEST_CODE_BEGIN
 
   la a2, 1f
   csrw tdata2, a2
-  li a0, MCONTROL_M | MCONTROL_EXECUTE
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_EXECUTE
   csrw tdata1, a0
+  andi a0, a0, 0x7ff
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
   andi a1, a1, 0x7ff
@@ -47,8 +48,9 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode reads.
   li TESTNUM, 4
-  li a0, MCONTROL_M | MCONTROL_LOAD
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_LOAD
   csrw tdata1, a0
+  andi a0, a0, 0x7ff
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
   andi a1, a1, 0x7ff
@@ -67,8 +69,9 @@ RVTEST_CODE_BEGIN
 2:
   # Set up breakpoint to trap on M-mode stores.
   li TESTNUM, 6
-  li a0, MCONTROL_M | MCONTROL_STORE
+  li a0, (2 << (__riscv_xlen - 4)) |  MCONTROL_M | MCONTROL_STORE
   csrw tdata1, a0
+  andi a0, a0, 0x7ff
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
   andi a1, a1, 0x7ff
@@ -94,7 +97,7 @@ RVTEST_CODE_BEGIN
   li a1, 2
   bne a0, a1, pass
 
-  li a0, MCONTROL_M | MCONTROL_LOAD
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_LOAD
   csrw tdata1, a0
   la a3, data2
   csrw tdata2, a3
