@@ -57,9 +57,11 @@ def compile(args, xlen=32): # pylint: disable=redefined-builtin
 
 class Spike(object):
     # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-locals
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
-            support_hasel=True, support_abstract_csr=True):
+            support_hasel=True, support_abstract_csr=True,
+            support_haltgroups=True):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
@@ -69,6 +71,7 @@ class Spike(object):
         self.abstract_rti = abstract_rti
         self.support_abstract_csr = support_abstract_csr
         self.support_hasel = support_hasel
+        self.support_haltgroups = support_haltgroups
 
         if target.harts:
             harts = target.harts
@@ -105,6 +108,7 @@ class Spike(object):
                 raise Exception("Didn't get spike message about bitbang "
                         "connection")
 
+    # pylint: disable=too-many-branches
     def command(self, target, harts, halted, timeout, with_jtag_gdb):
         # pylint: disable=no-self-use
         if target.sim_cmd:
@@ -124,23 +128,26 @@ class Spike(object):
             isa = "RV%dG" % harts[0].xlen
 
         cmd += ["--isa", isa]
-        cmd += ["--debug-auth"]
+        cmd += ["--dm-auth"]
 
         if not self.progbufsize is None:
-            cmd += ["--progsize", str(self.progbufsize)]
-            cmd += ["--debug-sba", "32"]
+            cmd += ["--dm-progsize", str(self.progbufsize)]
+            cmd += ["--dm-sba", "32"]
 
         if not self.dmi_rti is None:
             cmd += ["--dmi-rti", str(self.dmi_rti)]
 
         if not self.abstract_rti is None:
-            cmd += ["--abstract-rti", str(self.abstract_rti)]
+            cmd += ["--dm-abstract-rti", str(self.abstract_rti)]
 
         if not self.support_abstract_csr:
-            cmd.append("--debug-no-abstract-csr")
+            cmd.append("--dm-no-abstract-csr")
 
         if not self.support_hasel:
-            cmd.append("--without-hasel")
+            cmd.append("--dm-no-hasel")
+
+        if not self.support_haltgroups:
+            cmd.append("--dm-no-halt-groups")
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
