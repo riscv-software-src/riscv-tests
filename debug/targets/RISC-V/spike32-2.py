@@ -11,4 +11,4 @@ class spike32_2(targets.Target):
 
     def create(self):
         return testlib.Spike(self, isa="RV32IMAFC", progbufsize=0, dmi_rti=4,
-                support_abstract_csr=True)
+                support_abstract_csr=True, support_haltgroups=False)
