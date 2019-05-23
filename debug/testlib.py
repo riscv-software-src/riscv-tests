@@ -441,6 +441,7 @@ class Gdb(object):
         for port, child in zip(self.ports, self.children):
             self.select_child(child)
             self.wait()
+            self.command("set style enabled off")
             self.command("set confirm off")
             self.command("set width 0")
             self.command("set height 0")
