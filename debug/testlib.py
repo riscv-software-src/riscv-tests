@@ -608,12 +608,16 @@ class Gdb(object):
         output = self.command("info registers %s" % group, ops=5)
         result = {}
         for line in output.splitlines():
-            parts = line.split()
+            m = re.match(r"(\w+)\s+({.*})\s+(\(.*\))", line)
+            if m:
+                parts = m.groups()
+            else:
+                parts = line.split()
             name = parts[0]
             if "Could not fetch" in line:
                 result[name] = " ".join(parts[1:])
             else:
-                result[name] = int(parts[1], 0)
+                result[name] = parse_rhs(parts[1])
         return result
 
     def stepi(self):
