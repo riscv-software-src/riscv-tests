@@ -634,8 +634,10 @@ test_ ## testnum: \
 
 #define TEST_PASSFAIL \
         bne x0, TESTNUM, pass; \
+.align 4; \
 fail: \
         RVTEST_FAIL; \
+.align 4; \
 pass: \
         RVTEST_PASS \
 

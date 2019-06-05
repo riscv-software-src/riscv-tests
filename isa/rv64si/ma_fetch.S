@@ -155,7 +155,7 @@ RVTEST_CODE_BEGIN
 
   TEST_PASSFAIL
 
-  .align 2
+  .align 4
   .global stvec_handler
 stvec_handler:
   # tests 2, 4, 5, 6, and 8 should trap
