@@ -382,6 +382,28 @@ class CouldNotFetch(Exception):
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
+def parse_rhs(text):
+    text = text.strip()
+    if text.startswith("{") and text.endswith("}"):
+        inner = text[1:-1]
+        parsed = [parse_rhs(t) for t in inner.split(", ")]
+        if all([isinstance(p, dict) for p in parsed]):
+            dictionary = {}
+            for p in parsed:
+                for k, v in p.iteritems():
+                    dictionary[k] = v
+            parsed = dictionary
+        return parsed
+    elif text.startswith('"') and text.endswith('"'):
+        return text[1:-1]
+    elif ' = ' in text:
+        lhs, rhs = text.split(' = ', 1)
+        return {lhs: parse_rhs(rhs)}
+    elif re.match(r"-?\d+\.\d+(e-?\d+)?", text):
+        return float(text)
+    else:
+        return int(text, 0)
+
 class Gdb(object):
     """A single gdb class which can interact with one or more gdb instances."""
 
@@ -419,6 +441,7 @@ class Gdb(object):
         for port, child in zip(self.ports, self.children):
             self.select_child(child)
             self.wait()
+            self.command("set style enabled off")
             self.command("set confirm off")
             self.command("set width 0")
             self.command("set height 0")
@@ -557,17 +580,7 @@ class Gdb(object):
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
-        return output.split('=')[-1].strip()
-
-    def parse_string(self, text):
-        text = text.strip()
-        if text.startswith("{") and text.endswith("}"):
-            inner = text[1:-1]
-            return [self.parse_string(t) for t in inner.split(", ")]
-        elif text.startswith('"') and text.endswith('"'):
-            return text[1:-1]
-        else:
-            return int(text, 0)
+        return output.split('=', 1)[-1].strip()
 
     def p(self, obj, fmt="/x", ops=1):
         output = self.command("p%s %s" % (fmt, obj), ops=ops)
@@ -577,8 +590,14 @@ class Gdb(object):
         m = re.search(r"Could not fetch register \"(\w+)\"; (.*)$", output)
         if m:
             raise CouldNotFetch(m.group(1), m.group(2))
-        rhs = output.split('=')[-1]
-        return self.parse_string(rhs)
+        rhs = output.split('=', 1)[-1]
+        return parse_rhs(rhs)
+
+    def p_fpr(self, obj, ops=1):
+        result = self.p(obj, fmt="", ops=ops)
+        if isinstance(result, dict):
+            return result['double']
+        return result
 
     def p_string(self, obj):
         output = self.command("p %s" % obj)
@@ -589,12 +608,16 @@ class Gdb(object):
         output = self.command("info registers %s" % group, ops=5)
         result = {}
         for line in output.splitlines():
-            parts = line.split()
+            m = re.match(r"(\w+)\s+({.*})\s+(\(.*\))", line)
+            if m:
+                parts = m.groups()
+            else:
+                parts = line.split()
             name = parts[0]
             if "Could not fetch" in line:
                 result[name] = " ".join(parts[1:])
             else:
-                result[name] = int(parts[1], 0)
+                result[name] = parse_rhs(parts[1])
         return result
 
     def stepi(self):
