@@ -44,8 +44,8 @@ static void init_pt()
 #endif
   write_csr(sptbr, ((uintptr_t)l1pt >> RISCV_PGSHIFT) |
                    (vm_choice * (SATP_MODE & ~(SATP_MODE<<1))));
-  write_csr(pmpcfg0, (PMP_NAPOT | PMP_R) << 16);
   write_csr(pmpaddr2, -1);
+  write_csr(pmpcfg0, (PMP_NAPOT | PMP_R) << 16);
 }
 
 INLINE uintptr_t va2pa(uintptr_t va)
