@@ -30,6 +30,7 @@ write_regs:
         SREG    x13, 88(x1)
         SREG    x14, 96(x1)
         SREG    x15, 104(x1)
+#ifndef RV32E
         SREG    x16, 112(x1)
         SREG    x17, 120(x1)
         SREG    x18, 128(x1)
@@ -46,6 +47,7 @@ write_regs:
         SREG    x29, 216(x1)
         SREG    x30, 224(x1)
         SREG    x31, 232(x1)
+#endif
 
         csrr    x1, CSR_MSCRATCH
 

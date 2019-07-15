@@ -29,15 +29,9 @@ def find_file(path):
             return relpath
     return None
 
-def compile(args, xlen=32): # pylint: disable=redefined-builtin
+def compile(args): # pylint: disable=redefined-builtin
     cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
     cmd = [cc, "-g"]
-    if xlen == 32:
-        cmd.append("-march=rv32imac")
-        cmd.append("-mabi=ilp32")
-    else:
-        cmd.append("-march=rv64imac")
-        cmd.append("-mabi=lp64")
     for arg in args:
         found = find_file(arg)
         if found:

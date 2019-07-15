@@ -59,14 +59,17 @@ handle_reset:
 .option pop
 
   # Initialize stack pointer.
+  la    sp, stack_bottom
   # Give each hart STACK_SIZE of stack.
   # Assume hart IDs are contiguous and start at 0.
-  csrr  t0, CSR_MHARTID
-  addi  t0, t0, 1
   li    t1, STACK_SIZE
-  mul   t0, t0, t1
-  la    sp, stack_bottom
-  add   sp, sp, t0
+  csrr  t0, CSR_MHARTID
+  # Don't use mul instruction because not all harts support it.
+  addi  t0, t0, 1
+1:
+  add   sp, sp, t1
+  addi  t0, t0, -1
+  bnez  t0, 1b
 
   # Clear all hardware triggers
   li    t0, ~0
@@ -125,6 +128,7 @@ trap_entry:
   SREG x13, 13*REGBYTES(sp)
   SREG x14, 14*REGBYTES(sp)
   SREG x15, 15*REGBYTES(sp)
+#ifndef RV32E
   SREG x16, 16*REGBYTES(sp)
   SREG x17, 17*REGBYTES(sp)
   SREG x18, 18*REGBYTES(sp)
@@ -141,6 +145,7 @@ trap_entry:
   SREG x29, 29*REGBYTES(sp)
   SREG x30, 30*REGBYTES(sp)
   SREG x31, 31*REGBYTES(sp)
+#endif
 
   csrr a0, mcause
   csrr a1, mepc
@@ -167,6 +172,7 @@ trap_entry:
   LREG x13, 13*REGBYTES(sp)
   LREG x14, 14*REGBYTES(sp)
   LREG x15, 15*REGBYTES(sp)
+#ifndef RV32E
   LREG x16, 16*REGBYTES(sp)
   LREG x17, 17*REGBYTES(sp)
   LREG x18, 18*REGBYTES(sp)
@@ -183,6 +189,7 @@ trap_entry:
   LREG x29, 29*REGBYTES(sp)
   LREG x30, 30*REGBYTES(sp)
   LREG x31, 31*REGBYTES(sp)
+#endif
 
   addi sp, sp, 32*REGBYTES
   mret

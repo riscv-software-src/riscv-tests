@@ -136,21 +136,33 @@ class Target(object):
                     prefix=binary_name + "_")
             binary_name = self.temporary_binary.name
             Target.temporary_files.append(self.temporary_binary)
-        march = "rv%dima" % hart.xlen
-        for letter in "fdc":
-            if hart.extensionSupported(letter):
-                march += letter
-        testlib.compile(sources +
-                ("programs/entry.S", "programs/init.c",
-                    "-DNHARTS=%d" % len(self.harts),
-                    "-I", "../env",
-                    "-march=%s" % march,
-                    "-T", hart.link_script_path,
-                    "-nostartfiles",
-                    "-mcmodel=medany",
-                    "-DXLEN=%d" % hart.xlen,
-                    "-o", binary_name),
-                xlen=hart.xlen)
+
+        args = list(sources) + [
+                "programs/entry.S", "programs/init.c",
+                "-DNHARTS=%d" % len(self.harts),
+                "-I", "../env",
+                "-T", hart.link_script_path,
+                "-nostartfiles",
+                "-mcmodel=medany",
+                "-DXLEN=%d" % hart.xlen,
+                "-o", binary_name]
+
+        if hart.extensionSupported('e'):
+            args.append("-march=rv32e")
+            args.append("-mabi=ilp32e")
+            args.append("-DRV32E")
+        else:
+            march = "rv%dima" % hart.xlen
+            for letter in "fdc":
+                if hart.extensionSupported(letter):
+                    march += letter
+            args.append("-march=%s" % march)
+            if hart.xlen == 32:
+                args.append("-mabi=ilp32")
+            else:
+                args.append("-mabi=lp%d" % hart.xlen)
+
+        testlib.compile(args)
         return binary_name
 
 def add_target_options(parser):

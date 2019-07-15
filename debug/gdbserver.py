@@ -1081,7 +1081,10 @@ class RegsTest(GdbSingleHartTest):
 
 class WriteGprs(RegsTest):
     def test(self):
-        regs = [("x%d" % n) for n in range(2, 32)]
+        if self.hart.extensionSupported('E'):
+            regs = [("x%d" % n) for n in range(2, 16)]
+        else:
+            regs = [("x%d" % n) for n in range(2, 32)]
 
         self.gdb.p("$pc=write_regs")
         for i, r in enumerate(regs):
