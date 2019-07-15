@@ -153,6 +153,7 @@ class Spike(object):
                 "All spike harts must have the same RAM layout"
         assert len(set(t.ram_size for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
+        os.environ['WORK_AREA'] = '0x%x' % harts[0].ram
         cmd += ["-m0x%x:0x%x" % (harts[0].ram, harts[0].ram_size)]
 
         if timeout:
@@ -273,7 +274,8 @@ class Openocd(object):
         logfile = open(Openocd.logname, "w")
         if print_log_names:
             real_stdout.write("Temporary OpenOCD log: %s\n" % Openocd.logname)
-        env_entries = ("REMOTE_BITBANG_HOST", "REMOTE_BITBANG_PORT")
+        env_entries = ("REMOTE_BITBANG_HOST", "REMOTE_BITBANG_PORT",
+                "WORK_AREA")
         env_entries = [key for key in env_entries if key in os.environ]
         logfile.write("+ %s%s\n" % (
             "".join("%s=%s " % (key, os.environ[key]) for key in env_entries),
@@ -629,6 +631,7 @@ class Gdb(object):
         assert "failed" not in  output
         assert "Transfer rate" in output
         output = self.command("compare-sections", ops=1000)
+        assert "matched" in output
         assert "MIS" not in output
 
     def b(self, location):
