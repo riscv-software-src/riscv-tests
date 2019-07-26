@@ -119,7 +119,6 @@ class SimpleT1Test(SimpleRegisterTest):
 class SimpleF18Test(SimpleRegisterTest):
     def check_reg(self, name, alias):
         if self.hart.extensionSupported('F'):
-            self.gdb.p_raw("$mstatus=$mstatus | 0x00006000")
             self.gdb.stepi()
             a = random.random()
             b = random.random()
