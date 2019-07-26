@@ -43,8 +43,7 @@ class Hart(object):
         # target.misa is set by testlib.ExamineTarget
         if self.misa:
             return self.misa & (1 << (ord(letter.upper()) - ord('A')))
-        else:
-            return False
+        return False
 
 class Target(object):
     # pylint: disable=too-many-instance-attributes
