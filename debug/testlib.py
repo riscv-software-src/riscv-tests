@@ -583,7 +583,7 @@ class Gdb(object):
         return output.split('=', 1)[-1].strip()
 
     def p(self, obj, fmt="/x", ops=1):
-        output = self.command("p%s %s" % (fmt, obj), ops=ops)
+        output = self.command("p%s %s" % (fmt, obj), ops=ops).splitlines()[-1]
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
