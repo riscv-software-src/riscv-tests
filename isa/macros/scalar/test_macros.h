@@ -44,9 +44,9 @@ test_ ## testnum: \
 #define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
 
 #define TEST_IMM_OP( testnum, inst, result, val1, imm ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       li  x1, MASK_XLEN(val1); \
-      inst x30, x1, SEXT_IMM(imm); \
+      inst x14, x1, SEXT_IMM(imm); \
     )
 
 #define TEST_IMM_SRC1_EQ_DEST( testnum, inst, result, val1, imm ) \
@@ -59,20 +59,20 @@ test_ ## testnum: \
     TEST_CASE( testnum, x6, result, \
       li  x4, 0; \
 1:    li  x1, MASK_XLEN(val1); \
-      inst x30, x1, SEXT_IMM(imm); \
+      inst x14, x1, SEXT_IMM(imm); \
       TEST_INSERT_NOPS_ ## nop_cycles \
-      addi  x6, x30, 0; \
+      addi  x6, x14, 0; \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
     )
 
 #define TEST_IMM_SRC1_BYPASS( testnum, nop_cycles, inst, result, val1, imm ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       li  x4, 0; \
 1:    li  x1, MASK_XLEN(val1); \
       TEST_INSERT_NOPS_ ## nop_cycles \
-      inst x30, x1, SEXT_IMM(imm); \
+      inst x14, x1, SEXT_IMM(imm); \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
@@ -94,9 +94,9 @@ test_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_R_OP( testnum, inst, result, val1 ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       li  x1, val1; \
-      inst x30, x1; \
+      inst x14, x1; \
     )
 
 #define TEST_R_SRC1_EQ_DEST( testnum, inst, result, val1 ) \
@@ -109,9 +109,9 @@ test_ ## testnum: \
     TEST_CASE( testnum, x6, result, \
       li  x4, 0; \
 1:    li  x1, val1; \
-      inst x30, x1; \
+      inst x14, x1; \
       TEST_INSERT_NOPS_ ## nop_cycles \
-      addi  x6, x30, 0; \
+      addi  x6, x14, 0; \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
@@ -122,10 +122,10 @@ test_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_RR_OP( testnum, inst, result, val1, val2 ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       li  x1, MASK_XLEN(val1); \
       li  x2, MASK_XLEN(val2); \
-      inst x30, x1, x2; \
+      inst x14, x1, x2; \
     )
 
 #define TEST_RR_SRC1_EQ_DEST( testnum, inst, result, val1, val2 ) \
@@ -153,35 +153,35 @@ test_ ## testnum: \
       li  x4, 0; \
 1:    li  x1, MASK_XLEN(val1); \
       li  x2, MASK_XLEN(val2); \
-      inst x30, x1, x2; \
+      inst x14, x1, x2; \
       TEST_INSERT_NOPS_ ## nop_cycles \
-      addi  x6, x30, 0; \
+      addi  x6, x14, 0; \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
     )
 
 #define TEST_RR_SRC12_BYPASS( testnum, src1_nops, src2_nops, inst, result, val1, val2 ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       li  x4, 0; \
 1:    li  x1, MASK_XLEN(val1); \
       TEST_INSERT_NOPS_ ## src1_nops \
       li  x2, MASK_XLEN(val2); \
       TEST_INSERT_NOPS_ ## src2_nops \
-      inst x30, x1, x2; \
+      inst x14, x1, x2; \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
     )
 
 #define TEST_RR_SRC21_BYPASS( testnum, src1_nops, src2_nops, inst, result, val1, val2 ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       li  x4, 0; \
 1:    li  x2, MASK_XLEN(val2); \
       TEST_INSERT_NOPS_ ## src1_nops \
       li  x1, MASK_XLEN(val1); \
       TEST_INSERT_NOPS_ ## src2_nops \
-      inst x30, x1, x2; \
+      inst x14, x1, x2; \
       addi  x4, x4, 1; \
       li  x5, 2; \
       bne x4, x5, 1b \
@@ -216,17 +216,17 @@ test_ ## testnum: \
 #-----------------------------------------------------------------------
 
 #define TEST_LD_OP( testnum, inst, result, offset, base ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       la  x1, base; \
-      inst x30, offset(x1); \
+      inst x14, offset(x1); \
     )
 
 #define TEST_ST_OP( testnum, load_inst, store_inst, result, offset, base ) \
-    TEST_CASE( testnum, x30, result, \
+    TEST_CASE( testnum, x14, result, \
       la  x1, base; \
       li  x2, result; \
       store_inst x2, offset(x1); \
-      load_inst x30, offset(x1); \
+      load_inst x14, offset(x1); \
     )
 
 #define TEST_LD_DEST_BYPASS( testnum, nop_cycles, inst, result, offset, base ) \
@@ -234,9 +234,9 @@ test_ ## testnum: \
     li  TESTNUM, testnum; \
     li  x4, 0; \
 1:  la  x1, base; \
-    inst x30, offset(x1); \
+    inst x14, offset(x1); \
     TEST_INSERT_NOPS_ ## nop_cycles \
-    addi  x6, x30, 0; \
+    addi  x6, x14, 0; \
     li  x29, result; \
     bne x6, x29, fail; \
     addi  x4, x4, 1; \
@@ -249,9 +249,9 @@ test_ ## testnum: \
     li  x4, 0; \
 1:  la  x1, base; \
     TEST_INSERT_NOPS_ ## nop_cycles \
-    inst x30, offset(x1); \
+    inst x14, offset(x1); \
     li  x29, result; \
-    bne x30, x29, fail; \
+    bne x14, x29, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -265,9 +265,9 @@ test_ ## testnum: \
     la  x2, base; \
     TEST_INSERT_NOPS_ ## src2_nops \
     store_inst x1, offset(x2); \
-    load_inst x30, offset(x2); \
+    load_inst x14, offset(x2); \
     li  x29, result; \
-    bne x30, x29, fail; \
+    bne x14, x29, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -281,9 +281,9 @@ test_ ## testnum: \
     li  x1, result; \
     TEST_INSERT_NOPS_ ## src2_nops \
     store_inst x1, offset(x2); \
-    load_inst x30, offset(x2); \
+    load_inst x14, offset(x2); \
     li  x29, result; \
-    bne x30, x29, fail; \
+    bne x14, x29, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -359,7 +359,7 @@ test_ ## testnum: \
     li  x4, 0; \
 1:  la  x6, 2f; \
     TEST_INSERT_NOPS_ ## nop_cycles \
-    inst x19, x6, 0; \
+    inst x13, x6, 0; \
     bne x0, TESTNUM, fail; \
 2:  addi  x4, x4, 1; \
     li  x5, 2; \
@@ -614,19 +614,19 @@ test_ ## testnum: \
 #define TEST_CASE_D32( testnum, testreg1, testreg2, correctval, code... ) \
 test_ ## testnum: \
     code; \
-    la  x31, test_ ## testnum ## _data ; \
-    lw  x29, 0(x31); \
-    lw  x31, 4(x31); \
+    la  x15, test_ ## testnum ## _data ; \
+    lw  x29, 0(x15); \
+    lw  x15, 4(x15); \
     li  TESTNUM, testnum; \
     bne testreg1, x29, fail;\
-    bne testreg2, x31, fail;\
+    bne testreg2, x15, fail;\
     .pushsection .data; \
     .align 3; \
     test_ ## testnum ## _data: \
     .dword correctval; \
     .popsection
 
-// ^ x30 is used in some other macros, to avoid issues we use x31 for upper word
+// ^ x14 is used in some other macros, to avoid issues we use x15 for upper word
 
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in TESTNUM)
