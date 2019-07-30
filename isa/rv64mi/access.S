@@ -24,7 +24,7 @@ RVTEST_CODE_BEGIN
   # after the pc is set to rs1, an access exception should be raised.
   li TESTNUM, 2
   li t1, CAUSE_FETCH_ACCESS
-  la t3, 1f
+  la s1, 1f
   li t2, 0
   jalr t2, t0
 1:
@@ -32,8 +32,8 @@ RVTEST_CODE_BEGIN
   # A load to an illegal address should not commit.
   li TESTNUM, 3
   li t1, CAUSE_LOAD_ACCESS
-  la t3, 1f
-  mv t2, t3
+  la s1, 1f
+  mv t2, s1
   lb t2, (t0)
   j fail
 1:
@@ -52,12 +52,12 @@ mtvec_handler:
   j fail
 
 2:
-  bne t2, t3, fail
+  bne t2, s1, fail
 
   csrr t2, mcause
   bne t2, t1, fail
 
-  csrw mepc, t3
+  csrw mepc, s1
   mret
 
 RVTEST_CODE_END
