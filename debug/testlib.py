@@ -514,26 +514,27 @@ class Gdb(object):
                 self.select_child(child)
                 self.command(command)
 
-    def c(self, wait=True, async=False, checkOutput=True, ops=20):
+    def c(self, wait=True, sync=True, checkOutput=True, ops=20):
         """
         Dumb c command.
         In RTOS mode, gdb will resume all harts.
         In multi-gdb mode, this command will just go to the current gdb, so
         will only resume one hart.
         """
-        if async:
-            async = "&"
+        if sync:
+            sync = ""
         else:
-            async = ""
+            sync = "&"
         if wait:
-            output = self.command("c%s" % async, ops=ops)
+            output = self.command("c%s" % sync, ops=ops)
             if checkOutput:
                 assert "Continuing" in output
                 assert "Could not insert hardware" not in output
             return output
         else:
-            self.active_child.sendline("c%s" % async)
+            self.active_child.sendline("c%s" % sync)
             self.active_child.expect("Continuing", timeout=ops * self.timeout)
+            return ""
 
     def c_all(self, wait=True):
         """
@@ -579,7 +580,7 @@ class Gdb(object):
         return output.split('=', 1)[-1].strip()
 
     def p(self, obj, fmt="/x", ops=1):
-        output = self.command("p%s %s" % (fmt, obj), ops=ops)
+        output = self.command("p%s %s" % (fmt, obj), ops=ops).splitlines()[-1]
         m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
         if m:
             raise CannotAccess(int(m.group(1), 0))
@@ -1017,7 +1018,7 @@ class TestFailed(Exception):
             self.message += ": %s" % comment
 
 class TestNotApplicable(Exception):
-    def __init__(self, message):
+    def __init__(self, message=""):
         Exception.__init__(self)
         self.message = message
 

@@ -13,7 +13,7 @@ import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegexpMatches, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
-from testlib import assertTrue
+from testlib import assertTrue, TestNotApplicable
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -119,7 +119,6 @@ class SimpleT1Test(SimpleRegisterTest):
 class SimpleF18Test(SimpleRegisterTest):
     def check_reg(self, name, alias):
         if self.hart.extensionSupported('F'):
-            self.gdb.p_raw("$mstatus=$mstatus | 0x00006000")
             self.gdb.stepi()
             a = random.random()
             b = random.random()
@@ -536,7 +535,7 @@ class DebugBreakpoint(DebugTest):
 class Hwbp1(DebugTest):
     def test(self):
         if self.hart.instruction_hardware_breakpoint_count < 1:
-            return 'not_applicable'
+            raise TestNotApplicable
 
         if not self.hart.honors_tdata1_hmode:
             # Run to main before setting the breakpoint, because startup code
@@ -558,7 +557,7 @@ class Hwbp1(DebugTest):
 class Hwbp2(DebugTest):
     def test(self):
         if self.hart.instruction_hardware_breakpoint_count < 2:
-            return 'not_applicable'
+            raise TestNotApplicable
 
         self.gdb.command("delete")
         self.gdb.hbreak("main")
@@ -800,7 +799,7 @@ class MulticoreRunAllHaltOne(GdbTest):
 
     def test(self):
         if not self.gdb.one_hart_per_gdb():
-            return 'not_applicable'
+            raise TestNotApplicable
 
         # Run harts in reverse order
         for h in reversed(self.target.harts):
@@ -828,7 +827,7 @@ class MulticoreRtosSwitchActiveHartTest(GdbTest):
 
     def test(self):
         if self.gdb.one_hart_per_gdb():
-            return 'not_applicable'
+            raise TestNotApplicable
 
         # Set breakpoint near '_start' label to increase the chances of a
         # situation when all harts hit breakpoint immediately and
@@ -857,7 +856,7 @@ class SmpSimultaneousRunHalt(GdbTest):
 
     def test(self):
         if self.gdb.one_hart_per_gdb() or not self.server.smp():
-            return 'not_applicable'
+            raise TestNotApplicable
 
         old_mtime = set()
         for _ in range(5):
@@ -1230,7 +1229,7 @@ class PrivChange(PrivTest):
         """Test that the core's privilege level actually changes."""
 
         if 0 not in self.supported:
-            return 'not_applicable'
+            raise TestNotApplicable
 
         self.gdb.b("main")
         self.gdb.c()
