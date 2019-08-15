@@ -210,7 +210,7 @@ void handle_trap(trapframe_t* tf)
 static void coherence_torture()
 {
   // cause coherence misses without affecting program semantics
-  unsigned int random = ENTROPY;
+  uint64_t random = ENTROPY;
   while (1) {
     uintptr_t paddr = DRAM_BASE + ((random % (2 * (MAX_TEST_PAGES + 1) * PGSIZE)) & -4);
 #ifdef __riscv_atomic
@@ -225,7 +225,7 @@ static void coherence_torture()
 
 void vm_boot(uintptr_t test_addr)
 {
-  unsigned int random = ENTROPY;
+  uint64_t random = ENTROPY;
   if (read_csr(mhartid) > 0)
     coherence_torture();
 
