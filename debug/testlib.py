@@ -30,8 +30,7 @@ def find_file(path):
     return None
 
 def compile(args): # pylint: disable=redefined-builtin
-    cc = os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gcc")
-    cmd = [cc, "-g"]
+    cmd = ["riscv64-unknown-elf-gcc", "-g"]
     for arg in args:
         found = find_file(arg)
         if found:
@@ -108,8 +107,7 @@ class Spike(object):
         if target.sim_cmd:
             cmd = shlex.split(target.sim_cmd)
         else:
-            spike = os.path.expandvars("$RISCV/bin/spike")
-            cmd = [spike]
+            cmd = ["spike"]
 
         cmd += ["-p%d" % len(harts)]
 
@@ -235,8 +233,7 @@ class Openocd(object):
         if server_cmd:
             cmd = shlex.split(server_cmd)
         else:
-            openocd = os.path.expandvars("$RISCV/bin/openocd")
-            cmd = [openocd]
+            cmd = ["openocd"]
             if debug:
                 cmd.append("-d")
 
@@ -407,7 +404,7 @@ class Gdb(object):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, ports,
-            cmd=os.path.expandvars("$RISCV/bin/riscv64-unknown-elf-gdb"),
+            cmd="riscv64-unknown-elf-gdb",
             timeout=60, binary=None):
         assert ports
 
