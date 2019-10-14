@@ -392,8 +392,10 @@ def parse_rhs(text):
     elif ' = ' in text:
         lhs, rhs = text.split(' = ', 1)
         return {lhs: parse_rhs(rhs)}
-    elif re.match(r"-?\d+\.\d+(e-?\d+)?", text):
+    elif re.match(r"-?(\d+\.\d+(e-?\d+)?|inf)", text):
         return float(text)
+    elif re.match(r"-nan\(0x[a-f0-9]+\)", text):
+        return float("nan")
     else:
         return int(text, 0)
 
