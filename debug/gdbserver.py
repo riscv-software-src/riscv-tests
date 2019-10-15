@@ -119,6 +119,8 @@ class SimpleT1Test(SimpleRegisterTest):
 class SimpleF18Test(SimpleRegisterTest):
     def check_reg(self, name, alias):
         if self.hart.extensionSupported('F'):
+            mstatus_fs = 0x00006000
+            self.gdb.p("$mstatus=$mstatus|0x%x" % mstatus_fs)
             self.gdb.stepi()
             a = random.random()
             b = random.random()
@@ -140,9 +142,9 @@ class SimpleF18Test(SimpleRegisterTest):
                 assertEqual(size, 4)
         else:
             output = self.gdb.p_raw("$" + name)
-            assertEqual(output, "void")
+            assertRegexpMatches(output, r"void|Could not fetch register.*")
             output = self.gdb.p_raw("$" + alias)
-            assertEqual(output, "void")
+            assertRegexpMatches(output, r"void|Could not fetch register.*")
 
     def test(self):
         self.check_reg("f18", "fs2")
