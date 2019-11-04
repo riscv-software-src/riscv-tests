@@ -116,41 +116,6 @@ mtvec_handler:
 
   jr a2
 
-  li t1, 2
-  bne TESTNUM, t1, 1f
-  # Make sure D bit is clear
-  lw t0, page_table_1
-  and t1, t0, PTE_D
-  bnez t1, die
-skip:
-  csrr t0, mepc
-  add t0, t0, 4
-  csrw mepc, t0
-  mret
-
-1:
-  li t1, 3
-  bne TESTNUM, t1, 1f
-  # The implementation doesn't appear to set D bits in HW.
-  # Make sure the D bit really is clear.
-  lw t0, page_table_1
-  and t1, t0, PTE_D
-  bnez t1, die
-  # Set the D bit.
-  or t0, t0, PTE_D
-  sw t0, page_table_1, t1
-  sfence.vma
-  mret
-
-1:
-  li t1, 4
-  bne TESTNUM, t1, 1f
-  j pass
-
-1:
-die:
-  RVTEST_FAIL
-
 RVTEST_CODE_END
 
   .data
