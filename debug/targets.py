@@ -5,7 +5,7 @@ import tempfile
 
 import testlib
 
-class Hart(object):
+class Hart:
     # XLEN of the hart. May be overridden with --32 or --64 command line
     # options.
     xlen = 0
@@ -45,7 +45,7 @@ class Hart(object):
             return self.misa & (1 << (ord(letter.upper()) - ord('A')))
         return False
 
-class Target(object):
+class Target:
     # pylint: disable=too-many-instance-attributes
 
     # List of Hart object instances, one for each hart in the target.
@@ -117,7 +117,6 @@ class Target(object):
 
     def create(self):
         """Create the target out of thin air, eg. start a simulator."""
-        pass
 
     def server(self):
         """Start the debug server that gdb connects to, eg. OpenOCD."""

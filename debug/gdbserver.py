@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import binascii
 import random
+import struct
 import sys
 import tempfile
 import time
@@ -11,7 +12,7 @@ import os
 import targets
 import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
-from testlib import assertGreater, assertRegexpMatches, assertLess
+from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import assertTrue, TestNotApplicable
 
@@ -52,14 +53,14 @@ def ihex_line(address, record_type, data):
     return line
 
 def srec_parse(line):
-    assert line.startswith('S')
+    assert line.startswith(b'S')
     typ = line[:2]
     count = int(line[2:4], 16)
     data = ""
-    if typ == 'S0':
+    if typ == b'S0':
         # header
         return 0, 0, 0
-    elif typ == 'S3':
+    elif typ == b'S3':
         # data with 32-bit address
         # Any higher bits were chopped off.
         address = int(line[4:12], 16)
@@ -67,7 +68,7 @@ def srec_parse(line):
             data += "%c" % int(line[2*i:2*i+2], 16)
         # Ignore the checksum.
         return 3, address, data
-    elif typ == 'S7':
+    elif typ == b'S7':
         # ignore execution start field
         return 7, 0, 0
     else:
@@ -142,9 +143,9 @@ class SimpleF18Test(SimpleRegisterTest):
                 assertEqual(size, 4)
         else:
             output = self.gdb.p_raw("$" + name)
-            assertRegexpMatches(output, r"void|Could not fetch register.*")
+            assertRegex(output, r"void|Could not fetch register.*")
             output = self.gdb.p_raw("$" + alias)
-            assertRegexpMatches(output, r"void|Could not fetch register.*")
+            assertRegex(output, r"void|Could not fetch register.*")
 
     def test(self):
         self.check_reg("f18", "fs2")
@@ -154,7 +155,7 @@ class CustomRegisterTest(SimpleRegisterTest):
         return self.target.implements_custom_test
 
     def check_custom(self, magic):
-        regs = {k: v for k, v in self.gdb.info_registers("all").iteritems()
+        regs = {k: v for k, v in self.gdb.info_registers("all").items()
                 if k.startswith("custom")}
         assertEqual(set(regs.keys()),
                 set(("custom1",
@@ -162,7 +163,7 @@ class CustomRegisterTest(SimpleRegisterTest):
                     "custom12346",
                     "custom12347",
                     "custom12348")))
-        for name, value in regs.iteritems():
+        for name, value in regs.items():
             number = int(name[6:])
             if number % 2:
                 expect = number + magic
@@ -305,11 +306,12 @@ class MemTestBlock(GdbTest):
 
     def write(self, temporary_file):
         data = ""
-        for i in range(self.length / self.line_length):
+        for i in range(self.length // self.line_length):
             line_data = "".join(["%c" % random.randrange(256)
                 for _ in range(self.line_length)])
             data += line_data
-            temporary_file.write(ihex_line(i * self.line_length, 0, line_data))
+            temporary_file.write(ihex_line(i * self.line_length, 0,
+                line_data).encode())
         temporary_file.flush()
         return data
 
@@ -321,7 +323,7 @@ class MemTestBlock(GdbTest):
         self.gdb.command("monitor riscv reset_delays 50")
         self.gdb.command("restore %s 0x%x" % (a.name, self.hart.ram))
         increment = 19 * 4
-        for offset in range(0, self.length, increment) + [self.length-4]:
+        for offset in list(range(0, self.length, increment)) + [self.length-4]:
             value = self.gdb.p("*((int*)0x%x)" % (self.hart.ram + offset))
             written = ord(data[offset]) | \
                     (ord(data[offset+1]) << 8) | \
@@ -335,7 +337,7 @@ class MemTestBlock(GdbTest):
             self.hart.ram, self.hart.ram + self.length), ops=self.length / 32)
         self.gdb.command("shell cat %s" % b.name)
         highest_seen = 0
-        for line in b.xreadlines():
+        for line in b:
             record_type, address, line_data = srec_parse(line)
             if record_type == 3:
                 offset = address - (self.hart.ram & 0xffffffff)
@@ -551,7 +553,7 @@ class Hwbp1(DebugTest):
         for _ in range(2):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            assertRegexpMatches(output, r"[bB]reakpoint")
+            assertRegex(output, r"[bB]reakpoint")
             assertIn("rot13 ", output)
         self.gdb.b("_exit")
         self.exit()
@@ -568,7 +570,7 @@ class Hwbp2(DebugTest):
         for expected in ("main", "rot13", "rot13"):
             output = self.gdb.c()
             self.gdb.p("$pc")
-            assertRegexpMatches(output, r"[bB]reakpoint")
+            assertRegex(output, r"[bB]reakpoint")
             assertIn("%s " % expected, output)
         self.gdb.command("delete")
         self.gdb.b("_exit")
@@ -598,14 +600,14 @@ class Registers(DebugTest):
             for reg in ('zero', 'ra', 'sp', 'gp', 'tp'):
                 assertIn(reg, output)
             for line in output.splitlines():
-                assertRegexpMatches(line, r"^\S")
+                assertRegex(line, r"^\S")
 
         #TODO
         # mcpuid is one of the few registers that should have the high bit set
         # (for rv64).
         # Leave this commented out until gdb and spike agree on the encoding of
         # mcpuid (which is going to be renamed to misa in any case).
-        #assertRegexpMatches(output, ".*mcpuid *0x80")
+        #assertRegex(output, ".*mcpuid *0x80")
 
         #TODO:
         # The instret register should always be changing.
@@ -884,9 +886,9 @@ class SmpSimultaneousRunHalt(GdbTest):
             old_mtime.update(mtime_value)
 
             mtime_spread = max(mtime_value) - min(mtime_value)
-            print "mtime_spread:", mtime_spread
+            print("mtime_spread:", mtime_spread)
             counter_spread = max(counter) - min(counter)
-            print "counter_spread:", counter_spread
+            print("counter_spread:", counter_spread)
 
             assertLess(mtime_spread, 101 * (len(self.target.harts) - 1),
                     "Harts don't halt around the same time.")
@@ -935,9 +937,9 @@ class JumpHbreak(GdbSingleHartTest):
         self.gdb.b("read_loop")
         self.gdb.command("hbreak just_before_read_loop")
         output = self.gdb.command("jump just_before_read_loop")
-        assertRegexpMatches(output, r"Breakpoint \d, just_before_read_loop ")
+        assertRegex(output, r"Breakpoint \d, just_before_read_loop ")
         output = self.gdb.c()
-        assertRegexpMatches(output, r"Breakpoint \d, read_loop ")
+        assertRegex(output, r"Breakpoint \d, read_loop ")
 
 class TriggerTest(GdbSingleHartTest):
     compile_args = ("programs/trigger.S", )
@@ -1131,24 +1133,24 @@ class DownloadTest(GdbTest):
         length = min(2**14, max(2**10, self.hart.ram_size - 2048))
         self.download_c = tempfile.NamedTemporaryFile(prefix="download_",
                 suffix=".c", delete=False)
-        self.download_c.write("#include <stdint.h>\n")
+        self.download_c.write(b"#include <stdint.h>\n")
         self.download_c.write(
-                "unsigned int crc32a(uint8_t *message, unsigned int size);\n")
-        self.download_c.write("uint32_t length = %d;\n" % length)
-        self.download_c.write("uint8_t d[%d] = {\n" % length)
+                b"unsigned int crc32a(uint8_t *message, unsigned int size);\n")
+        self.download_c.write(b"uint32_t length = %d;\n" % length)
+        self.download_c.write(b"uint8_t d[%d] = {\n" % length)
         self.crc = 0
         assert length % 16 == 0
-        for i in range(length / 16):
-            self.download_c.write("  /* 0x%04x */ " % (i * 16))
+        for i in range(length // 16):
+            self.download_c.write(("  /* 0x%04x */ " % (i * 16)).encode())
             for _ in range(16):
                 value = random.randrange(1<<8)
-                self.download_c.write("0x%02x, " % value)
-                self.crc = binascii.crc32("%c" % value, self.crc)
-            self.download_c.write("\n")
-        self.download_c.write("};\n")
-        self.download_c.write("uint8_t *data = &d[0];\n")
+                self.download_c.write(("0x%02x, " % value).encode())
+                self.crc = binascii.crc32(struct.pack("B", value), self.crc)
+            self.download_c.write(b"\n")
+        self.download_c.write(b"};\n")
+        self.download_c.write(b"uint8_t *data = &d[0];\n")
         self.download_c.write(
-                "uint32_t main() { return crc32a(data, length); }\n")
+                b"uint32_t main() { return crc32a(data, length); }\n")
         self.download_c.flush()
 
         if self.crc < 0:
