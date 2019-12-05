@@ -689,6 +689,18 @@ class PrivateState:
         self.gdb.pop_state()
 
 def run_all_tests(module, target, parsed):
+    todo = []
+    for name in dir(module):
+        definition = getattr(module, name)
+        if isinstance(definition, type) and hasattr(definition, 'test') and \
+                (not parsed.test or any(test in name for test in parsed.test)):
+            todo.append((name, definition, None))
+
+    if parsed.list_tests:
+        for name, definition, hart in todo:
+            print(name)
+        return 0
+
     try:
         os.makedirs(parsed.logs)
     except OSError:
@@ -701,7 +713,6 @@ def run_all_tests(module, target, parsed):
     global gdb_cmd  # pylint: disable=global-statement
     gdb_cmd = parsed.gdb
 
-    todo = []
     examine_added = False
     for hart in target.harts:
         if parsed.misaval:
@@ -710,14 +721,8 @@ def run_all_tests(module, target, parsed):
         elif hart.misa:
             print("Using $misa from hart definition: 0x%x" % hart.misa)
         elif not examine_added:
-            todo.append(("ExamineTarget", ExamineTarget, None))
+            todo.insert(0, ("ExamineTarget", ExamineTarget, None))
             examine_added = True
-
-    for name in dir(module):
-        definition = getattr(module, name)
-        if isinstance(definition, type) and hasattr(definition, 'test') and \
-                (not parsed.test or any(test in name for test in parsed.test)):
-            todo.append((name, definition, None))
 
     results, count = run_tests(parsed, target, todo)
 
@@ -786,6 +791,8 @@ def add_test_run_options(parser):
     parser.add_argument("--print-log-names", "--pln", action="store_true",
             help="Print names of temporary log files as soon as they are "
             "created.")
+    parser.add_argument("--list-tests", action="store_true",
+            help="Print out a list of tests, and exit immediately.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
     parser.add_argument("--gdb",
