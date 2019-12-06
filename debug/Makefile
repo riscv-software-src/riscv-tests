@@ -12,9 +12,6 @@ all-tests: spike32 spike32-2 spike32-2-rtos spike32-2-hwthread \
 
 all:	pylint all-tests
 
-foo:
-	echo $(foreach test, $(TESTS), spike$@.$(test).run)
-
 run.%:
 	echo $@
 	$(GDBSERVER_PY) \
