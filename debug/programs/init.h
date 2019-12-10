@@ -12,6 +12,13 @@
     __v;                                                \
 })
 
+#define csr_write(csr, value)                           \
+({                                                      \
+    __asm__ __volatile__ ("csrw %0, " #csr              \
+                  :                                     \
+                  : "=r" (value));                      \
+})
+
 typedef void* (*trap_handler_t)(unsigned hartid, unsigned mcause, void *mepc,
         void *sp);
 void set_trap_handler(trap_handler_t handler);

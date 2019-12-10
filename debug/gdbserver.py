@@ -1259,6 +1259,23 @@ class CheckMisa(GdbTest):
             misa = self.gdb.p("$misa")
             assertEqual(misa, hart.misa)
 
+class TranslateTest(GdbTest):
+    compile_args = ("programs/translate.c", )
+
+    def setup(self):
+        self.gdb.load()
+        self.parkOtherHarts()
+
+class Sv32Test(TranslateTest):
+    def test(self):
+        pass
+
+class Sv39Test(TranslateTest):
+    pass
+
+class Sv48Test(TranslateTest):
+    pass
+
 parsed = None
 def main():
     parser = argparse.ArgumentParser(
