@@ -49,15 +49,14 @@ SECTIONS
   /* thread-local data segment */
   .tdata :
   {
-    _tls_data = .;
-    *(.tdata.begin)
+    _tdata_begin = .;
     *(.tdata)
-    *(.tdata.end)
+    _tdata_end = .;
   }
   .tbss :
   {
     *(.tbss)
-    *(.tbss.end)
+    _tbss_end = .;
   }
 
   /* End of uninitalized data segement */
