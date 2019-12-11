@@ -93,9 +93,11 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
+// Must be global for compatibility with Clang
+register void* thread_pointer asm("tp");
+
 static void init_tls()
 {
-  register void* thread_pointer asm("tp");
   extern char _tdata_begin, _tdata_end, _tbss_end;
   size_t tdata_size = &_tdata_end - &_tdata_begin;
   memcpy(thread_pointer, &_tdata_begin, tdata_size);
