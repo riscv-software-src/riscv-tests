@@ -10,7 +10,7 @@ void *increment_count(unsigned hartid, unsigned mcause, void *mepc, void *sp)
     interrupt_count++;
     // There is no guarantee that the interrupt is cleared immediately when
     // MTIMECMP is written, so stick around here until that happens.
-    while (csr_read(mip) & MIP_MTIP) {
+    while (read_csr(mip) & MIP_MTIP) {
         MTIMECMP[hartid] = MTIME + delta;
     }
     return mepc;
@@ -20,7 +20,7 @@ int main()
 {
     interrupt_count = 0;
     local = 0;
-    unsigned hartid = csr_read(mhartid);
+    unsigned hartid = read_csr(mhartid);
 
     set_trap_handler(increment_count);
     MTIMECMP[hartid] = MTIME - 1;

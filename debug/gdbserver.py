@@ -1263,18 +1263,50 @@ class TranslateTest(GdbTest):
     compile_args = ("programs/translate.c", )
 
     def setup(self):
+        # TODO: If we use a random hart, then we get into trouble because
+        # gdb_read_memory_packet() ignores which hart is currently selected, so
+        # we end up reading satp from hart 0 when the address translation might
+        # be set up on hart 1 only.
+        self.gdb.select_hart(self.target.harts[0])
         self.gdb.load()
-        self.parkOtherHarts()
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn(" main ", output)
+
+    def test_translation(self):
+        self.gdb.b("error")
+        self.gdb.b("handle_trap")
+        self.gdb.b("main:active")
+        output = self.gdb.c()
+        assertIn(" main ", output)
+        assertEqual(0xdeadbeef, self.gdb.p("physical[0]"))
+        assertEqual(0x55667788, self.gdb.p("physical[1]"))
+        assertEqual(0xdeadbeef, self.gdb.p("virtual[0]"))
+        assertEqual(0x55667788, self.gdb.p("virtual[1]"))
 
 class Sv32Test(TranslateTest):
+    def early_applicable(self):
+        return self.hart.xlen == 32
+
     def test(self):
-        pass
+        self.gdb.p("vms=&sv32")
+        self.test_translation()
 
 class Sv39Test(TranslateTest):
-    pass
+    def early_applicable(self):
+        return self.hart.xlen > 32
+
+    def test(self):
+        self.gdb.p("vms=&sv39")
+        self.test_translation()
 
 class Sv48Test(TranslateTest):
-    pass
+    def early_applicable(self):
+        return self.hart.xlen > 32
+
+    def test(self):
+        self.gdb.p("vms=&sv48")
+        self.test_translation()
 
 parsed = None
 def main():

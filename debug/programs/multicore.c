@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "init.h"
+#include "encoding.h"
 
 typedef struct {
     int counter;
@@ -51,7 +52,7 @@ void *increment_count(unsigned hartid, unsigned mcause, void *mepc, void *sp)
 
 int main()
 {
-    uint32_t hartid = csr_read(mhartid);
+    uint32_t hartid = read_csr(mhartid);
     hart_count[hartid] = 0;
     interrupt_count[hartid] = 0;
 

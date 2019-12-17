@@ -7,7 +7,7 @@ trap_handler_t trap_handler[NHARTS] = {0};
 
 void set_trap_handler(trap_handler_t handler)
 {
-    unsigned hartid = csr_read(mhartid);
+    unsigned hartid = read_csr(mhartid);
     trap_handler[hartid] = handler;
 }
 
@@ -19,7 +19,7 @@ void enable_timer_interrupts()
 
 void handle_trap(unsigned int mcause, void *mepc, void *sp)
 {
-    unsigned hartid = csr_read(mhartid);
+    unsigned hartid = read_csr(mhartid);
     if (trap_handler[hartid]) {
         trap_handler[hartid](hartid, mcause, mepc, sp);
         return;
