@@ -10,9 +10,15 @@ Requirements
 ============
 The following should be in the user's path:
 * riscv64-unknown-elf-gcc
-* riscv64-unknown-elf-gdb (can be overridden with `--gdb` when running gdbserver.py manually)
-* spike (can be overridden with `--sim_cmd` when running gdbserver.py manually)
-* openocd (can be overridden with `--server_cmd` when running gdbserver.py manually)
+* riscv64-unknown-elf-gdb (can be overridden with `--gdb` when running
+  gdbserver.py manually), which should be the latest from
+  git://sourceware.org/git/binutils-gdb.git.
+* spike (can be overridden with `--sim_cmd` when running gdbserver.py
+  manually), which should be the latest from
+  https://github.com/riscv/riscv-isa-sim.git.
+* openocd (can be overridden with `--server_cmd` when running gdbserver.py
+  manually), which should be the latest from
+  https://github.com/riscv/riscv-openocd.git.
 
 Usage
 =====
