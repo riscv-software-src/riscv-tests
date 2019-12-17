@@ -9,6 +9,9 @@ class spike64_hart(targets.Hart):
     reset_vectors = [0x1000]
     link_script_path = "spike64.lds"
 
+    def __init__(self, misa=0x8000000000141125):
+        self.misa = misa
+
 class spike64(targets.Target):
     harts = [spike64_hart()]
     openocd_config_path = "spike-1.cfg"

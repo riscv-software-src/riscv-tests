@@ -1251,6 +1251,14 @@ class PrivChange(PrivTest):
         pc = self.gdb.p("$pc")
         assertTrue(pc < main_address or pc > main_address + 0x100)
 
+class CheckMisa(GdbTest):
+    """Make sure the misa we're using is actually what the target exposes."""
+    def test(self):
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            misa = self.gdb.p("$misa")
+            assertEqual(misa, hart.misa)
+
 parsed = None
 def main():
     parser = argparse.ArgumentParser(
