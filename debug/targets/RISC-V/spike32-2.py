@@ -4,7 +4,8 @@ import testlib
 import spike32  # pylint: disable=import-error
 
 class spike32_2(targets.Target):
-    harts = [spike32.spike32_hart(), spike32.spike32_hart()]
+    harts = [spike32.spike32_hart(misa=0x40141125),
+            spike32.spike32_hart(misa=0x40141125)]
     openocd_config_path = "spike-2.cfg"
     timeout_sec = 30
     implements_custom_test = True
