@@ -315,13 +315,7 @@ class MemTestBlock(GdbTest):
         temporary_file.flush()
         return data
 
-    def test(self):
-        a = tempfile.NamedTemporaryFile(suffix=".ihex")
-        data = self.write(a)
-
-        self.gdb.command("shell cat %s" % a.name)
-        self.gdb.command("monitor riscv reset_delays 50")
-        self.gdb.command("restore %s 0x%x" % (a.name, self.hart.ram))
+    def spot_check_memory(self, data):
         increment = 19 * 4
         for offset in list(range(0, self.length, increment)) + [self.length-4]:
             value = self.gdb.p("*((int*)0x%x)" % (self.hart.ram + offset))
@@ -331,10 +325,19 @@ class MemTestBlock(GdbTest):
                     (ord(data[offset+3]) << 24)
             assertEqual(value, written)
 
+    def test_block(self, extra_delay):
+        a = tempfile.NamedTemporaryFile(suffix=".ihex")
+        data = self.write(a)
+
+        self.gdb.command("shell cat %s" % a.name)
+        self.gdb.command("restore %s 0x%x" % (a.name, self.hart.ram),
+                reset_delays=50 + extra_delay)
+        self.spot_check_memory(data)
+
         b = tempfile.NamedTemporaryFile(suffix=".srec")
-        self.gdb.command("monitor riscv reset_delays 100")
         self.gdb.command("dump srec memory %s 0x%x 0x%x" % (b.name,
-            self.hart.ram, self.hart.ram + self.length), ops=self.length / 32)
+            self.hart.ram, self.hart.ram + self.length), ops=self.length / 32,
+            reset_delays=100 + extra_delay)
         self.gdb.command("shell cat %s" % b.name)
         highest_seen = 0
         for line in b:
@@ -351,6 +354,20 @@ class MemTestBlock(GdbTest):
                                 readable_binary_string(written_data),
                                 readable_binary_string(line_data)))
         assertEqual(highest_seen, self.length)
+
+# Run memory block tests with different reset delays, so hopefully we hit busy
+# at every possible relevant time.
+class MemTestBlock0(MemTestBlock):
+    def test(self):
+        return self.test_block(0)
+
+class MemTestBlock1(MemTestBlock):
+    def test(self):
+        return self.test_block(1)
+
+class MemTestBlock2(MemTestBlock):
+    def test(self):
+        return self.test_block(2)
 
 class InstantHaltTest(GdbTest):
     def test(self):
