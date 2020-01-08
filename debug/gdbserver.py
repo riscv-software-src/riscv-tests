@@ -401,26 +401,6 @@ class ProgramTest(GdbSingleHartTest):
         assertIn("_exit", output)
         assertEqual(self.gdb.p("status"), expected_result)
 
-class ProgramHwWatchpoint(ProgramTest):
-    def test(self):
-        mainbp = self.gdb.b("main")
-        output = self.gdb.c()
-        assertIn("Breakpoint", output)
-        assertIn("main", output)
-        self.gdb.command("delete %d" % mainbp)
-        self.gdb.watch("counter == 5")
-        # Watchpoint hits when counter becomes 5.
-        output = self.gdb.c()
-        assertEqual(self.gdb.p("counter"), 5)
-        # Watchpoint hits when counter no longer is 5.
-        output = self.gdb.c()
-        assertEqual(self.gdb.p("counter"), 6)
-        # The watchpoint is going out of scope
-        output = self.gdb.c()
-        assertIn("Watchpoint", output)
-        assertIn("deleted", output)
-        self.exit()
-
 class ProgramSwWatchpoint(ProgramTest):
     def test(self):
         self.gdb.b("main")
