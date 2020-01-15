@@ -405,6 +405,10 @@ class Gdb:
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
 
+    reset_delays = (127, 181, 17, 13, 83, 151, 31, 67, 131, 167, 23, 41, 61,
+            11, 149, 107, 163, 73, 47, 43, 173, 7, 109, 101, 103, 191, 2, 139,
+            97, 193, 157, 3, 29, 79, 113, 5, 89, 19, 37, 71, 179, 59, 137, 53)
+
     def __init__(self, ports,
             cmd="riscv64-unknown-elf-gdb",
             timeout=60, binary=None):
@@ -415,6 +419,7 @@ class Gdb:
         self.timeout = timeout
         self.binary = binary
 
+        self.reset_delay_index = 0
         self.stack = []
         self.harts = {}
 
@@ -496,10 +501,17 @@ class Gdb:
         """Wait for prompt."""
         self.active_child.expect(r"\(gdb\)")
 
-    def command(self, command, ops=1):
+    def command(self, command, ops=1, reset_delays=0):
         """ops is the estimated number of operations gdb will have to perform
         to perform this command. It is used to compute a timeout based on
         self.timeout."""
+        if not reset_delays is None:
+            if reset_delays == 0:
+                reset_delays = self.reset_delays[self.reset_delay_index]
+                self.reset_delay_index = (self.reset_delay_index + 1) % \
+                        len(self.reset_delays)
+            self.command("monitor riscv reset_delays %d" % reset_delays,
+                    reset_delays=None)
         timeout = ops * self.timeout
         self.active_child.sendline(command)
         self.active_child.expect("\n", timeout=timeout)
@@ -962,11 +974,11 @@ class GdbTest(BaseTest):
         if not self.gdb:
             return
         self.gdb.interrupt()
-        self.gdb.command("info breakpoints")
-        self.gdb.command("disassemble", ops=20)
-        self.gdb.command("info registers all", ops=20)
-        self.gdb.command("flush regs")
-        self.gdb.command("info threads", ops=20)
+        self.gdb.command("info breakpoints", reset_delays=None)
+        self.gdb.command("disassemble", ops=20, reset_delays=None)
+        self.gdb.command("info registers all", ops=20, reset_delays=None)
+        self.gdb.command("flush regs", reset_delays=None)
+        self.gdb.command("info threads", ops=20, reset_delays=None)
 
     def classTeardown(self):
         del self.gdb
