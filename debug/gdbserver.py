@@ -729,19 +729,19 @@ class MulticoreRegTest(GdbTest):
             # Check register values.
             x1 = self.gdb.p("$x1")
             hart_id = self.gdb.p("$mhartid")
-            assertEqual(x1, hart_id)
+            assertEqual(x1, hart_id << 8)
             assertNotIn(hart_id, hart_ids)
             hart_ids.append(hart_id)
             for n in range(2, 32):
                 value = self.gdb.p("$x%d" % n)
-                assertEqual(value, hart_ids[-1] + n - 1)
+                assertEqual(value, (hart_ids[-1] << 8) + n - 1)
 
         # Confirmed that we read different register values for different harts.
         # Write a new value to x1, and run through the add sequence again.
 
         for hart in self.target.harts:
             self.gdb.select_hart(hart)
-            self.gdb.p("$x1=0x%x" % (hart.index * 0x800))
+            self.gdb.p("$x1=0x%x" % (hart.index * 0x1000))
             self.gdb.p("$pc=main_post_csrr")
             self.gdb.c()
         for hart in self.target.harts:
@@ -750,7 +750,7 @@ class MulticoreRegTest(GdbTest):
             # Check register values.
             for n in range(1, 32):
                 value = self.gdb.p("$x%d" % n)
-                assertEqual(value, hart.index * 0x800 + n - 1)
+                assertEqual(value, hart.index * 0x1000 + n - 1)
 
 #class MulticoreRunHaltStepiTest(GdbTest):
 #    compile_args = ("programs/multicore.c", "-DMULTICORE")

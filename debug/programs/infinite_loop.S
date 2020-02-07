@@ -8,6 +8,7 @@
         // clobbered after attaching.
 main:
         csrr    x1, CSR_MHARTID
+        slli    x1, x1, 8
 main_post_csrr:
         addi    x2, x1, 1
         addi    x3, x2, 1
