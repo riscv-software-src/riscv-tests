@@ -78,19 +78,23 @@ def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
 
 class SimpleRegisterTest(GdbTest):
-    def check_reg(self, name, alias):
-        a = random.randrange(1<<self.hart.xlen)
-        b = random.randrange(1<<self.hart.xlen)
+    def check_reg(self, name, alias, bits=None):
+        if bits is None:
+            bits = self.hart.xlen
+        a = random.randrange(1<<bits)
+        b = random.randrange(1<<bits)
         self.gdb.p("$%s=0x%x" % (name, a))
-        assertEqual(self.gdb.p("$%s" % alias), a)
+        if alias:
+            assertEqual(self.gdb.p("$%s" % alias), a)
         self.gdb.stepi()
         assertEqual(self.gdb.p("$%s" % name), a)
-        assertEqual(self.gdb.p("$%s" % alias), a)
-        self.gdb.p("$%s=0x%x" % (alias, b))
-        assertEqual(self.gdb.p("$%s" % name), b)
-        self.gdb.stepi()
-        assertEqual(self.gdb.p("$%s" % name), b)
-        assertEqual(self.gdb.p("$%s" % alias), b)
+        if alias:
+            assertEqual(self.gdb.p("$%s" % alias), a)
+            self.gdb.p("$%s=0x%x" % (alias, b))
+            assertEqual(self.gdb.p("$%s" % name), b)
+            self.gdb.stepi()
+            assertEqual(self.gdb.p("$%s" % name), b)
+            assertEqual(self.gdb.p("$%s" % alias), b)
 
     def setup(self):
         # 0x13 is nop
@@ -117,8 +121,21 @@ class SimpleT1Test(SimpleRegisterTest):
     def test(self):
         self.check_reg("t1", "x6")
 
+class SimpleV13Test(SimpleRegisterTest):
+    def test(self):
+        if self.hart.extensionSupported('V'):
+            self.check_reg("v13.b[5]", None, bits=8)
+            self.check_reg("v13.s[2]", None, bits=16)
+            self.check_reg("v13.w[2]", None, bits=32)
+            self.check_reg("v13.l[1]", None, bits=64)
+            # Can't write quadwords, because gdb won't parse a 128-bit hex
+            # value.
+        else:
+            output = self.gdb.p_raw("$v13")
+            assertRegex(output, r"void|Could not fetch register.*")
+
 class SimpleF18Test(SimpleRegisterTest):
-    def check_reg(self, name, alias):
+    def check_reg(self, name, alias, bits=None):
         if self.hart.extensionSupported('F'):
             mstatus_fs = 0x00006000
             self.gdb.p("$mstatus=$mstatus|0x%x" % mstatus_fs)
