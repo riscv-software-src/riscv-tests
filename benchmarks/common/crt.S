@@ -127,11 +127,11 @@ _start:
 
   # give each core 128KB of stack + TLS
 #define STKSHIFT 17
-  sll a2, a0, STKSHIFT
-  add tp, tp, a2
   add sp, a0, 1
   sll sp, sp, STKSHIFT
   add sp, sp, tp
+  sll a2, a0, STKSHIFT
+  add tp, tp, a2
 
   j _init
 
