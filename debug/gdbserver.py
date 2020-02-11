@@ -1288,14 +1288,14 @@ class TranslateTest(GdbTest):
         self.gdb.load()
         self.gdb.b("main")
         output = self.gdb.c()
-        assertIn(" main ", output)
+        assertRegex(output, r"\bmain\b")
 
     def test_translation(self):
         self.gdb.b("error")
         self.gdb.b("handle_trap")
         self.gdb.b("main:active")
         output = self.gdb.c()
-        assertIn(" main ", output)
+        assertRegex(output, r"\bmain\b")
         assertEqual(0xdeadbeef, self.gdb.p("physical[0]"))
         assertEqual(0x55667788, self.gdb.p("physical[1]"))
         assertEqual(0xdeadbeef, self.gdb.p("virtual[0]"))
