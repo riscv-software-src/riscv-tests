@@ -262,15 +262,21 @@ class Openocd:
         if debug:
             cmd.append("-d")
 
-        logfile = open(Openocd.logname, "w")
+        raw_logfile = open(Openocd.logname, "wb")
+        try:
+            spike_dasm = subprocess.Popen("spike-dasm", stdin=subprocess.PIPE,
+                    stdout=raw_logfile, stderr=raw_logfile)
+            logfile = spike_dasm.stdin
+        except FileNotFoundError:
+            logfile = raw_logfile
         if print_log_names:
             real_stdout.write("Temporary OpenOCD log: %s\n" % Openocd.logname)
         env_entries = ("REMOTE_BITBANG_HOST", "REMOTE_BITBANG_PORT",
                 "WORK_AREA")
         env_entries = [key for key in env_entries if key in os.environ]
-        logfile.write("+ %s%s\n" % (
+        logfile.write(("+ %s%s\n" % (
             "".join("%s=%s " % (key, os.environ[key]) for key in env_entries),
-            " ".join(map(pipes.quote, cmd))))
+            " ".join(map(pipes.quote, cmd)))).encode())
         logfile.flush()
 
         self.gdb_ports = []
