@@ -84,8 +84,7 @@ class SimpleRegisterTest(GdbTest):
         a = random.randrange(1<<bits)
         b = random.randrange(1<<bits)
         self.gdb.p("$%s=0x%x" % (name, a))
-        if alias:
-            assertEqual(self.gdb.p("$%s" % alias), a)
+        assertEqual(self.gdb.p("$%s" % (alias or name)), a)
         self.gdb.stepi()
         assertEqual(self.gdb.p("$%s" % name), a)
         if alias:
@@ -124,12 +123,20 @@ class SimpleT1Test(SimpleRegisterTest):
 class SimpleV13Test(SimpleRegisterTest):
     def test(self):
         if self.hart.extensionSupported('V'):
-            self.check_reg("v13.b[5]", None, bits=8)
-            self.check_reg("v13.s[2]", None, bits=16)
-            self.check_reg("v13.w[2]", None, bits=32)
-            self.check_reg("v13.l[1]", None, bits=64)
+            vlenb = self.gdb.p("$vlenb")
             # Can't write quadwords, because gdb won't parse a 128-bit hex
             # value.
+            written = {}
+            for name, byte_count in (('b', 1), ('s', 2), ('w', 4), ('l', 8)):
+                written[name] = {}
+                for i in range(vlenb // byte_count):
+                    written[name][i] = random.randrange(256 ** byte_count)
+                    self.gdb.p("$v13.%s[%d]=0x%x" % (name, i, written[name][i]))
+                self.gdb.stepi()
+                self.gdb.p("$v13")
+                for i in range(vlenb // byte_count):
+                    assertEqual(self.gdb.p("$v13.%s[%d]" % (name, i)),
+                            written[name][i])
         else:
             output = self.gdb.p_raw("$v13")
             assertRegex(output, r"void|Could not fetch register.*")

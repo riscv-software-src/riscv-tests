@@ -4,12 +4,12 @@ import testlib
 import spike32  # pylint: disable=import-error
 
 class spike32_2(targets.Target):
-    harts = [spike32.spike32_hart(misa=0x40141129),
-            spike32.spike32_hart(misa=0x40141129)]
+    harts = [spike32.spike32_hart(misa=0x40341101),
+            spike32.spike32_hart(misa=0x40341101)]
     openocd_config_path = "spike-2-hwthread.cfg"
     timeout_sec = 5
     implements_custom_test = True
 
     def create(self):
-        return testlib.Spike(self, support_hasel=True,
+        return testlib.Spike(self, isa="RV32IMAV", support_hasel=True,
                 support_haltgroups=False)

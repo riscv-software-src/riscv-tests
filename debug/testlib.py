@@ -54,7 +54,7 @@ class Spike:
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
             support_hasel=True, support_abstract_csr=True,
-            support_haltgroups=True):
+            support_haltgroups=True, vlen=128, elen=64, slen=128):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
@@ -65,6 +65,9 @@ class Spike:
         self.support_abstract_csr = support_abstract_csr
         self.support_hasel = support_hasel
         self.support_haltgroups = support_haltgroups
+        self.vlen = vlen
+        self.elen = elen
+        self.slen = slen
 
         if target.harts:
             harts = target.harts
@@ -140,6 +143,10 @@ class Spike:
 
         if not self.support_haltgroups:
             cmd.append("--dm-no-halt-groups")
+
+        if 'V' in isa[2:]:
+            cmd.append("--varch=v%d:e%d:s%d" % (self.vlen, self.elen,
+                self.slen))
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
