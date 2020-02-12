@@ -78,22 +78,19 @@ def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
 
 class SimpleRegisterTest(GdbTest):
-    def check_reg(self, name, alias, bits=None):
-        if bits is None:
-            bits = self.hart.xlen
-        a = random.randrange(1<<bits)
-        b = random.randrange(1<<bits)
+    def check_reg(self, name, alias):
+        a = random.randrange(1<<self.hart.xlen)
+        b = random.randrange(1<<self.hart.xlen)
         self.gdb.p("$%s=0x%x" % (name, a))
-        assertEqual(self.gdb.p("$%s" % (alias or name)), a)
+        assertEqual(self.gdb.p("$%s" % alias), a)
         self.gdb.stepi()
         assertEqual(self.gdb.p("$%s" % name), a)
-        if alias:
-            assertEqual(self.gdb.p("$%s" % alias), a)
-            self.gdb.p("$%s=0x%x" % (alias, b))
-            assertEqual(self.gdb.p("$%s" % name), b)
-            self.gdb.stepi()
-            assertEqual(self.gdb.p("$%s" % name), b)
-            assertEqual(self.gdb.p("$%s" % alias), b)
+        assertEqual(self.gdb.p("$%s" % alias), a)
+        self.gdb.p("$%s=0x%x" % (alias, b))
+        assertEqual(self.gdb.p("$%s" % name), b)
+        self.gdb.stepi()
+        assertEqual(self.gdb.p("$%s" % name), b)
+        assertEqual(self.gdb.p("$%s" % alias), b)
 
     def setup(self):
         # 0x13 is nop
@@ -142,7 +139,7 @@ class SimpleV13Test(SimpleRegisterTest):
             assertRegex(output, r"void|Could not fetch register.*")
 
 class SimpleF18Test(SimpleRegisterTest):
-    def check_reg(self, name, alias, bits=None):
+    def check_reg(self, name, alias):
         if self.hart.extensionSupported('F'):
             mstatus_fs = 0x00006000
             self.gdb.p("$mstatus=$mstatus|0x%x" % mstatus_fs)
