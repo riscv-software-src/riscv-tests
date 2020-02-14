@@ -54,7 +54,7 @@ class Spike:
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
             support_hasel=True, support_abstract_csr=True,
-            support_haltgroups=True):
+            support_haltgroups=True, vlen=128, elen=64, slen=128):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
@@ -65,6 +65,9 @@ class Spike:
         self.support_abstract_csr = support_abstract_csr
         self.support_hasel = support_hasel
         self.support_haltgroups = support_haltgroups
+        self.vlen = vlen
+        self.elen = elen
+        self.slen = slen
 
         if target.harts:
             harts = target.harts
@@ -140,6 +143,10 @@ class Spike:
 
         if not self.support_haltgroups:
             cmd.append("--dm-no-halt-groups")
+
+        if 'V' in isa[2:]:
+            cmd.append("--varch=v%d:e%d:s%d" % (self.vlen, self.elen,
+                self.slen))
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
@@ -381,29 +388,101 @@ class CouldNotFetch(Exception):
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
-def parse_rhs(text):
-    text = text.strip()
-    if text.startswith("{") and text.endswith("}"):
-        inner = text[1:-1]
-        parsed = [parse_rhs(t) for t in inner.split(", ")]
-        if all([isinstance(p, dict) for p in parsed]):
-            dictionary = {}
-            for p in parsed:
-                for k, v in p.items():
-                    dictionary[k] = v
-            parsed = dictionary
-        return parsed
-    elif text.startswith('"') and text.endswith('"'):
-        return text[1:-1]
-    elif ' = ' in text:
-        lhs, rhs = text.split(' = ', 1)
-        return {lhs: parse_rhs(rhs)}
-    elif re.match(r"-?(\d+\.\d+(e-?\d+)?|inf)", text):
-        return float(text)
-    elif re.match(r"-?nan\(0x[a-f0-9]+\)", text):
-        return float("nan")
+class Repeat:
+    def __init__(self, count):
+        self.count = count
+
+def tokenize(text):
+    index = 0
+    while index < len(text):
+        int_match = re.match(r"-?\d+", text[index:])
+        float_match = re.match(r"-?\d*\.\d+(e[-+]\d+)?", text[index:])
+        nan_match = re.match(r"-?nan\(0x[a-f0-9]+\)", text)
+        hex_match = re.match(r"0x[\da-fA-F]+", text[index:])
+        whitespace_match = re.match(r"[\s]+", text[index:])
+        name_match = re.match(r"[a-zA-Z][a-zA-Z\d]*", text[index:])
+        repeat_match = re.match(r"<repeats (\d+) times>", text[index:])
+        string_match = re.match(r'"([^"]*)"', text[index:])
+        if text[index] in (",", "{", "}", "="):
+            yield text[index]
+            index += 1
+        elif nan_match:
+            index += len(nan_match.group(0))
+            yield float("nan")
+        elif float_match:
+            index += len(float_match.group(0))
+            yield float(float_match.group(0))
+        elif hex_match:
+            yield int(hex_match.group(0)[2:], 16)
+            index += len(hex_match.group(0))
+        elif int_match:
+            index += len(int_match.group(0))
+            yield int(int_match.group(0))
+        elif whitespace_match:
+            index += len(whitespace_match.group(0))
+        elif name_match:
+            index += len(name_match.group(0))
+            yield name_match.group(0)
+        elif repeat_match:
+            index += len(repeat_match.group(0))
+            yield Repeat(int(repeat_match.group(1)))
+        elif string_match:
+            # Note: no attempt is made to deal with escaped characters.
+            index += len(string_match.group(0))
+            yield string_match.group(1)
+        else:
+            raise Exception(text[index:])
+
+def parse_dict(tokens):
+    assert tokens[0] == "{"
+    tokens.pop(0)
+    result = {}
+    while True:
+        key = tokens.pop(0)
+        assert tokens.pop(0) == "="
+        value = parse_tokens(tokens)
+        result[key] = value
+        token = tokens.pop(0)
+        if token == "}":
+            return result
+        assert token == ","
+
+def parse_list(tokens):
+    assert tokens[0] == "{"
+    tokens.pop(0)
+    result = []
+    while True:
+        result.append(tokens.pop(0))
+        token = tokens.pop(0)
+        if isinstance(token, Repeat):
+            result += [result[-1]] * (token.count - 1)
+            token = tokens.pop(0)
+        if token == "}":
+            return result
+        assert token == ","
+
+def parse_dict_or_list(tokens):
+    assert tokens[0] == "{"
+    if tokens[2] == "=":
+        return parse_dict(tokens)
     else:
-        return int(text, 0)
+        return parse_list(tokens)
+
+def parse_tokens(tokens):
+    if isinstance(tokens[0], (float, int)):
+        return tokens.pop(0)
+    if tokens[0] == "{":
+        return parse_dict_or_list(tokens)
+    if isinstance(tokens[0], str):
+        return tokens.pop(0)
+    raise Exception("Unsupported tokens: %r" % tokens)
+
+def parse_rhs(text):
+    tokens = list(tokenize(text))
+    result = parse_tokens(tokens)
+    if tokens:
+        raise Exception("Unexpected input: %r" % tokens)
+    return result
 
 class Gdb:
     """A single gdb class which can interact with one or more gdb instances."""
@@ -622,7 +701,7 @@ class Gdb:
         output = self.command("info registers %s" % group, ops=5)
         result = {}
         for line in output.splitlines():
-            m = re.match(r"(\w+)\s+({.*})\s+(\(.*\))", line)
+            m = re.match(r"(\w+)\s+({.*})(?:\s+(\(.*\)))?", line)
             if m:
                 parts = m.groups()
             else:

@@ -4,8 +4,8 @@ import testlib
 import spike64  # pylint: disable=import-error
 
 class spike64_2(targets.Target):
-    harts = [spike64.spike64_hart(misa=0x8000000000141129),
-            spike64.spike64_hart(misa=0x8000000000141129)]
+    harts = [spike64.spike64_hart(misa=0x8000000000341129),
+            spike64.spike64_hart(misa=0x8000000000341129)]
     openocd_config_path = "spike-2.cfg"
     # Increased timeout because we use abstract_rti to artificially slow things
     # down.
@@ -14,5 +14,6 @@ class spike64_2(targets.Target):
     support_hasel = False
 
     def create(self):
-        return testlib.Spike(self, isa="RV64IMAFD", abstract_rti=30,
-                support_hasel=False, support_abstract_csr=False)
+        return testlib.Spike(self, isa="RV64IMAFDV", abstract_rti=30,
+                support_hasel=False, support_abstract_csr=False,
+                vlen=512, elen=64)

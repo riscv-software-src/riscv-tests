@@ -117,6 +117,27 @@ class SimpleT1Test(SimpleRegisterTest):
     def test(self):
         self.check_reg("t1", "x6")
 
+class SimpleV13Test(SimpleRegisterTest):
+    def test(self):
+        if self.hart.extensionSupported('V'):
+            vlenb = self.gdb.p("$vlenb")
+            # Can't write quadwords, because gdb won't parse a 128-bit hex
+            # value.
+            written = {}
+            for name, byte_count in (('b', 1), ('s', 2), ('w', 4), ('l', 8)):
+                written[name] = {}
+                for i in range(vlenb // byte_count):
+                    written[name][i] = random.randrange(256 ** byte_count)
+                    self.gdb.p("$v13.%s[%d]=0x%x" % (name, i, written[name][i]))
+                self.gdb.stepi()
+                self.gdb.p("$v13")
+                for i in range(vlenb // byte_count):
+                    assertEqual(self.gdb.p("$v13.%s[%d]" % (name, i)),
+                            written[name][i])
+        else:
+            output = self.gdb.p_raw("$v13")
+            assertRegex(output, r"void|Could not fetch register.*")
+
 class SimpleF18Test(SimpleRegisterTest):
     def check_reg(self, name, alias):
         if self.hart.extensionSupported('F'):
