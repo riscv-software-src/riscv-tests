@@ -46,6 +46,9 @@ RVTEST_CODE_BEGIN
 #endif
 #endif
 
+  TEST_CASE(15, a0,         0, csrrwi a0, sscratch, 0; csrrwi a0, sscratch, 0xF);
+  TEST_CASE(16, a0,         0, csrw sscratch, zero; csrr a0, sscratch);
+
   csrwi sscratch, 3
   TEST_CASE( 2, a0,         3, csrr a0, sscratch);
   TEST_CASE( 3, a1,         3, csrrci a1, sscratch, 1);
@@ -55,8 +58,6 @@ RVTEST_CODE_BEGIN
   TEST_CASE( 7, a0, 0xbad1dea, li a0, 0x0001dea; csrrc a0, sscratch, a0);
   TEST_CASE( 8, a0, 0xbad0000, li a0, 0x000beef; csrrs a0, sscratch, a0);
   TEST_CASE( 9, a0, 0xbadbeef, csrr a0, sscratch);
-  TEST_CASE(15, a0,         0, csrrwi a0, sscratch, 0; csrrwi a0, sscratch, 0xF);
-  TEST_CASE(16, a0,         0, csrw sscratch, zero; csrr a0, sscratch);
 
 #ifdef __MACHINE_MODE
   # Is F extension present?
