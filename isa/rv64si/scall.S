@@ -30,6 +30,10 @@ RVTEST_CODE_BEGIN
   li t1, CAUSE_USER_ECALL
 
 #ifdef __MACHINE_MODE
+  # register mtvec_handler
+  la t0, stvec_handler
+  csrw mtvec, t0
+
   # If running in M mode, use mstatus.MPP to check existence of U mode.
   # Otherwise, if in S mode, then U mode must exist and we don't need to check.
   li t0, MSTATUS_MPP
