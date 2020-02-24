@@ -177,8 +177,6 @@ reset_vector:                                                           \
                (1 << CAUSE_USER_ECALL) |                                \
                (1 << CAUSE_BREAKPOINT);                                 \
         csrw medeleg, t0;                                               \
-        csrr t1, medeleg;                                               \
-        bne t0, t1, other_exception;                                    \
 1:      csrwi mstatus, 0;                                               \
         init;                                                           \
         EXTRA_INIT;                                                     \
