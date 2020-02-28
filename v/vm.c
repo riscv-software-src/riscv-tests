@@ -278,8 +278,8 @@ void vm_boot(uintptr_t test_addr)
     (1 << CAUSE_FETCH_PAGE_FAULT) |
     (1 << CAUSE_LOAD_PAGE_FAULT) |
     (1 << CAUSE_STORE_PAGE_FAULT));
-  // FPU on; accelerator on; allow supervisor access to user memory access
-  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS);
+  // FPU on; accelerator on; vector unit on
+  write_csr(mstatus, MSTATUS_FS | MSTATUS_XS | MSTATUS_VS);
   write_csr(mie, 0);
 
   random = 1 + (random % MAX_TEST_PAGES);
