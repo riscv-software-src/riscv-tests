@@ -1311,6 +1311,17 @@ class TranslateTest(GdbTest):
         output = self.gdb.c()
         assertRegex(output, r"\bmain\b")
 
+    def check_satp(self, mode):
+        if self.hart.xlen == 32:
+            satp = mode << 31
+        else:
+            satp = mode << 60
+        self.gdb.p("$satp=0x%x" % satp)
+        readback = self.gdb.p("$satp")
+        self.gdb.p("$satp=0")
+        if readback != satp:
+            raise TestNotApplicable
+
     def test_translation(self):
         self.gdb.b("error")
         self.gdb.b("handle_trap")
@@ -1322,11 +1333,19 @@ class TranslateTest(GdbTest):
         assertEqual(0xdeadbeef, self.gdb.p("virtual[0]"))
         assertEqual(0x55667788, self.gdb.p("virtual[1]"))
 
+SATP_MODE_OFF = 0
+SATP_MODE_SV32 = 1
+SATP_MODE_SV39 = 8
+SATP_MODE_SV48 = 9
+SATP_MODE_SV57 = 10
+SATP_MODE_SV64 = 11
+
 class Sv32Test(TranslateTest):
     def early_applicable(self):
         return self.hart.xlen == 32
 
     def test(self):
+        self.check_satp(SATP_MODE_SV32)
         self.gdb.p("vms=&sv32")
         self.test_translation()
 
@@ -1335,6 +1354,7 @@ class Sv39Test(TranslateTest):
         return self.hart.xlen > 32
 
     def test(self):
+        self.check_satp(SATP_MODE_SV39)
         self.gdb.p("vms=&sv39")
         self.test_translation()
 
@@ -1343,6 +1363,7 @@ class Sv48Test(TranslateTest):
         return self.hart.xlen > 32
 
     def test(self):
+        self.check_satp(SATP_MODE_SV48)
         self.gdb.p("vms=&sv48")
         self.test_translation()
 
