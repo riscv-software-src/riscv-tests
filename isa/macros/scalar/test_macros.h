@@ -13,9 +13,9 @@
 #define TEST_CASE( testnum, testreg, correctval, code... ) \
 test_ ## testnum: \
     code; \
-    li  x29, MASK_XLEN(correctval); \
+    li  x7, MASK_XLEN(correctval); \
     li  TESTNUM, testnum; \
-    bne testreg, x29, fail;
+    bne testreg, x7, fail;
 
 # We use a macro hack to simpify code generation for various numbers
 # of bubble cycles.
@@ -237,8 +237,8 @@ test_ ## testnum: \
     inst x14, offset(x1); \
     TEST_INSERT_NOPS_ ## nop_cycles \
     addi  x6, x14, 0; \
-    li  x29, result; \
-    bne x6, x29, fail; \
+    li  x7, result; \
+    bne x6, x7, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b; \
@@ -250,8 +250,8 @@ test_ ## testnum: \
 1:  la  x1, base; \
     TEST_INSERT_NOPS_ ## nop_cycles \
     inst x14, offset(x1); \
-    li  x29, result; \
-    bne x14, x29, fail; \
+    li  x7, result; \
+    bne x14, x7, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -266,8 +266,8 @@ test_ ## testnum: \
     TEST_INSERT_NOPS_ ## src2_nops \
     store_inst x1, offset(x2); \
     load_inst x14, offset(x2); \
-    li  x29, result; \
-    bne x14, x29, fail; \
+    li  x7, result; \
+    bne x14, x7, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -282,8 +282,8 @@ test_ ## testnum: \
     TEST_INSERT_NOPS_ ## src2_nops \
     store_inst x1, offset(x2); \
     load_inst x14, offset(x2); \
-    li  x29, result; \
-    bne x14, x29, fail; \
+    li  x7, result; \
+    bne x14, x7, fail; \
     addi  x4, x4, 1; \
     li  x5, 2; \
     bne x4, x5, 1b \
@@ -615,10 +615,10 @@ test_ ## testnum: \
 test_ ## testnum: \
     code; \
     la  x15, test_ ## testnum ## _data ; \
-    lw  x29, 0(x15); \
+    lw  x7, 0(x15); \
     lw  x15, 4(x15); \
     li  TESTNUM, testnum; \
-    bne testreg1, x29, fail;\
+    bne testreg1, x7, fail;\
     bne testreg2, x15, fail;\
     .pushsection .data; \
     .align 3; \
