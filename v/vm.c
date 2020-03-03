@@ -267,7 +267,7 @@ void vm_boot(uintptr_t test_addr)
                 "csrw pmpaddr0, %1\n\t"
                 "csrw pmpcfg0, %0\n\t"
                 ".align 2\n\t"
-                "1:"
+                "1: csrw mtvec, t0"
                 : : "r" (pmpc), "r" (pmpa) : "t0");
 
   // set up supervisor trap handling
