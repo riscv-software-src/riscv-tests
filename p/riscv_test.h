@@ -63,6 +63,39 @@
 # define CHECK_XLEN li a0, 1; slli a0, a0, 31; bltz a0, 1f; RVTEST_PASS; 1:
 #endif
 
+#define INIT_XREG                                                       \
+  li x1, 0;                                                             \
+  li x2, 0;                                                             \
+  li x3, 0;                                                             \
+  li x4, 0;                                                             \
+  li x5, 0;                                                             \
+  li x6, 0;                                                             \
+  li x7, 0;                                                             \
+  li x8, 0;                                                             \
+  li x9, 0;                                                             \
+  li x10, 0;                                                            \
+  li x11, 0;                                                            \
+  li x12, 0;                                                            \
+  li x13, 0;                                                            \
+  li x14, 0;                                                            \
+  li x15, 0;                                                            \
+  li x16, 0;                                                            \
+  li x17, 0;                                                            \
+  li x18, 0;                                                            \
+  li x19, 0;                                                            \
+  li x20, 0;                                                            \
+  li x21, 0;                                                            \
+  li x22, 0;                                                            \
+  li x23, 0;                                                            \
+  li x24, 0;                                                            \
+  li x25, 0;                                                            \
+  li x26, 0;                                                            \
+  li x27, 0;                                                            \
+  li x28, 0;                                                            \
+  li x29, 0;                                                            \
+  li x30, 0;                                                            \
+  li x31, 0;
+
 #define INIT_PMP                                                        \
   la t0, 1f;                                                            \
   csrw mtvec, t0;                                                       \
@@ -158,8 +191,9 @@ handle_exception:                                                       \
         sw TESTNUM, tohost, t5;                                         \
         j write_tohost;                                                 \
 reset_vector:                                                           \
+        INIT_XREG;                                                      \
         RISCV_MULTICORE_DISABLE;                                        \
-        INIT_SATP;                                                     \
+        INIT_SATP;                                                      \
         INIT_PMP;                                                       \
         DELEGATE_NO_TRAPS;                                              \
         li TESTNUM, 0;                                                  \
