@@ -385,6 +385,11 @@ class CouldNotFetch(Exception):
         self.regname = regname
         self.explanation = explanation
 
+class NoSymbol(Exception):
+    def __init__(self, symbol):
+        Exception.__init__(self)
+        self.symbol = symbol
+
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
@@ -395,43 +400,32 @@ class Repeat:
 def tokenize(text):
     index = 0
     while index < len(text):
-        int_match = re.match(r"-?\d+", text[index:])
-        float_match = re.match(r"-?\d*\.\d+(e[-+]\d+)?", text[index:])
-        nan_match = re.match(r"-?nan\(0x[a-f0-9]+\)", text)
-        hex_match = re.match(r"0x[\da-fA-F]+", text[index:])
-        whitespace_match = re.match(r"[\s]+", text[index:])
-        name_match = re.match(r"[a-zA-Z][a-zA-Z\d]*", text[index:])
-        repeat_match = re.match(r"<repeats (\d+) times>", text[index:])
-        string_match = re.match(r'"([^"]*)"', text[index:])
-        if text[index] in (",", "{", "}", "="):
-            yield text[index]
-            index += 1
-        elif nan_match:
-            index += len(nan_match.group(0))
-            yield float("nan")
-        elif float_match:
-            index += len(float_match.group(0))
-            yield float(float_match.group(0))
-        elif hex_match:
-            yield int(hex_match.group(0)[2:], 16)
-            index += len(hex_match.group(0))
-        elif int_match:
-            index += len(int_match.group(0))
-            yield int(int_match.group(0))
-        elif whitespace_match:
-            index += len(whitespace_match.group(0))
-        elif name_match:
-            index += len(name_match.group(0))
-            yield name_match.group(0)
-        elif repeat_match:
-            index += len(repeat_match.group(0))
-            yield Repeat(int(repeat_match.group(1)))
-        elif string_match:
-            # Note: no attempt is made to deal with escaped characters.
-            index += len(string_match.group(0))
-            yield string_match.group(1)
+        for regex, fn in (
+                (r"[\s]+", lambda m: None),
+                (r"[,{}=]", lambda m: m.group(0)),
+                (r"0x[\da-fA-F]+", lambda m: int(m.group(0)[2:], 16)),
+                (r"-?\d*\.\d+(e[-+]\d+)?", lambda m: float(m.group(0))),
+                (r"-?\d+", lambda m: int(m.group(0))),
+                (r"-?nan\(0x[a-f0-9]+\)", lambda m: float("nan")),
+                (r"<repeats (\d+) times>", lambda m: Repeat(int(m.group(1)))),
+                (r"Could not fetch register \"(\w+)\"; (.*)$",
+                    lambda m: CouldNotFetch(m.group(1), m.group(2))),
+                (r"Cannot access memory at address (0x[0-9a-f]+)",
+                    lambda m: CannotAccess(int(m.group(1), 0))),
+                (r'No symbol "(\w+)" in current context.',
+                    lambda m: NoSymbol(m.group(1))),
+                (r'"([^"]*)"', lambda m: m.group(1)),
+                (r"[a-zA-Z][a-zA-Z\d]*", lambda m: m.group(0)),
+                ):
+            m = re.match(regex, text[index:])
+            if m:
+                index += len(m.group(0))
+                token = fn(m)
+                if not token is None:
+                    yield token
+                break
         else:
-            raise Exception(text[index:])
+            raise Exception(repr(text[index:]))
 
 def parse_dict(tokens):
     assert tokens[0] == "{"
@@ -469,6 +463,8 @@ def parse_dict_or_list(tokens):
         return parse_list(tokens)
 
 def parse_tokens(tokens):
+    if isinstance(tokens[0], Exception):
+        raise tokens[0]
     if isinstance(tokens[0], (float, int)):
         return tokens.pop(0)
     if tokens[0] == "{":
@@ -677,12 +673,6 @@ class Gdb:
 
     def p(self, obj, fmt="/x", ops=1):
         output = self.command("p%s %s" % (fmt, obj), ops=ops).splitlines()[-1]
-        m = re.search("Cannot access memory at address (0x[0-9a-f]+)", output)
-        if m:
-            raise CannotAccess(int(m.group(1), 0))
-        m = re.search(r"Could not fetch register \"(\w+)\"; (.*)$", output)
-        if m:
-            raise CouldNotFetch(m.group(1), m.group(2))
         rhs = output.split('=', 1)[-1]
         return parse_rhs(rhs)
 
