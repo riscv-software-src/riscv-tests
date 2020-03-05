@@ -980,7 +980,8 @@ class BaseTest:
 
         sys.stdout.flush()
 
-        if not self.early_applicable():
+        if self.__class__.__name__ in self.target.skip_tests or \
+                not self.early_applicable():
             return "not_applicable"
 
         self.start = time.time()
