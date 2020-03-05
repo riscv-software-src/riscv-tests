@@ -970,6 +970,7 @@ class BaseTest:
 
         sys.stdout.flush()
 
+        print(">>> skip:", self.target.skip_tests)
         if self.__class__.__name__ in self.target.skip_tests or \
                 not self.early_applicable():
             return "not_applicable"
