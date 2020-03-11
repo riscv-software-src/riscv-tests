@@ -57,6 +57,12 @@ do_scall:
 
   TEST_PASSFAIL
 
+# Depending on the test environment, the M-mode version of this test might
+# not actually invoke the following handler.  Instead, the usual ECALL
+# handler in the test environment might detect the CAUSE_USER_ECALL or
+# CAUSE_MACHINE_ECALL exception and mark the test as having passed.
+# Either way, we'll get the coverage we desire: such a handler must check
+# both mcause and TESTNUM, just like the following handler.
   .align 2
   .global stvec_handler
 stvec_handler:
