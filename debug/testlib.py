@@ -145,8 +145,8 @@ class Spike:
             cmd.append("--dm-no-halt-groups")
 
         if 'V' in isa[2:]:
-            cmd.append("--varch=v%d:e%d:s%d" % (self.vlen, self.elen,
-                self.slen))
+            cmd.append("--varch=vlen:%d,elen:%d,slen:%d" % (self.vlen,
+                self.elen, self.slen))
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
