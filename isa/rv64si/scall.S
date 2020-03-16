@@ -19,6 +19,7 @@ RVTEST_CODE_BEGIN
   #define scause mcause
   #define sepc mepc
   #define sret mret
+  #define stvec_handler mtvec_handler
   #undef SSTATUS_SPP
   #define SSTATUS_SPP MSTATUS_MPP
 #endif
@@ -56,11 +57,12 @@ do_scall:
 
   TEST_PASSFAIL
 
-# make the linker not find the symbol stvec_handler when running in machine
-# mode. env/p/riscv_test.h sets stvec to the address of that symbol in case it
-# is non-zero. thus, effectively, we don't register a handler for scalls, so
-# that the default handler (trap_vector) is used.
-#ifndef __MACHINE_MODE
+# Depending on the test environment, the M-mode version of this test might
+# not actually invoke the following handler.  Instead, the usual ECALL
+# handler in the test environment might detect the CAUSE_USER_ECALL or
+# CAUSE_MACHINE_ECALL exception and mark the test as having passed.
+# Either way, we'll get the coverage we desire: such a handler must check
+# both mcause and TESTNUM, just like the following handler.
   .align 2
   .global stvec_handler
 stvec_handler:
@@ -70,7 +72,6 @@ stvec_handler:
   csrr t0, sepc
   bne t0, t2, fail
   j pass
-#endif
 
 RVTEST_CODE_END
 
