@@ -1022,6 +1022,12 @@ class GdbTest(BaseTest):
         BaseTest.__init__(self, target, hart=hart)
         self.gdb = None
 
+    def write_nop_program(self, count):
+        for i in range(count):
+            # 0x13 is nop
+            self.gdb.command("p *((int*) 0x%x)=0x13" % (self.hart.ram + i * 4))
+        self.gdb.p("$pc=0x%x" % self.hart.ram)
+
     def classSetup(self):
         BaseTest.classSetup(self)
 
