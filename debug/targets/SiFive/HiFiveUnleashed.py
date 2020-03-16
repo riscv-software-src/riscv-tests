@@ -6,6 +6,7 @@ class E51(targets.Hart):
     ram_size = 1024 * 1024
     instruction_hardware_breakpoint_count = 2
     reset_vectors = [0x1004]
+    misa = 0x8000000000101105
 
 class U54(targets.Hart):
     xlen = 64
@@ -13,6 +14,7 @@ class U54(targets.Hart):
     ram_size = 1024 * 1024
     instruction_hardware_breakpoint_count = 2
     reset_vectors = [0x1004]
+    misa = 0x800000000014112d
 
 class HiFiveUnleashed(targets.Target):
     support_hasel = False
