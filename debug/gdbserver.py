@@ -1235,15 +1235,7 @@ class PrivTest(GdbSingleHartTest):
             self.supported.add(2)
         self.supported.add(3)
 
-        # Disable physical memory protection by allowing U mode access to all
-        # memory.
-        try:
-            self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
-            self.gdb.p("$pmpaddr0=0x%x" %
-                    ((self.hart.ram + self.hart.ram_size) >> 2))
-        except testlib.CouldNotFetch:
-            # PMP registers are optional
-            pass
+        self.disable_pmp()
 
         # Ensure Virtual Memory is disabled if applicable (SATP register is not
         # reset)
@@ -1306,6 +1298,9 @@ class TranslateTest(GdbTest):
         # we end up reading satp from hart 0 when the address translation might
         # be set up on hart 1 only.
         self.gdb.select_hart(self.target.harts[0])
+
+        self.disable_pmp()
+
         self.gdb.load()
         self.gdb.b("main")
         output = self.gdb.c()
@@ -1316,7 +1311,10 @@ class TranslateTest(GdbTest):
             satp = mode << 31
         else:
             satp = mode << 60
-        self.gdb.p("$satp=0x%x" % satp)
+        try:
+            self.gdb.p("$satp=0x%x" % satp)
+        except testlib.CouldNotFetch:
+            raise TestNotApplicable
         readback = self.gdb.p("$satp")
         self.gdb.p("$satp=0")
         if readback != satp:
