@@ -36,18 +36,18 @@ RVTEST_CODE_BEGIN
   bnez t0, 1f
 #endif
   # If U mode is present, UXL should be 2 (XLEN = 64-bit)
-  TEST_CASE(13, a0, SSTATUS_UXL & (SSTATUS_UXL << 1), csrr a0, sstatus; li a1, SSTATUS_UXL; and a0, a0, a1)
+  TEST_CASE(18, a0, SSTATUS_UXL & (SSTATUS_UXL << 1), csrr a0, sstatus; li a1, SSTATUS_UXL; and a0, a0, a1)
 #ifdef __MACHINE_MODE
   j 2f
 1:
   # If U mode is not present, UXL should be 0
-  TEST_CASE(14, a0, 0, csrr a0, sstatus; li a1, SSTATUS_UXL; and a0, a0, a1)
+  TEST_CASE(19, a0, 0, csrr a0, sstatus; li a1, SSTATUS_UXL; and a0, a0, a1)
 2:
 #endif
 #endif
 
-  TEST_CASE(16, a0,         0, csrw sscratch, zero; csrr a0, sscratch);
-  TEST_CASE(15, a0,         0, csrrwi a0, sscratch, 0; csrrwi a0, sscratch, 0xF);
+  TEST_CASE(20, a0,         0, csrw sscratch, zero; csrr a0, sscratch);
+  TEST_CASE(21, a0,         0, csrrwi a0, sscratch, 0; csrrwi a0, sscratch, 0xF);
 
   csrwi sscratch, 3
   TEST_CASE( 2, a0,         3, csrr a0, sscratch);
@@ -55,9 +55,12 @@ RVTEST_CODE_BEGIN
   TEST_CASE( 4, a2,         2, csrrsi a2, sscratch, 4);
   TEST_CASE( 5, a3,         6, csrrwi a3, sscratch, 2);
   TEST_CASE( 6, a1,         2, li a0, 0xbad1dea; csrrw a1, sscratch, a0);
-  TEST_CASE( 7, a0, 0xbad1dea, li a0, 0x0001dea; csrrc a0, sscratch, a0);
-  TEST_CASE( 8, a0, 0xbad0000, li a0, 0x000beef; csrrs a0, sscratch, a0);
-  TEST_CASE( 9, a0, 0xbadbeef, csrr a0, sscratch);
+  TEST_CASE( 7, a1, 0xbad1dea, li a0, 0x0001dea; csrrc a1, sscratch, a0);
+  TEST_CASE( 8, a1, 0xbad0000, li a0, 0x000beef; csrrs a1, sscratch, a0);
+  TEST_CASE( 9, a0, 0xbadbeef, li a0, 0xbad1dea; csrrw a0, sscratch, a0);
+  TEST_CASE(10, a0, 0xbad1dea, li a0, 0x0001dea; csrrc a0, sscratch, a0);
+  TEST_CASE(11, a0, 0xbad0000, li a0, 0x000beef; csrrs a0, sscratch, a0);
+  TEST_CASE(12, a0, 0xbadbeef, csrr a0, sscratch);
 
 #ifdef __MACHINE_MODE
   # Is F extension present?
@@ -71,10 +74,10 @@ RVTEST_CODE_BEGIN
   fmv.s.x f0, x0
   csrc mstatus, a1
   la a1, fsw_data
-  TEST_CASE(10, a0, 1, fsw f0, (a1); lw a0, (a1));
+  TEST_CASE(13, a0, 1, fsw f0, (a1); lw a0, (a1));
 #else
   # Fail if this test is compiled without F but executed on a core with F.
-  TEST_CASE(10, zero, 1)
+  TEST_CASE(14, zero, 1)
 #endif
 1:
 
@@ -96,15 +99,15 @@ RVTEST_CODE_BEGIN
   # Make sure writing the cycle counter causes an exception.
   # Don't run in supervisor, as we don't delegate illegal instruction traps.
 #ifdef __MACHINE_MODE
-  TEST_CASE(11, a0, 255, li a0, 255; csrrw a0, cycle, x0);
+  TEST_CASE(15, a0, 255, li a0, 255; csrrw a0, cycle, x0);
 #endif
 
   # Make sure reading status in user mode causes an exception.
   # Don't run in supervisor, as we don't delegate illegal instruction traps.
 #ifdef __MACHINE_MODE
-  TEST_CASE(12, a0, 255, li a0, 255; csrr a0, sstatus)
+  TEST_CASE(16, a0, 255, li a0, 255; csrr a0, sstatus)
 #else
-  TEST_CASE(12, x0, 0, nop)
+  TEST_CASE(17, x0, 0, nop)
 #endif
 
 finish:
