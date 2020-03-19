@@ -37,9 +37,9 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_D(16,  fmax.d, 0, 3.14159265, 3.14159265, 0.00000001 );
   TEST_FP_OP2_D(17,  fmax.d, 0,       -1.0,       -1.0,       -2.0 );
 
-  # FMIN(sNaN, x) = x
+  # FMAX(sNaN, x) = x
   TEST_FP_OP2_D(20,  fmax.d, 0x10, 1.0, sNaN, 1.0);
-  # FMIN(qNaN, qNaN) = canonical NaN
+  # FMAX(qNaN, qNaN) = canonical NaN
   TEST_FP_OP2_D(21,  fmax.d, 0x00, qNaN, NaN, NaN);
 
   # -0.0 < +0.0
