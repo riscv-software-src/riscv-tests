@@ -19,11 +19,12 @@ lh a1, insn+2
 
 # test I$ hit
 .align 6
-sh a0, 1f, t0
-sh a1, 1f+2, t0
+sh a0, 2f, t0
+sh a1, 2f+2, t0
 fence.i
 
-1: addi a3, a3, 222
+la a5, 2f
+jalr a6, a5, 0
 TEST_CASE( 2, a3, 444, nop )
 
 # test prefetcher hit
@@ -31,12 +32,13 @@ li a4, 100
 1: addi a4, a4, -1
 bnez a4, 1b
 
-sh a0, 1f, t0
-sh a1, 1f+2, t0
+sh a0, 3f, t0
+sh a1, 3f+2, t0
 fence.i
 
 .align 6
-1: addi a3, a3, 555
+la a5, 3f
+jalr a6, a5, 0
 TEST_CASE( 3, a3, 777, nop )
 
 TEST_PASSFAIL
@@ -50,5 +52,11 @@ RVTEST_DATA_BEGIN
 
 insn:
   addi a3, a3, 333
+
+2: addi a3, a3, 222
+jalr a5, a6, 0
+
+3: addi a3, a3, 555
+jalr a5, a6, 0
 
 RVTEST_DATA_END
