@@ -77,7 +77,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE(13, a0, 1, fsw f0, (a1); lw a0, (a1));
 #else
   # Fail if this test is compiled without F but executed on a core with F.
-  TEST_CASE(14, zero, 1)
+  TEST_CASE(13, zero, 1)
 #endif
 1:
 
@@ -99,15 +99,15 @@ RVTEST_CODE_BEGIN
   # Make sure writing the cycle counter causes an exception.
   # Don't run in supervisor, as we don't delegate illegal instruction traps.
 #ifdef __MACHINE_MODE
-  TEST_CASE(15, a0, 255, li a0, 255; csrrw a0, cycle, x0);
+  TEST_CASE(14, a0, 255, li a0, 255; csrrw a0, cycle, x0);
 #endif
 
   # Make sure reading status in user mode causes an exception.
   # Don't run in supervisor, as we don't delegate illegal instruction traps.
 #ifdef __MACHINE_MODE
-  TEST_CASE(16, a0, 255, li a0, 255; csrr a0, sstatus)
+  TEST_CASE(15, a0, 255, li a0, 255; csrr a0, sstatus)
 #else
-  TEST_CASE(17, x0, 0, nop)
+  TEST_CASE(15, x0, 0, nop)
 #endif
 
 finish:
@@ -119,11 +119,11 @@ finish:
   .align 2
   .global stvec_handler
 stvec_handler:
-  # Trapping on tests 10-12 is good news.
+  # Trapping on tests 13-15 is good news.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.
-  li t0, 9
+  li t0, 12
   bltu TESTNUM, t0, 1f
-  li t0, 11
+  li t0, 14
   bleu TESTNUM, t0, privileged
 1:
 
