@@ -1293,12 +1293,6 @@ class TranslateTest(GdbTest):
     compile_args = ("programs/translate.c", )
 
     def setup(self):
-        # TODO: If we use a random hart, then we get into trouble because
-        # gdb_read_memory_packet() ignores which hart is currently selected, so
-        # we end up reading satp from hart 0 when the address translation might
-        # be set up on hart 1 only.
-        self.gdb.select_hart(self.target.harts[0])
-
         self.disable_pmp()
 
         self.gdb.load()
