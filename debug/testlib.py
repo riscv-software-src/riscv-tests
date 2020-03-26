@@ -1076,6 +1076,17 @@ class GdbTest(BaseTest):
 
         self.gdb.select_hart(self.hart)
 
+    def disable_pmp(self):
+        # Disable physical memory protection by allowing U mode access to all
+        # memory.
+        try:
+            self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
+            self.gdb.p("$pmpaddr0=0x%x" %
+                    ((self.hart.ram + self.hart.ram_size) >> 2))
+        except CouldNotFetch:
+            # PMP registers are optional
+            pass
+
 class GdbSingleHartTest(GdbTest):
     def classSetup(self):
         GdbTest.classSetup(self)

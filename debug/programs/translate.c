@@ -23,6 +23,7 @@ typedef struct {
     unsigned ppn_offset_bits[5];
     unsigned entry_width_bytes;
     unsigned vpn_width_bits;
+    unsigned vaddr_bits;
 } virtual_memory_system_t;
 
 static virtual_memory_system_t sv32 = {
@@ -31,7 +32,8 @@ static virtual_memory_system_t sv32 = {
     .ppn_width_bits = {12, 10, 10},
     .ppn_offset_bits = {0, 12, 22},
     .entry_width_bytes = 4,
-    .vpn_width_bits = 10
+    .vpn_width_bits = 10,
+    .vaddr_bits = 32
 };
 
 static virtual_memory_system_t sv39 = {
@@ -40,7 +42,8 @@ static virtual_memory_system_t sv39 = {
     .ppn_width_bits = {12, 9, 9, 26},
     .ppn_offset_bits = {0, 12, 21, 30},
     .entry_width_bytes = 8,
-    .vpn_width_bits = 9
+    .vpn_width_bits = 9,
+    .vaddr_bits = 39
 };
 
 static virtual_memory_system_t sv48 = {
@@ -49,7 +52,8 @@ static virtual_memory_system_t sv48 = {
     .ppn_width_bits = {12, 9, 9, 9, 26},
     .ppn_offset_bits = {0, 12, 21, 30, 39},
     .entry_width_bytes = 8,
-    .vpn_width_bits = 9
+    .vpn_width_bits = 9,
+    .vaddr_bits = 48
 };
 
 static virtual_memory_system_t *vms;
@@ -152,12 +156,20 @@ int main()
     void *master_table = get_page();
     setup_page_table(master_table, vms->levels-1, 0);
     uint32_t *physical = get_page();
-    uint32_t *virtual = (uint32_t *) (((reg_t) physical) ^ ((reg_t) 0x40000000));
+    //uint32_t *virtual = (uint32_t *) (((reg_t) physical) ^ ((reg_t) 0x40000000));
+    uint32_t *virtual = (uint32_t *) (((reg_t) physical) ^ (((reg_t) 0xf) << (vms->vaddr_bits - 4)));
+    // Virtual addresses must be sign-extended.
+    if (vms->vaddr_bits < sizeof(virtual) * 8 && (reg_t) virtual & ((reg_t) 1<<(vms->vaddr_bits-1)))
+        virtual = (uint32_t *) (
+                (reg_t) virtual | ~(((reg_t) 1 << vms->vaddr_bits) - 1));
     add_entry(master_table, 0, (reg_t) virtual, (reg_t) physical);
 
     unsigned long satp = set_field(0, SATP_MODE, vms->mode);
     satp = set_field(satp, SATP_PPN, ((unsigned long) master_table) >> 12);
     write_csr(satp, satp);
+    satp = read_csr(satp);
+    if (get_field(satp, SATP_MODE) != vms->mode)
+        error();
 
     reg_t mstatus = read_csr(mstatus);
     mstatus |= MSTATUS_MPRV;

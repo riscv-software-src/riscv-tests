@@ -1229,15 +1229,7 @@ class PrivTest(GdbSingleHartTest):
             self.supported.add(2)
         self.supported.add(3)
 
-        # Disable physical memory protection by allowing U mode access to all
-        # memory.
-        try:
-            self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
-            self.gdb.p("$pmpaddr0=0x%x" %
-                    ((self.hart.ram + self.hart.ram_size) >> 2))
-        except testlib.CouldNotFetch:
-            # PMP registers are optional
-            pass
+        self.disable_pmp()
 
         # Ensure Virtual Memory is disabled if applicable (SATP register is not
         # reset)
@@ -1294,15 +1286,26 @@ class TranslateTest(GdbTest):
     compile_args = ("programs/translate.c", )
 
     def setup(self):
-        # TODO: If we use a random hart, then we get into trouble because
-        # gdb_read_memory_packet() ignores which hart is currently selected, so
-        # we end up reading satp from hart 0 when the address translation might
-        # be set up on hart 1 only.
-        self.gdb.select_hart(self.target.harts[0])
+        self.disable_pmp()
+
         self.gdb.load()
         self.gdb.b("main")
         output = self.gdb.c()
         assertRegex(output, r"\bmain\b")
+
+    def check_satp(self, mode):
+        if self.hart.xlen == 32:
+            satp = mode << 31
+        else:
+            satp = mode << 60
+        try:
+            self.gdb.p("$satp=0x%x" % satp)
+        except testlib.CouldNotFetch:
+            raise TestNotApplicable
+        readback = self.gdb.p("$satp")
+        self.gdb.p("$satp=0")
+        if readback != satp:
+            raise TestNotApplicable
 
     def test_translation(self):
         self.gdb.b("error")
@@ -1315,11 +1318,19 @@ class TranslateTest(GdbTest):
         assertEqual(0xdeadbeef, self.gdb.p("virtual[0]"))
         assertEqual(0x55667788, self.gdb.p("virtual[1]"))
 
+SATP_MODE_OFF = 0
+SATP_MODE_SV32 = 1
+SATP_MODE_SV39 = 8
+SATP_MODE_SV48 = 9
+SATP_MODE_SV57 = 10
+SATP_MODE_SV64 = 11
+
 class Sv32Test(TranslateTest):
     def early_applicable(self):
         return self.hart.xlen == 32
 
     def test(self):
+        self.check_satp(SATP_MODE_SV32)
         self.gdb.p("vms=&sv32")
         self.test_translation()
 
@@ -1328,6 +1339,7 @@ class Sv39Test(TranslateTest):
         return self.hart.xlen > 32
 
     def test(self):
+        self.check_satp(SATP_MODE_SV39)
         self.gdb.p("vms=&sv39")
         self.test_translation()
 
@@ -1336,6 +1348,7 @@ class Sv48Test(TranslateTest):
         return self.hart.xlen > 32
 
     def test(self):
+        self.check_satp(SATP_MODE_SV48)
         self.gdb.p("vms=&sv48")
         self.test_translation()
 
