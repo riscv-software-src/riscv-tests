@@ -93,13 +93,7 @@ class SimpleRegisterTest(GdbTest):
         assertEqual(self.gdb.p("$%s" % alias), b)
 
     def setup(self):
-        # 0x13 is nop
-        self.gdb.command("p *((int*) 0x%x)=0x13" % self.hart.ram)
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.hart.ram + 4))
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.hart.ram + 8))
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.hart.ram + 12))
-        self.gdb.command("p *((int*) 0x%x)=0x13" % (self.hart.ram + 16))
-        self.gdb.p("$pc=0x%x" % self.hart.ram)
+        self.write_nop_program(5)
 
 class SimpleS0Test(SimpleRegisterTest):
     def test(self):
@@ -1256,8 +1250,7 @@ class PrivTest(GdbSingleHartTest):
 class PrivRw(PrivTest):
     def test(self):
         """Test reading/writing priv."""
-        # Leave the PC at _start, where the first 4 instructions should be
-        # legal in any mode.
+        self.write_nop_program(4)
         for privilege in range(4):
             self.gdb.p("$priv=%d" % privilege)
             self.gdb.stepi()
