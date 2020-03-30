@@ -615,9 +615,14 @@ class TooManyHwbp(DebugTest):
 
         output = self.gdb.c(checkOutput=False)
         assertIn("Cannot insert hardware breakpoint", output)
+        # There used to be a bug where this would fail if done twice in a row.
+        output = self.gdb.c(checkOutput=False)
+        assertIn("Cannot insert hardware breakpoint", output)
         # Clean up, otherwise the hardware breakpoints stay set and future
         # tests may fail.
-        self.gdb.command("D")
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
+        self.exit()
 
 class Registers(DebugTest):
     def test(self):
