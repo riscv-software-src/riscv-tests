@@ -32,6 +32,10 @@ debug-check:
 	mkdir -p debug
 	$(MAKE) -C debug -f $(debug_src_dir)/Makefile src_dir=$(debug_src_dir) XLEN=$(XLEN)
 
+debug-check-fast:
+	mkdir -p debug
+	$(MAKE) -C debug -f $(debug_src_dir)/Makefile src_dir=$(debug_src_dir) XLEN=$(XLEN) spike$(XLEN)
+
 clean:
 	[ ! -d isa ]        || $(MAKE) -C isa -f $(isa_src_dir)/Makefile src_dir=$(isa_src_dir) clean
 	[ ! -d benchmarks ] || $(MAKE) -C benchmarks -f $(bmarkdir)/Makefile src_dir=$(bmarkdir) clean
