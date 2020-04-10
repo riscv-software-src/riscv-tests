@@ -14,6 +14,8 @@ class spike64_2(targets.Target):
     support_hasel = False
 
     def create(self):
+        # TODO: It would be nice to test with slen=128, but spike currently
+        # requires vlen==slen.
         return testlib.Spike(self, isa="RV64IMAFDV", abstract_rti=30,
                 support_hasel=False, support_abstract_csr=False,
-                vlen=512, elen=64)
+                vlen=512, elen=64, slen=512)
