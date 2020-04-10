@@ -91,6 +91,10 @@ class Target:
     # whether they are applicable or not.
     skip_tests = []
 
+    # Set False if semihosting should not be tested in this configuration,
+    # because it doesn't work and isn't expected to work.
+    test_semihosting = True
+
     # Internal variables:
     directory = None
     temporary_files = []

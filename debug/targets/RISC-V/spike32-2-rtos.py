@@ -10,6 +10,8 @@ class spike32_2(targets.Target):
     timeout_sec = 30
     implements_custom_test = True
     support_hasel = False
+    # TODO: check if we still need this once it works on -rtos hwthread
+    test_semihosting = False
 
     def create(self):
         return testlib.Spike(self, progbufsize=0, dmi_rti=4,

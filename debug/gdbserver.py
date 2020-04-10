@@ -672,6 +672,39 @@ class UserInterrupt(DebugTest):
         self.gdb.p("i=0")
         self.exit()
 
+class Semihosting(GdbSingleHartTest):
+    # Include malloc so that gdb can assign a string.
+    compile_args = ("programs/semihosting.c", "programs/tiny-malloc.c",
+                    "-DDEFINE_MALLOC", "-DDEFINE_FREE")
+
+    def early_applicable(self):
+        return self.target.test_semihosting
+
+    def setup(self):
+        self.gdb.command("monitor arm semihosting enable")
+        self.gdb.load()
+        self.parkOtherHarts()
+        self.gdb.b("_exit")
+
+    def exit(self, expected_result=0):
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
+        assertEqual(self.gdb.p("status"), expected_result)
+
+    def test(self):
+        """Sending gdb ^C while the program is running should cause it to
+        halt."""
+        temp = tempfile.NamedTemporaryFile(suffix=".data")
+
+        self.gdb.b("main:begin")
+        self.gdb.c()
+        self.gdb.p('filename="%s"' % temp.name)
+        self.exit()
+
+        contents = open(temp.name, "r").readlines()
+        assertIn("Hello, world!\n", contents)
+
 class InterruptTest(GdbSingleHartTest):
     compile_args = ("programs/interrupt.c",)
 
