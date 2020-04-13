@@ -13,7 +13,9 @@
 #define RVTEST_FP_ENABLE fssr x0
 
 #undef RVTEST_VECTOR_ENABLE
-#define RVTEST_VECTOR_ENABLE fssr x0
+#define RVTEST_VECTOR_ENABLE                                            \
+  csrwi fcsr, 0;                                                        \
+  csrwi vcsr, 0;
 
 #undef RVTEST_CODE_BEGIN
 #define RVTEST_CODE_BEGIN                                               \
