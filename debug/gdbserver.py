@@ -681,7 +681,6 @@ class Semihosting(GdbSingleHartTest):
         return self.target.test_semihosting
 
     def setup(self):
-        self.gdb.command("monitor arm semihosting enable")
         self.gdb.load()
         self.parkOtherHarts()
         self.gdb.b("_exit")
