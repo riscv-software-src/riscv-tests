@@ -263,7 +263,7 @@ class Openocd:
             self.config_file = find_file(config)
             if self.config_file is None:
                 print("Unable to read file", config)
-                exit(1)
+                sys.exit(1)
 
             cmd += ["-f", self.config_file]
         if debug:
@@ -379,6 +379,11 @@ class CannotAccess(Exception):
         Exception.__init__(self)
         self.address = address
 
+class CannotInsertBreakpoint(Exception):
+    def __init__(self, number):
+        Exception.__init__(self)
+        self.number = number
+
 class CouldNotFetch(Exception):
     def __init__(self, regname, explanation):
         Exception.__init__(self)
@@ -412,6 +417,8 @@ def tokenize(text):
                     lambda m: CouldNotFetch(m.group(1), m.group(2))),
                 (r"Cannot access memory at address (0x[0-9a-f]+)",
                     lambda m: CannotAccess(int(m.group(1), 0))),
+                (r"Cannot insert breakpoint (\d+).",
+                    lambda m: CannotInsertBreakpoint(int(m.group(1)))),
                 (r'No symbol "(\w+)" in current context.',
                     lambda m: NoSymbol(m.group(1))),
                 (r'"([^"]*)"', lambda m: m.group(1)),
