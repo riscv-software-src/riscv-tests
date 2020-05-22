@@ -1357,6 +1357,25 @@ class Sv48Test(TranslateTest):
         self.gdb.p("vms=&sv48")
         self.test_translation()
 
+class VectorTest(GdbSingleHartTest):
+    compile_args = ("programs/vectors.S", )
+
+    def early_applicable(self):
+        return self.hart.extensionSupported('V')
+
+    def setup(self):
+        self.gdb.load()
+        self.gdb.b("main")
+        self.gdb.c()
+
+    def test(self):
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
+        assertEqual(self.gdb.p("status"), 0)
+
 parsed = None
 def main():
     parser = argparse.ArgumentParser(
