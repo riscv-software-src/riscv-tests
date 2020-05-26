@@ -158,7 +158,7 @@ class Target:
             args.append("-DRV32E")
         else:
             march = "rv%dima" % hart.xlen
-            for letter in "fdc":
+            for letter in "fdcv":
                 if hart.extensionSupported(letter):
                     march += letter
             args.append("-march=%s" % march)

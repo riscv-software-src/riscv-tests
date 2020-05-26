@@ -19,7 +19,7 @@ main:
 1:
         li      t0, 64
         //vslide1down.vx  vd, vs2, rs1, vm
-        vslide1down.vx  v13, v13, t1, 1
+        vslide1down.vx  v4, v4, t1
         addi    t0, t0, -1
         bne     t0, zero, 1b
         

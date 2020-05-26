@@ -29,8 +29,13 @@ def find_file(path):
             return relpath
     return None
 
+gcc_cmd = None
 def compile(args): # pylint: disable=redefined-builtin
-    cmd = ["riscv64-unknown-elf-gcc", "-g"]
+    if gcc_cmd:
+        cmd = [gcc_cmd]
+    else:
+        cmd = ["riscv64-unknown-elf-gcc"]
+    cmd.append("-g")
     for arg in args:
         found = find_file(arg)
         if found:
@@ -799,6 +804,8 @@ def run_all_tests(module, target, parsed):
 
     global gdb_cmd  # pylint: disable=global-statement
     gdb_cmd = parsed.gdb
+    global gcc_cmd  # pylint: disable=global-statement
+    gcc_cmd = parsed.gcc
 
     examine_added = False
     for hart in target.harts:
@@ -882,6 +889,8 @@ def add_test_run_options(parser):
             help="Print out a list of tests, and exit immediately.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
+    parser.add_argument("--gcc",
+            help="The command to use to start gcc.")
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
     parser.add_argument("--misaval",
