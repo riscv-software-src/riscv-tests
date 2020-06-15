@@ -268,7 +268,7 @@ class Openocd:
             self.config_file = find_file(config)
             if self.config_file is None:
                 print("Unable to read file", config)
-                exit(1)
+                sys.exit(1)
 
             cmd += ["-f", self.config_file]
         if debug:
@@ -664,10 +664,15 @@ class Gdb:
             self.select_child(child)
             self.interrupt()
 
-    def x(self, address, size='w'):
-        output = self.command("x/%s %s" % (size, address))
-        value = int(output.split(':')[1].strip(), 0)
-        return value
+    def x(self, address, size='w', count=1):
+        output = self.command("x/%d%s %s" % (count, size, address))
+        values = []
+        for line in output.splitlines():
+            for value in line.split(':')[1].strip().split():
+                values.append(int(value, 0))
+        if len(values) == 1:
+            return values[0]
+        return values
 
     def p_raw(self, obj):
         output = self.command("p %s" % obj)

@@ -1369,8 +1369,37 @@ class VectorTest(GdbSingleHartTest):
         self.gdb.c()
 
     def test(self):
+        vlenb = self.gdb.p("$vlenb")
         self.gdb.command("delete")
         self.gdb.b("_exit")
+        self.gdb.b("trap_entry")
+
+        self.gdb.b("test0")
+
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("test0", output)
+
+        a = self.gdb.x("&a", 'b', vlenb)
+        b = self.gdb.x("&b", 'b', vlenb)
+        v4 = self.gdb.p("$v4")
+        assertEqual(a, b)
+        assertEqual(b, v4["b"])
+        assertEqual(0, self.gdb.p("$a0"))
+
+        self.gdb.b("test1")
+
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("test1", output)
+
+        b = self.gdb.x("&b", 'b', vlenb)
+        c = self.gdb.x("&c", 'b', vlenb)
+        v4 = self.gdb.p("$v4")
+        assertEqual(b, c)
+        assertEqual(c, v4["b"])
+        assertEqual(0, self.gdb.p("$a0"))
+
         output = self.gdb.c()
         assertIn("Breakpoint", output)
         assertIn("_exit", output)
