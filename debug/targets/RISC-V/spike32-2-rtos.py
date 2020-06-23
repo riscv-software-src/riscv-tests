@@ -11,6 +11,7 @@ class spike32_2(targets.Target):
     implements_custom_test = True
     support_hasel = False
     test_semihosting = False
+    support_manual_hwbp = False # not supported with `-rtos riscv`
 
     def create(self):
         return testlib.Spike(self, progbufsize=0, dmi_rti=4,
