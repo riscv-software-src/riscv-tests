@@ -1380,6 +1380,7 @@ class VectorTest(GdbSingleHartTest):
         assertIn("Breakpoint", output)
         assertIn("test0", output)
 
+        assertEqual(self.gdb.p("$a0"), 0)
         a = self.gdb.x("&a", 'b', vlenb)
         b = self.gdb.x("&b", 'b', vlenb)
         v4 = self.gdb.p("$v4")
@@ -1393,6 +1394,7 @@ class VectorTest(GdbSingleHartTest):
         assertIn("Breakpoint", output)
         assertIn("test1", output)
 
+        assertEqual(self.gdb.p("$a0"), 0)
         b = self.gdb.x("&b", 'b', vlenb)
         c = self.gdb.x("&c", 'b', vlenb)
         v4 = self.gdb.p("$v4")
