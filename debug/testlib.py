@@ -29,6 +29,11 @@ def find_file(path):
             return relpath
     return None
 
+class CompileError(Exception):
+    def __init__(self, stdout, stderr):
+        self.stdout = stdout
+        self.stderr = stderr
+
 gcc_cmd = None
 def compile(args): # pylint: disable=redefined-builtin
     if gcc_cmd:
@@ -48,10 +53,10 @@ def compile(args): # pylint: disable=redefined-builtin
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode:
-        print(stdout, end=" ")
-        print(stderr, end=" ")
+        print(stdout.decode('ascii'), end=" ")
+        print(stderr.decode('ascii'), end=" ")
         header("")
-        raise Exception("Compile failed!")
+        raise CompileError(stdout, stderr)
 
 class Spike:
     # pylint: disable=too-many-instance-attributes

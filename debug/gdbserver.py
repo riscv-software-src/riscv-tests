@@ -14,7 +14,7 @@ import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
-from testlib import assertTrue, TestNotApplicable
+from testlib import assertTrue, TestNotApplicable, CompileError
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1361,7 +1361,17 @@ class VectorTest(GdbSingleHartTest):
     compile_args = ("programs/vectors.S", )
 
     def early_applicable(self):
-        return self.hart.extensionSupported('V')
+        if not self.hart.extensionSupported('V'):
+            return False
+        # If the compiler can't build this test, say it's not applicable. At
+        # some time all compilers will support the V extension, but we're not
+        # there yet.
+        try:
+            self.compile()
+        except CompileError as e:
+            if b"Error: unknown CSR `vlenb'" in e.stderr:
+                return False
+        return True
 
     def setup(self):
         self.gdb.load()
