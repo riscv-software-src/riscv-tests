@@ -14,7 +14,7 @@ import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
-from testlib import assertTrue, TestNotApplicable
+from testlib import assertTrue, TestNotApplicable, CompileError
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1388,6 +1388,66 @@ class Sv48Test(TranslateTest):
         self.check_satp(SATP_MODE_SV48)
         self.gdb.p("vms=&sv48")
         self.test_translation()
+
+class VectorTest(GdbSingleHartTest):
+    compile_args = ("programs/vectors.S", )
+
+    def early_applicable(self):
+        if not self.hart.extensionSupported('V'):
+            return False
+        # If the compiler can't build this test, say it's not applicable. At
+        # some time all compilers will support the V extension, but we're not
+        # there yet.
+        try:
+            self.compile()
+        except CompileError as e:
+            if b"Error: unknown CSR `vlenb'" in e.stderr:
+                return False
+        return True
+
+    def setup(self):
+        self.gdb.load()
+        self.gdb.b("main")
+        self.gdb.c()
+
+    def test(self):
+        vlenb = self.gdb.p("$vlenb")
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
+        self.gdb.b("trap_entry")
+
+        self.gdb.b("test0")
+
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("test0", output)
+
+        assertEqual(self.gdb.p("$a0"), 0)
+        a = self.gdb.x("&a", 'b', vlenb)
+        b = self.gdb.x("&b", 'b', vlenb)
+        v4 = self.gdb.p("$v4")
+        assertEqual(a, b)
+        assertEqual(b, v4["b"])
+        assertEqual(0, self.gdb.p("$a0"))
+
+        self.gdb.b("test1")
+
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("test1", output)
+
+        assertEqual(self.gdb.p("$a0"), 0)
+        b = self.gdb.x("&b", 'b', vlenb)
+        c = self.gdb.x("&c", 'b', vlenb)
+        v4 = self.gdb.p("$v4")
+        assertEqual(b, c)
+        assertEqual(c, v4["b"])
+        assertEqual(0, self.gdb.p("$a0"))
+
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
+        assertEqual(self.gdb.p("status"), 0)
 
 parsed = None
 def main():
