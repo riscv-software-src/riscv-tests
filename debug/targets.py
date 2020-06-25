@@ -95,6 +95,10 @@ class Target:
     # because it doesn't work and isn't expected to work.
     test_semihosting = True
 
+    # Set False if manual hwbps (breakpoints set by directly writing tdata*)
+    # isn't supposed to work.
+    support_manual_hwbp = True
+
     # Internal variables:
     directory = None
     temporary_files = []

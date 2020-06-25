@@ -590,6 +590,98 @@ class Hwbp1(DebugTest):
         self.gdb.b("_exit")
         self.exit()
 
+def MCONTROL_TYPE(xlen):
+    return 0xf<<((xlen)-4)
+def MCONTROL_DMODE(xlen):
+    return 1<<((xlen)-5)
+def MCONTROL_MASKMAX(xlen):
+    return 0x3<<((xlen)-11)
+
+MCONTROL_SELECT = (1<<19)
+MCONTROL_TIMING = (1<<18)
+MCONTROL_ACTION = (0x3f<<12)
+MCONTROL_CHAIN = (1<<11)
+MCONTROL_MATCH = (0xf<<7)
+MCONTROL_M = (1<<6)
+MCONTROL_H = (1<<5)
+MCONTROL_S = (1<<4)
+MCONTROL_U = (1<<3)
+MCONTROL_EXECUTE = (1<<2)
+MCONTROL_STORE = (1<<1)
+MCONTROL_LOAD = (1<<0)
+
+MCONTROL_TYPE_NONE = 0
+MCONTROL_TYPE_MATCH = 2
+
+MCONTROL_ACTION_DEBUG_EXCEPTION = 0
+MCONTROL_ACTION_DEBUG_MODE = 1
+MCONTROL_ACTION_TRACE_START = 2
+MCONTROL_ACTION_TRACE_STOP = 3
+MCONTROL_ACTION_TRACE_EMIT = 4
+
+MCONTROL_MATCH_EQUAL = 0
+MCONTROL_MATCH_NAPOT = 1
+MCONTROL_MATCH_GE = 2
+MCONTROL_MATCH_LT = 3
+MCONTROL_MATCH_MASK_LOW = 4
+MCONTROL_MATCH_MASK_HIGH = 5
+
+def set_field(reg, mask, val):
+    return ((reg) & ~(mask)) | (((val) * ((mask) & ~((mask) << 1))) & (mask))
+
+class HwbpManual(DebugTest):
+    """Make sure OpenOCD behaves "normal" when the user sets a trigger by
+    writing the trigger registers themselves directly."""
+    def early_applicable(self):
+        return self.target.support_manual_hwbp and \
+            self.hart.instruction_hardware_breakpoint_count >= 1
+
+    def test(self):
+        if not self.hart.honors_tdata1_hmode:
+            # Run to main before setting the breakpoint, because startup code
+            # will otherwise clear the trigger that we set.
+            self.gdb.b("main")
+            self.gdb.c()
+
+        self.gdb.command("delete")
+        #self.gdb.hbreak("rot13")
+        tdata1 = MCONTROL_DMODE(self.hart.xlen)
+        tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
+        tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
+        tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
+
+        tselect = 0
+        while True:
+            self.gdb.p("$tselect=%d" % tselect)
+            value = self.gdb.p("$tselect")
+            if value != tselect:
+                raise TestNotApplicable
+            self.gdb.p("$tdata1=0x%x" % tdata1)
+            value = self.gdb.p("$tselect")
+            if value == tdata1:
+                break
+            self.gdb.p("$tdata1=0")
+            tselect += 1
+
+        self.gdb.p("$tdata2=&rot13")
+        # The breakpoint should be hit exactly 2 times.
+        for _ in range(2):
+            output = self.gdb.c(ops=2)
+            self.gdb.p("$pc")
+            assertRegex(output, r"[bB]reakpoint")
+            assertIn("rot13 ", output)
+        self.gdb.p("$tdata2=&crc32a")
+        self.gdb.c()
+        before = self.gdb.p("$pc")
+        assertEqual(before, self.gdb.p("&crc32a"))
+        self.gdb.stepi()
+        after = self.gdb.p("$pc")
+        assertNotEqual(before, after)
+
+        self.gdb.b("_exit")
+        self.exit()
+
+
 class Hwbp2(DebugTest):
     def test(self):
         if self.hart.instruction_hardware_breakpoint_count < 2:
