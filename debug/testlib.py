@@ -31,6 +31,7 @@ def find_file(path):
 
 class CompileError(Exception):
     def __init__(self, stdout, stderr):
+        super().__init__()
         self.stdout = stdout
         self.stderr = stderr
 
