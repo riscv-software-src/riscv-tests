@@ -9,7 +9,8 @@ confident that the actual debug interface is functioning correctly.
 Requirements
 ============
 The following should be in the user's path:
-* riscv64-unknown-elf-gcc
+* riscv64-unknown-elf-gcc (`rvv-0.9.x` branch for riscv-gnu-toolchain should
+  work if master does not have vector support yet)
 * riscv64-unknown-elf-gdb (can be overridden with `--gdb` when running
   gdbserver.py manually), which should be the latest from
   git://sourceware.org/git/binutils-gdb.git.
