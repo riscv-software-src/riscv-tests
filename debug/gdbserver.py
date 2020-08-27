@@ -764,6 +764,40 @@ class UserInterrupt(DebugTest):
         self.gdb.p("i=0")
         self.exit()
 
+class RepeatReadTest(DebugTest):
+    def early_applicable(self):
+        return self.target.supports_clint_mtime
+
+    def test(self):
+        self.gdb.b("main:start")
+        self.gdb.c()
+        mtime_addr = 0x02000000 + 0xbff8
+        count = 1024
+        output = self.gdb.command("monitor riscv repeat_read %d 0x%x 4" %
+                (count, mtime_addr))
+        values = []
+        for line in output.splitlines():
+            # Ignore warnings
+            if line.startswith("Batch memory"):
+                continue
+            for v in line.split():
+                values.append(int(v, 16))
+
+        assertEqual(len(values), count)
+        # mtime should only ever increase, unless it wraps
+        slop = 0x100000
+        for i in range(1, len(values)):
+            if values[i] < values[i-1]:
+                # wrapped
+                assertLess(values[i], slop)
+            else:
+                assertGreater(values[i], values[i-1])
+                assertLess(values[i], values[i-1] + slop)
+
+        output = self.gdb.command("monitor riscv repeat_read 0 0x%x 4" %
+                mtime_addr)
+        assertEqual(output, "")
+
 class Semihosting(GdbSingleHartTest):
     # Include malloc so that gdb can assign a string.
     compile_args = ("programs/semihosting.c", "programs/tiny-malloc.c",
