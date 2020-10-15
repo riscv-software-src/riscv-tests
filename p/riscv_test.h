@@ -115,11 +115,11 @@
 1:
 
 #define DELEGATE_NO_TRAPS                                               \
+  csrwi mie, 0;                                                         \
   la t0, 1f;                                                            \
   csrw mtvec, t0;                                                       \
   csrwi medeleg, 0;                                                     \
   csrwi mideleg, 0;                                                     \
-  csrwi mie, 0;                                                         \
   .align 2;                                                             \
 1:
 
