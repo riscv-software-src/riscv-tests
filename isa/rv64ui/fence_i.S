@@ -24,7 +24,7 @@ sh a1, 2f+2, t0
 fence.i
 
 la a5, 2f
-jalr a6, a5, 0
+jalr t1, a5, 0
 TEST_CASE( 2, a3, 444, nop )
 
 # test prefetcher hit
@@ -38,7 +38,7 @@ fence.i
 
 .align 6
 la a5, 3f
-jalr a6, a5, 0
+jalr t1, a5, 0
 TEST_CASE( 3, a3, 777, nop )
 
 TEST_PASSFAIL
@@ -54,9 +54,9 @@ insn:
   addi a3, a3, 333
 
 2: addi a3, a3, 222
-jalr a5, a6, 0
+jalr a5, t1, 0
 
 3: addi a3, a3, 555
-jalr a5, a6, 0
+jalr a5, t1, 0
 
 RVTEST_DATA_END
