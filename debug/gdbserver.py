@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 import os
+import re
 
 import targets
 import testlib
@@ -763,6 +764,96 @@ class UserInterrupt(DebugTest):
         assertGreater(self.gdb.p("j"), 10)
         self.gdb.p("i=0")
         self.exit()
+
+class MemorySampleTest(DebugTest):
+    def early_applicable(self):
+        return self.target.support_memory_sampling
+
+    def setup(self):
+        DebugTest.setup(self)
+        self.gdb.b("main:start")
+        self.gdb.c()
+        self.gdb.p("i=123")
+
+    @staticmethod
+    def check_incrementing_samples(raw_samples, check_addr, tolerance=0x100000):
+        first_timestamp = None
+        end = None
+        total_samples = 0
+        previous_value = None
+        for line in raw_samples.splitlines():
+            m = re.match(r"^timestamp \w+: (\d+)", line)
+            if m:
+                timestamp = int(m.group(1))
+                if not first_timestamp:
+                    first_timestamp = timestamp
+                else:
+                    end = (timestamp, total_samples)
+            else:
+                address, value = line.split(': ')
+                address = int(address, 16)
+                if address == check_addr:
+                    value = int(value, 16)
+                    if not previous_value is None:
+                        # TODO: what if the counter wraps?
+                        assertGreater(value, previous_value)
+                        assertLess(value, previous_value + tolerance)
+                    previous_value = value
+                total_samples += 1
+        if end and total_samples > 0:
+            print("%d samples/second" % (1000 * end[1] / (end[0] -
+                first_timestamp)))
+        else:
+            raise Exception("No samples collected.")
+
+    @staticmethod
+    def check_samples_equal(raw_samples, check_addr, check_value):
+        total_samples = 0
+        for line in raw_samples.splitlines():
+            if not line.startswith("timestamp "):
+                address, value = line.split(': ')
+                address = int(address, 16)
+                if address == check_addr:
+                    value = int(value, 16)
+                    assertEqual(value, check_value)
+                    total_samples += 1
+        assertGreater(total_samples, 0)
+
+    def collect_samples(self):
+        self.gdb.c(wait=False)
+        time.sleep(5)
+        output = self.gdb.interrupt()
+        assert "main" in output
+        return self.gdb.command("monitor riscv dump_sample_buf", ops=5)
+
+class MemorySampleSingle(MemorySampleTest):
+    def test(self):
+        addr = self.gdb.p("&j")
+        sizeof_j = self.gdb.p("sizeof(j)")
+        self.gdb.command("monitor riscv memory_sample 0 0x%x %d" % (
+                addr, sizeof_j))
+
+        raw_samples = self.collect_samples()
+        self.check_incrementing_samples(raw_samples, addr)
+
+        # Buffer should have been emptied by dumping.
+        raw_samples = self.gdb.command("monitor riscv dump_sample_buf", ops=5)
+        assertEqual(len(raw_samples), 0)
+
+class MemorySampleMixed(MemorySampleTest):
+    def test(self):
+        addr = {}
+        for i, name in enumerate(("j", "i32", "i64")):
+            addr[name] = self.gdb.p("&%s" % name)
+            sizeof = self.gdb.p("sizeof(%s)" % name)
+            self.gdb.command("monitor riscv memory_sample %d 0x%x %d" % (
+                    i, addr[name], sizeof))
+
+        raw_samples = self.collect_samples()
+        self.check_incrementing_samples(raw_samples, addr["j"],
+                                        tolerance=0x200000)
+        self.check_samples_equal(raw_samples, addr["i32"], 0xdeadbeef)
+        self.check_samples_equal(raw_samples, addr["i64"], 0x1122334455667788)
 
 class RepeatReadTest(DebugTest):
     def early_applicable(self):

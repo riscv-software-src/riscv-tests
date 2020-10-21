@@ -138,7 +138,7 @@ class Spike:
 
         if not self.progbufsize is None:
             cmd += ["--dm-progsize", str(self.progbufsize)]
-            cmd += ["--dm-sba", "32"]
+            cmd += ["--dm-sba", "64"]
 
         if not self.dmi_rti is None:
             cmd += ["--dmi-rti", str(self.dmi_rti)]

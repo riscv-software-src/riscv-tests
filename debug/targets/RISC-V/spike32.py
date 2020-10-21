@@ -17,6 +17,7 @@ class spike32(targets.Target):
     openocd_config_path = "spike-1.cfg"
     timeout_sec = 30
     implements_custom_test = True
+    support_memory_sampling = False # Needs SBA
 
     def create(self):
         # 64-bit FPRs on 32-bit target

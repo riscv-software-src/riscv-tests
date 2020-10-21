@@ -99,6 +99,10 @@ class Target:
     # isn't supposed to work.
     support_manual_hwbp = True
 
+    # Set False if memory sampling is not supported due to OpenOCD
+    # limitation/hardware support.
+    support_memory_sampling = True
+
     # Internal variables:
     directory = None
     temporary_files = []
