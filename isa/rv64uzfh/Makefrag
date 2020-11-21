@@ -8,5 +8,3 @@ rv64uzfh_sc_tests = \
 
 rv64uzfh_p_tests = $(addprefix rv64uzfh-p-, $(rv64uzfh_sc_tests))
 rv64uzfh_v_tests = $(addprefix rv64uzfh-v-, $(rv64uzfh_sc_tests))
-
-spike_tests += $(rv64uzfh_p_tests) $(rv64uzfh_v_tests)

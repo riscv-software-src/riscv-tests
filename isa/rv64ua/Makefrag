@@ -9,5 +9,3 @@ rv64ua_sc_tests = \
 
 rv64ua_p_tests = $(addprefix rv64ua-p-, $(rv64ua_sc_tests))
 rv64ua_v_tests = $(addprefix rv64ua-v-, $(rv64ua_sc_tests))
-
-spike_tests += $(rv64ua_p_tests) $(rv64ua_v_tests)

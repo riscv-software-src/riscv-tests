@@ -69,7 +69,11 @@ $(1): $$($(1)_tests_dump)
 
 .PHONY: $(1)
 
+COMPILER_SUPPORTS_$(1) := $$(shell $$(RISCV_GCC) $(2) -c -x c /dev/null -o /dev/null 2> /dev/null; echo $$$$?)
+
+ifeq ($$(COMPILER_SUPPORTS_$(1)),0)
 tests += $$($(1)_tests)
+endif
 
 endef
 
@@ -96,8 +100,8 @@ endif
 
 tests_dump = $(addsuffix .dump, $(tests))
 tests_hex = $(addsuffix .hex, $(tests))
-tests_out = $(addsuffix .out, $(spike_tests))
-tests32_out = $(addsuffix .out32, $(spike32_tests))
+tests_out = $(addsuffix .out, $(filter rv64%,$(tests)))
+tests32_out = $(addsuffix .out32, $(filter rv32%,$(tests)))
 
 run: $(tests_out) $(tests32_out)
 
