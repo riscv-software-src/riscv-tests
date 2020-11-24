@@ -253,10 +253,10 @@ void vm_boot(uintptr_t test_addr)
 # error
 #endif
   uintptr_t vm_choice = SATP_MODE_CHOICE;
-  uintptr_t sptbr_value = ((uintptr_t)l1pt >> PGSHIFT)
+  uintptr_t satp_value = ((uintptr_t)l1pt >> PGSHIFT)
                         | (vm_choice * (SATP_MODE & ~(SATP_MODE<<1)));
-  write_csr(sptbr, sptbr_value);
-  if (read_csr(sptbr) != sptbr_value)
+  write_csr(satp, satp_value);
+  if (read_csr(satp) != satp_value)
     assert(!"unsupported satp mode");
 
   // Set up PMPs if present, ignoring illegal instruction trap if not.

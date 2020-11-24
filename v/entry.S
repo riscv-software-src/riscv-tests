@@ -153,7 +153,7 @@ trap_entry:
   STORE  t0,32*REGBYTES(sp)
   csrr   t0,sepc
   STORE  t0,33*REGBYTES(sp)
-  csrr   t0,sbadaddr
+  csrr   t0,stval
   STORE  t0,34*REGBYTES(sp)
   csrr   t0,scause
   STORE  t0,35*REGBYTES(sp)
