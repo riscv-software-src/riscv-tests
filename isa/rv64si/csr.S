@@ -48,6 +48,7 @@ RVTEST_CODE_BEGIN
 
   TEST_CASE(20, a0,         0, csrw sscratch, zero; csrr a0, sscratch);
   TEST_CASE(21, a0,         0, csrrwi a0, sscratch, 0; csrrwi a0, sscratch, 0xF);
+  TEST_CASE(22, a0,      0x1f, csrrsi x0, sscratch, 0x10; csrr a0, sscratch);
 
   csrwi sscratch, 3
   TEST_CASE( 2, a0,         3, csrr a0, sscratch);
