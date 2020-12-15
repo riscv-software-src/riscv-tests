@@ -78,6 +78,19 @@ def srec_parse(line):
 def readable_binary_string(s):
     return "".join("%02x" % ord(c) for c in s)
 
+class InfoTest(GdbTest):
+    def test(self):
+        output = self.gdb.command("monitor riscv info")
+        info = {}
+        for line in output.splitlines():
+            if re.search(r"Found \d+ triggers", line):
+                continue
+            if re.search(r"Disabling abstract command writes to CSRs.", line):
+                continue
+            k, v = line.strip().split()
+            info[k] = v
+        assertEqual(int(info.get("hart.xlen")), self.hart.xlen)
+
 class SimpleRegisterTest(GdbTest):
     def check_reg(self, name, alias):
         a = random.randrange(1<<self.hart.xlen)
