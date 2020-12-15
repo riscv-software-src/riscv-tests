@@ -238,18 +238,25 @@ class MemTest64(SimpleMemoryTest):
     def test(self):
         self.access_test(8, 'long long')
 
-# FIXME: I'm not passing back invalid addresses correctly in read/write memory.
-#class MemTestReadInvalid(SimpleMemoryTest):
-#    def test(self):
-#        # This test relies on 'gdb_report_data_abort enable' being executed in
-#        # the openocd.cfg file.
-#        try:
-#            self.gdb.p("*((int*)0xdeadbeef)")
-#            assert False, "Read should have failed."
-#        except testlib.CannotAccess as e:
-#            assertEqual(e.address, 0xdeadbeef)
-#        self.gdb.p("*((int*)0x%x)" % self.hart.ram)
-#
+class MemTestReadInvalid(SimpleMemoryTest):
+    def test(self):
+        bad_address = self.hart.ram - 8
+        good_address = self.hart.ram + 0x80
+
+        self.write_nop_program(2)
+        self.gdb.p("$s0=0x12345678")
+        self.gdb.p("*((int*)0x%x)=0xabcdef" % good_address)
+        # This test relies on 'gdb_report_data_abort enable' being executed in
+        # the openocd.cfg file.
+        try:
+            self.gdb.p("*((int*)0x%x)" % bad_address)
+            assert False, "Read should have failed."
+        except testlib.CannotAccess as e:
+            assertEqual(e.address, bad_address)
+        self.gdb.stepi()    # Don't let gdb cache register read
+        assertEqual(self.gdb.p("*((int*)0x%x)" % good_address), 0xabcdef)
+        assertEqual(self.gdb.p("$s0"), 0x12345678)
+
 #class MemTestWriteInvalid(SimpleMemoryTest):
 #    def test(self):
 #        # This test relies on 'gdb_report_data_abort enable' being executed in
