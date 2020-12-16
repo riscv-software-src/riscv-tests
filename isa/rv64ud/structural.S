@@ -19,7 +19,8 @@ li x12, 1
 li x2, 0x3FF0000000000000
 li x1, 0x3F800000
 
-#define TEST(nops, errcode)     \
+#define TEST(testnum, nops, errcode)     \
+test_ ## testnum: \
   fmv.d.x  f4, x0    ;\
   fmv.s.x  f3, x0    ;\
   fmv.d.x  f2, x2    ;\
@@ -38,15 +39,19 @@ li x1, 0x3F800000
 2:fmv.d.x  f2, zero    ;\
   fmv.s.x  f1, zero    ;\
 
-TEST(;,2)
-TEST(nop,4)
-TEST(nop;nop,6)
-TEST(nop;nop;nop,8)
-TEST(nop;nop;nop;nop,10)
-TEST(nop;nop;nop;nop;nop,12)
-TEST(nop;nop;nop;nop;nop;nop,14)
+TEST(1,;,2)
+TEST(2,nop,4)
+TEST(3,nop;nop,6)
+TEST(4,nop;nop;nop,8)
+TEST(5,nop;nop;nop;nop,10)
+TEST(6,nop;nop;nop;nop;nop,12)
+TEST(7,nop;nop;nop;nop;nop;nop,14)
 
+pass:
 RVTEST_PASS
+
+fail:
+RVTEST_FAIL
 
 RVTEST_CODE_END
 
