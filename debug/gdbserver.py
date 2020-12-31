@@ -253,7 +253,7 @@ class MemTest64(SimpleMemoryTest):
 
 class MemTestReadInvalid(SimpleMemoryTest):
     def test(self):
-        bad_address = self.hart.ram - 8
+        bad_address = self.hart.bad_address
         good_address = self.hart.ram + 0x80
 
         self.write_nop_program(2)

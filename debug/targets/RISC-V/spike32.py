@@ -5,6 +5,7 @@ class spike32_hart(targets.Hart):
     xlen = 32
     ram = 0x10000000
     ram_size = 0x10000000
+    bad_address = 0x10000000 - 8
     instruction_hardware_breakpoint_count = 4
     reset_vectors = [0x1000]
     link_script_path = "spike32.lds"

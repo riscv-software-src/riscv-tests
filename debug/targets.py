@@ -28,6 +28,10 @@ class Hart:
     ram = None
     ram_size = None
 
+    # Address where we expect memory accesses to fail, usually because there is
+    # no device mapped to that location.
+    bad_address = None
+
     # Number of instruction triggers the hart supports.
     instruction_hardware_breakpoint_count = 0
 
