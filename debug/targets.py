@@ -1,5 +1,6 @@
 import importlib
 import os.path
+import re
 import sys
 import tempfile
 
@@ -118,6 +119,7 @@ class Target:
         self.server_cmd = parsed.server_cmd
         self.sim_cmd = parsed.sim_cmd
         self.temporary_binary = None
+        self.compiler_supports_v = True
         Target.isolate = parsed.isolate
         if not self.name:
             self.name = type(self).__name__
@@ -147,7 +149,7 @@ class Target:
                 config=self.openocd_config_path,
                 timeout=self.server_timeout_sec)
 
-    def compile(self, hart, *sources):
+    def do_compile(self, hart, *sources):
         binary_name = "%s_%s-%d" % (
                 self.name,
                 os.path.basename(os.path.splitext(sources[0])[0]),
@@ -174,9 +176,11 @@ class Target:
             args.append("-DRV32E")
         else:
             march = "rv%dima" % hart.xlen
-            for letter in "fdcv":
+            for letter in "fdc":
                 if hart.extensionSupported(letter):
                     march += letter
+            if hart.extensionSupported("v") and self.compiler_supports_v:
+                march += "v"
             args.append("-march=%s" % march)
             if hart.xlen == 32:
                 args.append("-mabi=ilp32")
@@ -185,6 +189,24 @@ class Target:
 
         testlib.compile(args)
         return binary_name
+
+    def compile(self, hart, *sources):
+        while True:
+            try:
+                return self.do_compile(hart, *sources)
+            except testlib.CompileError as e:
+                # If the compiler doesn't support V, disable it from the
+                # current configuration. Eventually all gcc branches will
+                # support V, but we're not there yet.
+                m = re.search(r"Error: cannot find default versions of the "
+                        r"ISA extension `(\w)'", e.stderr.decode())
+                if m and m.group(1) in "v":
+                    extension = m.group(1)
+                    print("Disabling extension %r because the "
+                            "compiler doesn't support it." % extension)
+                    self.compiler_supports_v = False
+                else:
+                    raise
 
 def add_target_options(parser):
     parser.add_argument("target", help=".py file that contains definition for "
