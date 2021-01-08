@@ -1563,6 +1563,7 @@ class TranslateTest(GdbTest):
         self.disable_pmp()
 
         self.gdb.load()
+        self.parkOtherHarts()
         self.gdb.b("main")
         output = self.gdb.c()
         assertRegex(output, r"\bmain\b")
