@@ -59,14 +59,6 @@ msip:
 1:
   # Make sure WFI doesn't trap when TW=0.
   wfi
-bad3:
-  .word 0
-  j fail
-
-bad4:
-  # Make sure WFI does trap when TW=1.
-  wfi
-  j fail
 
   # Make sure SFENCE.VMA and sptbr don't trap when TVM=0.
   sfence.vma
@@ -144,10 +136,6 @@ synchronous_exception:
 
   la t1, bad2
   beq t0, t1, 2f
-  la t1, bad3
-  beq t0, t1, 3f
-  la t1, bad4
-  beq t0, t1, 4f
   la t1, bad5
   beq t0, t1, 5f
   la t1, bad6
@@ -160,17 +148,11 @@ synchronous_exception:
   beq t0, t1, 9f
   j fail
 2:
-4:
 6:
 7:
   addi t0, t0, 8
   csrw mepc, t0
   mret
-
-3:
-  li t1, MSTATUS_TW
-  csrs mstatus, t1
-  j 2b
 
 5:
   li t1, MSTATUS_TVM
