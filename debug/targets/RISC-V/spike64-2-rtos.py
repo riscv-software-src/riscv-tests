@@ -10,6 +10,9 @@ class spike64_2_rtos(targets.Target):
     timeout_sec = 60
     implements_custom_test = True
     support_hasel = False
+    test_semihosting = False
+    support_manual_hwbp = False # not supported with `-rtos riscv`
+    support_memory_sampling = False # not supported with `-rtos riscv`
 
     def create(self):
         return testlib.Spike(self, abstract_rti=30, support_hasel=False,

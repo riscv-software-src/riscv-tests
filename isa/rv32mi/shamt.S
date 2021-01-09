@@ -1,10 +1,10 @@
 # See LICENSE for license details.
 
 #*****************************************************************************
-# csr.S
+# shamt.S
 #-----------------------------------------------------------------------------
 #
-# Test CSRRx and CSRRxI instructions.
+# Test illegal shamt[5] of shift instruction in 32-bit ISA.
 #
 
 #include "riscv_test.h"

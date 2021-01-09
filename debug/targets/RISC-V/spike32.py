@@ -5,6 +5,7 @@ class spike32_hart(targets.Hart):
     xlen = 32
     ram = 0x10000000
     ram_size = 0x10000000
+    bad_address = 0x10000000 - 8
     instruction_hardware_breakpoint_count = 4
     reset_vectors = [0x1000]
     link_script_path = "spike32.lds"
@@ -17,6 +18,7 @@ class spike32(targets.Target):
     openocd_config_path = "spike-1.cfg"
     timeout_sec = 30
     implements_custom_test = True
+    support_memory_sampling = False # Needs SBA
 
     def create(self):
         # 64-bit FPRs on 32-bit target

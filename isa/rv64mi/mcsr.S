@@ -28,7 +28,7 @@ RVTEST_CODE_BEGIN
   csrr a0, marchid
   csrr a0, mvendorid
 
-  # Check that writing hte following CSRs doesn't cause an exception
+  # Check that writing the following CSRs doesn't cause an exception
   li t0, 0
   csrs mtvec, t0
   csrs mepc, t0

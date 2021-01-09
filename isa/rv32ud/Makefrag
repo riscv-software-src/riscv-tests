@@ -11,5 +11,3 @@ rv32ud_sc_tests = \
 
 rv32ud_p_tests = $(addprefix rv32ud-p-, $(rv32ud_sc_tests))
 rv32ud_v_tests = $(addprefix rv32ud-v-, $(rv32ud_sc_tests))
-
-spike32_tests += $(rv32ud_p_tests) $(rv32ud_v_tests)

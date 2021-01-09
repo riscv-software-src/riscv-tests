@@ -12,8 +12,11 @@ class spike64_2(targets.Target):
     timeout_sec = 20
     implements_custom_test = True
     support_hasel = False
+    support_memory_sampling = False # Needs SBA
 
     def create(self):
+        # TODO: It would be nice to test with slen=128, but spike currently
+        # requires vlen==slen.
         return testlib.Spike(self, isa="RV64IMAFDV", abstract_rti=30,
                 support_hasel=False, support_abstract_csr=False,
-                vlen=512, elen=64)
+                vlen=512, elen=64, slen=512)

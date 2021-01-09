@@ -8,6 +8,7 @@
 #include "util.h"
 
 volatile int trap_expected;
+volatile int granule;
 
 #define INLINE inline __attribute__((always_inline))
 
@@ -55,8 +56,6 @@ INLINE uintptr_t va2pa(uintptr_t va)
   return va - SCRATCH + (uintptr_t)scratch;
 }
 
-#define GRANULE (1UL << PMP_SHIFT)
-
 typedef struct {
   uintptr_t cfg;
   uintptr_t a0;
@@ -85,14 +84,14 @@ INLINE int pmp_ok(pmpcfg_t p, uintptr_t addr, uintptr_t size)
     p.a1 = p.a0 + range;
   }
 
-  p.a0 *= GRANULE;
-  p.a1 *= GRANULE;
+  p.a0 *= granule;
+  p.a1 *= granule;
   addr = va2pa(addr);
 
   uintptr_t hits = 0;
-  for (uintptr_t i = 0; i < size; i += GRANULE) {
+  for (uintptr_t i = 0; i < size; i += granule) {
     if (p.a0 <= addr + i && addr + i < p.a1)
-      hits += GRANULE;
+      hits += granule;
   }
 
   return hits == 0 || hits >= size;
@@ -126,7 +125,7 @@ INLINE void test_all_sizes(pmpcfg_t p, uintptr_t addr)
 
 INLINE void test_range_once(pmpcfg_t p, uintptr_t base, uintptr_t range)
 {
-  for (uintptr_t addr = base; addr < base + range; addr += GRANULE)
+  for (uintptr_t addr = base; addr < base + range; addr += granule)
     test_all_sizes(p, addr);
 }
 
@@ -153,7 +152,7 @@ INLINE pmpcfg_t set_pmp_range(uintptr_t base, uintptr_t range)
 INLINE pmpcfg_t set_pmp_napot(uintptr_t base, uintptr_t range)
 {
   pmpcfg_t p;
-  p.cfg = PMP_R | (range > GRANULE ? PMP_NAPOT : PMP_NA4);
+  p.cfg = PMP_R | (range > granule ? PMP_NAPOT : PMP_NA4);
   p.a0 = 0;
   p.a1 = (base + (range/2 - 1)) >> PMP_SHIFT;
   return set_pmp(p);
@@ -172,18 +171,33 @@ static void test_range(uintptr_t addr, uintptr_t range)
 
 static void test_ranges(uintptr_t addr, uintptr_t size)
 {
-  for (uintptr_t range = GRANULE; range <= size; range += GRANULE)
+  for (uintptr_t range = granule; range <= size; range += granule)
     test_range(addr, range);
 }
 
 static void exhaustive_test(uintptr_t addr, uintptr_t size)
 {
-  for (uintptr_t base = addr; base < addr + size; base += GRANULE)
+  for (uintptr_t base = addr; base < addr + size; base += granule)
     test_ranges(base, size - (base - addr));
+}
+
+static void detect_granule()
+{
+  write_csr(pmpcfg0, NULL);
+  write_csr(pmpaddr0, 0xffffffffffffffffULL);
+  uintptr_t ret = read_csr(pmpaddr0);
+  int g = 2;
+  for(uintptr_t i = 1; i; i<<=1) {
+    if((ret & i) != 0) 
+      break;
+    g++;
+  }
+  granule = 1UL << g;
 }
 
 int main()
 {
+  detect_granule();
   init_pt();
 
   const int max_exhaustive = 32;

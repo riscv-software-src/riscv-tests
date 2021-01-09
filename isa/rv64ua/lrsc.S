@@ -37,14 +37,20 @@ TEST_CASE( 3, a4, 0, \
   lw a4, foo; \
 )
 
-# make sure that sc with the wrong reservation fails.
-# TODO is this actually mandatory behavior?
-TEST_CASE( 4, a4, 1, \
-  la a0, foo; \
-  la a1, fooTest3; \
-  lr.w a1, (a1); \
-  sc.w a4, a1, (a0); \
-)
+#
+# Disable test case 4 for now. It assumes a <1K reservation granule, when
+# in reality any size granule is valid. After discussion in issue #315,
+# decided to simply disable the test for now.
+# (See https://github.com/riscv/riscv-tests/issues/315)
+#
+## make sure that sc with the wrong reservation fails.
+## TODO is this actually mandatory behavior?
+#TEST_CASE( 4, a4, 1, \
+#  la a0, foo; \
+#  la a1, fooTest3; \
+#  lr.w a1, (a1); \
+#  sc.w a4, a1, (a0); \
+#)
 
 #define LOG_ITERATIONS 10
 

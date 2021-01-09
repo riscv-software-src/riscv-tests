@@ -29,8 +29,19 @@ def find_file(path):
             return relpath
     return None
 
+class CompileError(Exception):
+    def __init__(self, stdout, stderr):
+        super().__init__()
+        self.stdout = stdout
+        self.stderr = stderr
+
+gcc_cmd = None
 def compile(args): # pylint: disable=redefined-builtin
-    cmd = ["riscv64-unknown-elf-gcc", "-g"]
+    if gcc_cmd:
+        cmd = [gcc_cmd]
+    else:
+        cmd = ["riscv64-unknown-elf-gcc"]
+    cmd.append("-g")
     for arg in args:
         found = find_file(arg)
         if found:
@@ -43,10 +54,10 @@ def compile(args): # pylint: disable=redefined-builtin
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode:
-        print(stdout, end=" ")
-        print(stderr, end=" ")
+        print(stdout.decode('ascii'), end=" ")
+        print(stderr.decode('ascii'), end=" ")
         header("")
-        raise Exception("Compile failed!")
+        raise CompileError(stdout, stderr)
 
 class Spike:
     # pylint: disable=too-many-instance-attributes
@@ -127,7 +138,7 @@ class Spike:
 
         if not self.progbufsize is None:
             cmd += ["--dm-progsize", str(self.progbufsize)]
-            cmd += ["--dm-sba", "32"]
+            cmd += ["--dm-sba", "64"]
 
         if not self.dmi_rti is None:
             cmd += ["--dmi-rti", str(self.dmi_rti)]
@@ -145,8 +156,8 @@ class Spike:
             cmd.append("--dm-no-halt-groups")
 
         if 'V' in isa[2:]:
-            cmd.append("--varch=v%d:e%d:s%d" % (self.vlen, self.elen,
-                self.slen))
+            cmd.append("--varch=vlen:%d,elen:%d,slen:%d" % (self.vlen,
+                self.elen, self.slen))
 
         assert len(set(t.ram for t in harts)) == 1, \
                 "All spike harts must have the same RAM layout"
@@ -263,7 +274,7 @@ class Openocd:
             self.config_file = find_file(config)
             if self.config_file is None:
                 print("Unable to read file", config)
-                exit(1)
+                sys.exit(1)
 
             cmd += ["-f", self.config_file]
         if debug:
@@ -379,6 +390,11 @@ class CannotAccess(Exception):
         Exception.__init__(self)
         self.address = address
 
+class CannotInsertBreakpoint(Exception):
+    def __init__(self, number):
+        Exception.__init__(self)
+        self.number = number
+
 class CouldNotFetch(Exception):
     def __init__(self, regname, explanation):
         Exception.__init__(self)
@@ -412,6 +428,8 @@ def tokenize(text):
                     lambda m: CouldNotFetch(m.group(1), m.group(2))),
                 (r"Cannot access memory at address (0x[0-9a-f]+)",
                     lambda m: CannotAccess(int(m.group(1), 0))),
+                (r"Cannot insert breakpoint (\d+).",
+                    lambda m: CannotInsertBreakpoint(int(m.group(1)))),
                 (r'No symbol "(\w+)" in current context.',
                     lambda m: NoSymbol(m.group(1))),
                 (r'"([^"]*)"', lambda m: m.group(1)),
@@ -659,10 +677,15 @@ class Gdb:
             self.select_child(child)
             self.interrupt()
 
-    def x(self, address, size='w'):
-        output = self.command("x/%s %s" % (size, address))
-        value = int(output.split(':')[1].strip(), 0)
-        return value
+    def x(self, address, size='w', count=1):
+        output = self.command("x/%d%s %s" % (count, size, address))
+        values = []
+        for line in output.splitlines():
+            for value in line.split(':')[1].strip().split():
+                values.append(int(value, 0))
+        if len(values) == 1:
+            return values[0]
+        return values
 
     def p_raw(self, obj):
         output = self.command("p %s" % obj)
@@ -799,6 +822,8 @@ def run_all_tests(module, target, parsed):
 
     global gdb_cmd  # pylint: disable=global-statement
     gdb_cmd = parsed.gdb
+    global gcc_cmd  # pylint: disable=global-statement
+    gcc_cmd = parsed.gcc
 
     examine_added = False
     for hart in target.harts:
@@ -882,6 +907,8 @@ def add_test_run_options(parser):
             help="Print out a list of tests, and exit immediately.")
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
+    parser.add_argument("--gcc",
+            help="The command to use to start gcc.")
     parser.add_argument("--gdb",
             help="The command to use to start gdb.")
     parser.add_argument("--misaval",
@@ -1022,6 +1049,12 @@ class GdbTest(BaseTest):
         BaseTest.__init__(self, target, hart=hart)
         self.gdb = None
 
+    def write_nop_program(self, count):
+        for i in range(count):
+            # 0x13 is nop
+            self.gdb.command("p *((int*) 0x%x)=0x13" % (self.hart.ram + i * 4))
+        self.gdb.p("$pc=0x%x" % self.hart.ram)
+
     def classSetup(self):
         BaseTest.classSetup(self)
 
@@ -1069,6 +1102,17 @@ class GdbTest(BaseTest):
                 self.gdb.p("$pc=loop_forever")
 
         self.gdb.select_hart(self.hart)
+
+    def disable_pmp(self):
+        # Disable physical memory protection by allowing U mode access to all
+        # memory.
+        try:
+            self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
+            self.gdb.p("$pmpaddr0=0x%x" %
+                    ((self.hart.ram + self.hart.ram_size) >> 2))
+        except CouldNotFetch:
+            # PMP registers are optional
+            pass
 
 class GdbSingleHartTest(GdbTest):
     def classSetup(self):
