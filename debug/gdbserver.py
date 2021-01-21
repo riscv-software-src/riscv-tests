@@ -1660,6 +1660,18 @@ class VectorTest(GdbSingleHartTest):
         assertIn("Breakpoint", output)
         assertIn("test0", output)
 
+        # I'm not convinced that writing 0 is supported on every vector
+        # implementation. If this test fails, that might be why.
+        for regname in ('$vl', '$vtype'):
+            value = self.gdb.p(regname)
+            assertNotEqual(value, 0)
+            self.gdb.p("%s=0" % regname)
+            self.gdb.command("flushregs")
+            assertEqual(self.gdb.p(regname), 0)
+            self.gdb.p("%s=0x%x" % (regname, value))
+            self.gdb.command("flushregs")
+            assertEqual(self.gdb.p(regname), value)
+
         assertEqual(self.gdb.p("$a0"), 0)
         a = self.gdb.x("&a", 'b', vlenb)
         b = self.gdb.x("&b", 'b', vlenb)
