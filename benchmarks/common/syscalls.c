@@ -394,6 +394,35 @@ void* memcpy(void* dest, const void* src, size_t len)
 
 void* memset(void* dest, int byte, size_t len)
 {
+#define USE_INLINE_ASSEMBLY 1
+#if USE_INLINE_ASSEMBLY
+    asm volatile(
+      "     or  a5,a0,a2\n"
+      "     andi  a5,a5,7\n"
+      "     add a2,a2,a0\n"
+      "     andi  a1,a1,255\n"
+      "     beqz  a5, 2f\n"
+      "     mv  a5,a0\n"
+      "     bgeu  a0,a2, 4f\n"
+      "1:   addi  a5,a5,1\n"
+      "     sb  a1,-1(a5)\n"
+      "     bne a2,a5, 1b\n"
+      "     ret\n"
+      "2:   slli  a5,a1,0x8\n"
+      "     or  a5,a5,a1\n"
+      "     slli  a1,a5,0x10\n"
+      "     or  a5,a5,a1\n"
+      "     slli  a4,a5,0x20\n"
+      "     or  a5,a5,a4\n"
+      "     bgeu  a0,a2, 4f\n"
+      "     mv  a4,a0\n"
+      "3:   addi  a4,a4,8\n"
+      "     sd  a5,-8(a4)\n"
+      "     bltu  a4,a2, 3b\n"
+      "4:   ret\n"
+  );
+
+#else
   if ((((uintptr_t)dest | len) & (sizeof(uintptr_t)-1)) == 0) {
     uintptr_t word = byte & 0xFF;
     word |= word << 8;
@@ -408,6 +437,8 @@ void* memset(void* dest, int byte, size_t len)
     while (d < (char*)(dest + len))
       *d++ = byte;
   }
+#endif
+#undef USE_INLINE_ASSEMBLY
   return dest;
 }
 
