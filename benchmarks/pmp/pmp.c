@@ -94,7 +94,7 @@ INLINE int pmp_ok(pmpcfg_t p, uintptr_t addr, uintptr_t size)
       hits += granule;
   }
 
-  return hits == 0 || hits >= size;
+  return hits != 0 && hits >= size;
 }
 
 INLINE void test_one(uintptr_t addr, uintptr_t size)
@@ -117,9 +117,9 @@ INLINE void test_all_sizes(pmpcfg_t p, uintptr_t addr)
     if (addr & (size - 1))
       continue;
     trap_expected = !pmp_ok(p, addr, size);
-    test_one(addr, size);
     if (trap_expected)
       exit(2);
+    test_one(addr, size);
   }
 }
 
