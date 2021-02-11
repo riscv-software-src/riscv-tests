@@ -590,10 +590,10 @@ class DebugBreakpoint(DebugTest):
         self.exit()
 
 class Hwbp1(DebugTest):
-    def test(self):
-        if self.hart.instruction_hardware_breakpoint_count < 1:
-            raise TestNotApplicable
+    def early_applicable(self):
+        return self.hart.instruction_hardware_breakpoint_count > 0
 
+    def test(self):
         if not self.hart.honors_tdata1_hmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
@@ -704,10 +704,10 @@ class HwbpManual(DebugTest):
 
 
 class Hwbp2(DebugTest):
-    def test(self):
-        if self.hart.instruction_hardware_breakpoint_count < 2:
-            raise TestNotApplicable
+    def early_applicable(self):
+        return self.hart.instruction_hardware_breakpoint_count >= 2
 
+    def test(self):
         self.gdb.command("delete")
         self.gdb.hbreak("main")
         self.gdb.hbreak("rot13")
@@ -1327,7 +1327,8 @@ class TriggerStoreAddressInstant(TriggerTest):
 
 class TriggerDmode(TriggerTest):
     def early_applicable(self):
-        return self.hart.honors_tdata1_hmode
+        return self.hart.honors_tdata1_hmode and \
+                self.hart.instruction_hardware_breakpoint_count > 0
 
     def check_triggers(self, tdata1_lsbs, tdata2):
         dmode = 1 << (self.hart.xlen-5)
