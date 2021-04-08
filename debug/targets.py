@@ -108,6 +108,10 @@ class Target:
     # limitation/hardware support.
     support_memory_sampling = True
 
+    # Relative path to a FreeRTOS binary compiled from the spike demo project
+    # in https://github.com/FreeRTOS/FreeRTOS.
+    freertos_binary = None
+
     # Internal variables:
     directory = None
     temporary_files = []
@@ -143,11 +147,12 @@ class Target:
     def create(self):
         """Create the target out of thin air, eg. start a simulator."""
 
-    def server(self):
+    def server(self, test):
         """Start the debug server that gdb connects to, eg. OpenOCD."""
         return testlib.Openocd(server_cmd=self.server_cmd,
                 config=self.openocd_config_path,
-                timeout=self.server_timeout_sec)
+                timeout=self.server_timeout_sec,
+                freertos=test.freertos())
 
     def do_compile(self, hart, *sources):
         binary_name = "%s_%s-%d" % (

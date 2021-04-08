@@ -1700,6 +1700,60 @@ class VectorTest(GdbSingleHartTest):
         assertIn("_exit", output)
         assertEqual(self.gdb.p("status"), 0)
 
+class FreeRtosTest(GdbTest):
+    def early_applicable(self):
+        return self.target.freertos_binary
+
+    def freertos(self):
+        return True
+
+    def test(self):
+        self.gdb.command("file %s" % self.target.freertos_binary)
+        self.gdb.load()
+
+        output = self.gdb.command("monitor riscv_freertos_stacking mainline")
+
+        # Turn off htif, which doesn't work when the file is loaded into spike
+        # through gdb. It only works when spike loads the ELF file itself.
+        bp = self.gdb.b("main")
+        self.gdb.c()
+        self.gdb.command("delete %d" % bp)
+        self.gdb.p("*((int*) &use_htif) = 0")
+        # Need this, otherwise gdb complains that there is no current active
+        # thread.
+        self.gdb.threads()
+
+        bp = self.gdb.b("prvQueueReceiveTask")
+
+        self.gdb.c()
+        self.gdb.command("delete %d" % bp)
+
+        bp = self.gdb.b("prvQueueSendTask")
+        self.gdb.c()
+        self.gdb.command("delete %d" % bp)
+
+        # Now we know for sure at least 2 threads have executed.
+
+        threads = self.gdb.threads()
+        assertGreater(len(threads), 1)
+
+        values = {}
+        for thread in threads:
+            assertNotIn("No Name", thread[1])
+            self.gdb.thread(thread)
+            assertEqual(self.gdb.p("$zero"), 0)
+            output = self.gdb.command("info reg sp")
+            assertIn("ucHeap", output)
+            self.gdb.command("info reg mstatus")
+            values[thread.id] = self.gdb.p("$s11")
+            self.gdb.p("$s11=0x%x" % (values[thread.id] ^ int(thread.id)))
+
+        # Test that writing worked
+        self.gdb.stepi()
+        for thread in self.gdb.threads():
+            self.gdb.thread(thread)
+            assertEqual(self.gdb.p("$s11"), values[thread.id] ^ int(thread.id))
+
 parsed = None
 def main():
     parser = argparse.ArgumentParser(

@@ -245,7 +245,8 @@ class Openocd:
     logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
     logname = logfile.name
 
-    def __init__(self, server_cmd=None, config=None, debug=False, timeout=60):
+    def __init__(self, server_cmd=None, config=None, debug=False, timeout=60,
+                 freertos=False):
         self.timeout = timeout
 
         if server_cmd:
@@ -280,6 +281,12 @@ class Openocd:
         if debug:
             cmd.append("-d")
 
+        extra_env = {}
+        if freertos:
+            extra_env['USE_FREERTOS'] = "1"
+        else:
+            extra_env['USE_FREERTOS'] = "0"
+
         raw_logfile = open(Openocd.logname, "wb")
         try:
             spike_dasm = subprocess.Popen("spike-dasm", stdin=subprocess.PIPE,
@@ -292,17 +299,21 @@ class Openocd:
         env_entries = ("REMOTE_BITBANG_HOST", "REMOTE_BITBANG_PORT",
                 "WORK_AREA")
         env_entries = [key for key in env_entries if key in os.environ]
-        logfile.write(("+ %s%s\n" % (
-            "".join("%s=%s " % (key, os.environ[key]) for key in env_entries),
-            " ".join(map(pipes.quote, cmd)))).encode())
+        parts = [
+            " ".join("%s=%s" % (key, os.environ[key]) for key in env_entries),
+            " ".join("%s=%s" % (k, v) for k, v in extra_env.items()),
+            " ".join(map(pipes.quote, cmd))
+        ]
+        logfile.write(("+ %s\n" % " ".join(parts)).encode())
         logfile.flush()
 
         self.gdb_ports = []
-        self.process = self.start(cmd, logfile)
+        self.process = self.start(cmd, logfile, extra_env)
 
-    def start(self, cmd, logfile):
+    def start(self, cmd, logfile, extra_env):
+        combined_env = {**os.environ, **extra_env}
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                stdout=logfile, stderr=logfile)
+                stdout=logfile, stderr=logfile, env=combined_env)
 
         try:
             # Wait for OpenOCD to have made it through riscv_examine(). When
@@ -710,7 +721,7 @@ class Gdb:
         value = shlex.split(output.split('=')[-1].strip())[1]
         return value
 
-    def info_registers(self, group):
+    def info_registers(self, group=""):
         output = self.command("info registers %s" % group, ops=5)
         result = {}
         for line in output.splitlines():
@@ -954,6 +965,12 @@ class BaseTest:
         # pylint: disable=no-self-use
         return True
 
+    def freertos(self):
+        """Return a true value if the test is running a FreeRTOS binary where
+        the debugger should expose FreeRTOS threads to gdb."""
+        # pylint: disable=no-self-use
+        return False
+
     def setup(self):
         pass
 
@@ -971,7 +988,7 @@ class BaseTest:
         if self.target_process:
             self.logs.append(self.target_process.logname)
         try:
-            self.server = self.target.server()
+            self.server = self.target.server(self)
             self.logs.append(self.server.logname)
         except Exception:
             for log in self.logs:
