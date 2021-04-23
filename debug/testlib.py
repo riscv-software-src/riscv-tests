@@ -197,7 +197,7 @@ class MultiSpike:
         self.lognames.append(self.logfile.name)
 
         # Now create the daisy-chain process.
-        cmd = ["./rbb_daisychain.py", "--quiet", "0"] + [str(spike.port) for spike in spikes]
+        cmd = ["./rbb_daisychain.py", "0"] + [str(spike.port) for spike in spikes]
         self.logfile.write(("+ %s\n" % cmd).encode())
         self.logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
