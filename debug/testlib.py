@@ -65,7 +65,7 @@ class Spike:
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
             support_hasel=True, support_abstract_csr=True,
-            support_haltgroups=True, vlen=128, elen=64, slen=128):
+            support_haltgroups=True, vlen=128, elen=64, slen=128, harts=None):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
         self.process = None
@@ -80,21 +80,19 @@ class Spike:
         self.elen = elen
         self.slen = slen
 
-        if target.harts:
-            harts = target.harts
-        else:
-            harts = [target]
+        self.harts = harts or target.harts or [target]
 
-        cmd = self.command(target, harts, halted, timeout, with_jtag_gdb)
-        self.infinite_loop = target.compile(harts[0],
+        cmd = self.command(target, halted, timeout, with_jtag_gdb)
+        self.infinite_loop = target.compile(self.harts[0],
                 "programs/checksum.c", "programs/tiny-malloc.c",
                 "programs/infinite_loop.S", "-DDEFINE_MALLOC", "-DDEFINE_FREE")
         cmd.append(self.infinite_loop)
         self.logfile = tempfile.NamedTemporaryFile(prefix="spike-",
                 suffix=".log")
-        self.logname = self.logfile.name
+        logname = self.logfile.name
+        self.lognames = [logname]
         if print_log_names:
-            real_stdout.write("Temporary spike log: %s\n" % self.logname)
+            real_stdout.write("Temporary spike log: %s\n" % logname)
         self.logfile.write(("+ %s\n" % " ".join(cmd)).encode())
         self.logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
@@ -104,37 +102,37 @@ class Spike:
             self.port = None
             for _ in range(30):
                 m = re.search(r"Listening for remote bitbang connection on "
-                        r"port (\d+).", open(self.logname).read())
+                        r"port (\d+).", open(logname).read())
                 if m:
                     self.port = int(m.group(1))
                     os.environ['REMOTE_BITBANG_PORT'] = m.group(1)
                     break
                 time.sleep(0.11)
             if not self.port:
-                print_log(self.logname)
+                print_log(logname)
                 raise Exception("Didn't get spike message about bitbang "
                         "connection")
 
     # pylint: disable=too-many-branches
-    def command(self, target, harts, halted, timeout, with_jtag_gdb):
+    def command(self, target, halted, timeout, with_jtag_gdb):
         # pylint: disable=no-self-use
         if target.sim_cmd:
             cmd = shlex.split(target.sim_cmd)
         else:
             cmd = ["spike"]
 
-        cmd += ["-p%d" % len(harts)]
+        cmd += ["-p%d" % len(self.harts)]
 
-        assert len(set(t.xlen for t in harts)) == 1, \
+        assert len(set(t.xlen for t in self.harts)) == 1, \
                 "All spike harts must have the same XLEN"
 
         if self.isa:
             isa = self.isa
         else:
-            isa = "RV%dG" % harts[0].xlen
+            isa = "RV%dG" % self.harts[0].xlen
 
         cmd += ["--isa", isa]
-        cmd += ["--dm-auth"]
+        #>>> cmd += ["--dm-auth"]
 
         if not self.progbufsize is None:
             cmd += ["--dm-progsize", str(self.progbufsize)]
@@ -159,12 +157,12 @@ class Spike:
             cmd.append("--varch=vlen:%d,elen:%d,slen:%d" % (self.vlen,
                 self.elen, self.slen))
 
-        assert len(set(t.ram for t in harts)) == 1, \
+        assert len(set(t.ram for t in self.harts)) == 1, \
                 "All spike harts must have the same RAM layout"
-        assert len(set(t.ram_size for t in harts)) == 1, \
+        assert len(set(t.ram_size for t in self.harts)) == 1, \
                 "All spike harts must have the same RAM layout"
-        os.environ['WORK_AREA'] = '0x%x' % harts[0].ram
-        cmd += ["-m0x%x:0x%x" % (harts[0].ram, harts[0].ram_size)]
+        os.environ['WORK_AREA'] = '0x%x' % self.harts[0].ram
+        cmd += ["-m0x%x:0x%x" % (self.harts[0].ram, self.harts[0].ram_size)]
 
         if timeout:
             cmd = ["timeout", str(timeout)] + cmd
@@ -187,6 +185,47 @@ class Spike:
 
     def wait(self, *args, **kwargs):
         return self.process.wait(*args, **kwargs)
+
+class MultiSpike:
+    def __init__(self, spikes):
+        self.process = None
+
+        self.spikes = spikes
+        self.lognames = sum((spike.lognames for spike in spikes), [])
+        self.logfile = tempfile.NamedTemporaryFile(prefix="daisychain-",
+                suffix=".log")
+        self.lognames.append(self.logfile.name)
+
+        # Now create the daisy-chain process.
+        cmd = ["./rbb_daisychain.py", "--quiet", "0"] + [str(spike.port) for spike in spikes]
+        self.logfile.write(("+ %s\n" % cmd).encode())
+        self.logfile.flush()
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                stdout=self.logfile, stderr=self.logfile)
+
+        self.port = None
+        for _ in range(30):
+            m = re.search(r"Listening on port (\d+).",
+                          open(self.lognames[-1]).read())
+            if m:
+                self.port = int(m.group(1))
+                break
+            time.sleep(0.11)
+        if not self.port:
+            print_log(self.lognames[-1])
+            raise Exception("Didn't get daisy chain message about which port "
+                            "it's listening on.")
+
+        os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
+        os.environ['REMOTE_BITBANG_PORT'] = str(self.port)
+
+    def __del__(self):
+        if self.process:
+            try:
+                self.process.kill()
+                self.process.wait()
+            except OSError:
+                pass
 
 class VcsSim:
     logfile = tempfile.NamedTemporaryFile(prefix='simv', suffix='.log')
@@ -986,7 +1025,7 @@ class BaseTest:
         self.compile()
         self.target_process = self.target.create()
         if self.target_process:
-            self.logs.append(self.target_process.logname)
+            self.logs += self.target_process.lognames
         try:
             self.server = self.target.server(self)
             self.logs.append(self.server.logname)
