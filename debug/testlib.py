@@ -197,7 +197,8 @@ class MultiSpike:
         self.lognames.append(self.logfile.name)
 
         # Now create the daisy-chain process.
-        cmd = ["./rbb_daisychain.py", "0"] + [str(spike.port) for spike in spikes]
+        cmd = ["./rbb_daisychain.py", "0"] + \
+            [str(spike.port) for spike in spikes]
         self.logfile.write(("+ %s\n" % cmd).encode())
         self.logfile.flush()
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
@@ -590,14 +591,16 @@ class Gdb:
         for port, child in zip(self.ports, self.children):
             self.select_child(child)
             self.wait()
-            self.command("set style enabled off")
-            self.command("set confirm off")
-            self.command("set width 0")
-            self.command("set height 0")
+            self.command("set style enabled off", reset_delays=None)
+            self.command("set confirm off", reset_delays=None)
+            self.command("set width 0", reset_delays=None)
+            self.command("set height 0", reset_delays=None)
             # Force consistency.
-            self.command("set print entry-values no")
-            self.command("set remotetimeout %d" % self.timeout)
-            self.command("target extended-remote localhost:%d" % port, ops=10)
+            self.command("set print entry-values no", reset_delays=None)
+            self.command("set remotetimeout %d" % self.timeout,
+                         reset_delays=None)
+            self.command("target extended-remote localhost:%d" % port, ops=10,
+                         reset_delays=None)
             if self.binary:
                 self.command("file %s" % self.binary)
             threads = self.threads()
@@ -673,6 +676,17 @@ class Gdb:
             for child in self.children:
                 self.select_child(child)
                 self.command(command)
+
+    def system_command(self, command, ops=20):
+        """Execute this command on every unique system that we control."""
+        done = set()
+        with PrivateState(self):
+            for child in self.children:
+                if child.system in done:
+                    continue
+                self.select_child(child)
+                self.command(command, ops=ops)
+                done.add(child.system)
 
     def c(self, wait=True, sync=True, checkOutput=True, ops=20):
         """
@@ -781,10 +795,10 @@ class Gdb:
         return output
 
     def load(self):
-        output = self.command("load", ops=1000)
+        output = self.system_command("load", ops=1000)
         assert "failed" not in  output
         assert "Transfer rate" in output
-        output = self.command("compare-sections", ops=1000)
+        output = self.system_command("compare-sections", ops=1000)
         assert "matched" in output
         assert "MIS" not in output
 

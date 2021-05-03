@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 
+import argparse
 import sys
 import socket
 
 # https://github.com/ntfreak/openocd/blob/master/doc/manual/jtag/drivers/remote_bitbang.txt
 
-class Tap(object):
+class Tap:
     def __init__(self, port):
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,7 +25,7 @@ class Tap(object):
         assert len(result) == read_count
         return result
 
-class Chain(object):
+class Chain:
     def __init__(self, debug=False):
         self.debug = debug
         self.taps = []
@@ -37,7 +38,7 @@ class Chain(object):
         for i, tap in enumerate(self.taps):
             tmp_commands = []
             for command in commands:
-                if i > 0 and command >= ord('0') and command <= ord('7'):
+                if i > 0 and ord('0') <= command <= ord('7'):
                     # Replace TDI with the value from the previous TAP.
                     v = values.pop(0)
                     command &= 0xfe
@@ -47,7 +48,7 @@ class Chain(object):
                 if i < len(self.taps) - 1:
                     if command != ord('R'):
                         tmp_commands.append(command)
-                    if command >= ord('0') and command <= ord('7'):
+                    if ord('0') <= command <= ord('7'):
                         # Read TDO before every scan.
                         tmp_commands.append(ord('R'))
                 else:
@@ -55,11 +56,11 @@ class Chain(object):
             assert len(values) == 0
             values = list(tap.execute(bytes(tmp_commands)))
             if self.debug:
-                sys.stdout.write("    %d %r -> %r\n" % (i, bytes(tmp_commands), bytes(values)))
+                sys.stdout.write("    %d %r -> %r\n" % (i, bytes(tmp_commands),
+                                                        bytes(values)))
         return bytes(values)
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(
             description='Combine multiple remote_bitbang processes into a '
             'single scan-chain.')
@@ -83,7 +84,7 @@ def main():
     sys.stdout.flush()
 
     while True:
-        (client, address) = server.accept()
+        (client, _) = server.accept()
 
         while True:
             try:

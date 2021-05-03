@@ -44,6 +44,13 @@ class Hart:
     # jumpers.
     reset_vectors = []
 
+    def __init__(self, system=None):
+        """system is set to an identifier of the system this hart belongs to.
+        Harts within the same system are assumed to share memory, and to have
+        unique hartids within that system.  So for most cases the default
+        value of None is fine."""
+        self.system = system
+
     def extensionSupported(self, letter):
         # target.misa is set by testlib.ExamineTarget
         if self.misa:
