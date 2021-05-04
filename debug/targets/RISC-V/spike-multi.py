@@ -15,7 +15,7 @@ class multispike(targets.Target):
     openocd_config_path = "spike-multi.cfg"
     # Increased timeout because we use abstract_rti to artificially slow things
     # down.
-    timeout_sec = 20
+    timeout_sec = 30
     implements_custom_test = True
     support_hasel = False
     support_memory_sampling = False # Needs SBA

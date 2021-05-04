@@ -559,11 +559,12 @@ class Gdb:
             11, 149, 107, 163, 73, 47, 43, 173, 7, 109, 101, 103, 191, 2, 139,
             97, 193, 157, 3, 29, 79, 113, 5, 89, 19, 37, 71, 179, 59, 137, 53)
 
-    def __init__(self, ports,
+    def __init__(self, target, ports,
             cmd="riscv64-unknown-elf-gdb",
             timeout=60, binary=None):
         assert ports
 
+        self.target = target
         self.ports = ports
         self.cmd = cmd
         self.timeout = timeout
@@ -680,13 +681,16 @@ class Gdb:
     def system_command(self, command, ops=20):
         """Execute this command on every unique system that we control."""
         done = set()
+        output = ""
         with PrivateState(self):
-            for child in self.children:
-                if child.system in done:
-                    continue
+            for i, child in enumerate(self.children):
                 self.select_child(child)
-                self.command(command, ops=ops)
-                done.add(child.system)
+                if self.target.harts[i].system in done:
+                    self.command("set $pc=_start")
+                else:
+                    output += self.command(command, ops=ops)
+                    done.add(self.target.harts[i].system)
+        return output
 
     def c(self, wait=True, sync=True, checkOutput=True, ops=20):
         """
@@ -1129,10 +1133,10 @@ class GdbTest(BaseTest):
         BaseTest.classSetup(self)
 
         if gdb_cmd:
-            self.gdb = Gdb(self.server.gdb_ports, gdb_cmd,
+            self.gdb = Gdb(self.target, self.server.gdb_ports, gdb_cmd,
                     timeout=self.target.timeout_sec, binary=self.binary)
         else:
-            self.gdb = Gdb(self.server.gdb_ports,
+            self.gdb = Gdb(self.target, self.server.gdb_ports,
                     timeout=self.target.timeout_sec, binary=self.binary)
 
         self.logs += self.gdb.lognames()
