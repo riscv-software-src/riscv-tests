@@ -132,7 +132,7 @@ class Spike:
             isa = "RV%dG" % self.harts[0].xlen
 
         cmd += ["--isa", isa]
-        #>>> cmd += ["--dm-auth"]
+        cmd += ["--dm-auth"]
 
         if not self.progbufsize is None:
             cmd += ["--dm-progsize", str(self.progbufsize)]
