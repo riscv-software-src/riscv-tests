@@ -8,7 +8,7 @@ TESTS = $(shell $(GDBSERVER_PY) --list-tests $(src_dir)/targets/RISC-V/spike32.p
 default: spike$(XLEN) spike$(XLEN)-2
 
 all-tests: spike32 spike32-2 spike32-2-hwthread \
-	spike64 spike64-2 spike64-2-hwthread
+	spike64 spike64-2 spike64-2-hwthread spike-multi
 
 all:	pylint all-tests
 

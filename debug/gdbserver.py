@@ -1012,18 +1012,18 @@ class MulticoreRegTest(GdbTest):
             self.gdb.c()
             assertIn("main_end", self.gdb.where())
 
-        hart_ids = []
+        hart_ids = set()
         for hart in self.target.harts:
             self.gdb.select_hart(hart)
             # Check register values.
             x1 = self.gdb.p("$x1")
             hart_id = self.gdb.p("$mhartid")
             assertEqual(x1, hart_id << 8)
-            assertNotIn(hart_id, hart_ids)
-            hart_ids.append(hart_id)
+            assertNotIn((hart.system, hart_id), hart_ids)
+            hart_ids.add((hart.system, hart_id))
             for n in range(2, 32):
                 value = self.gdb.p("$x%d" % n)
-                assertEqual(value, (hart_ids[-1] << 8) + n - 1)
+                assertEqual(value, (hart_id << 8) + n - 1)
 
         # Confirmed that we read different register values for different harts.
         # Write a new value to x1, and run through the add sequence again.
@@ -1471,7 +1471,8 @@ class DownloadTest(GdbTest):
         self.gdb.load()
         self.parkOtherHarts()
         self.gdb.command("b _exit")
-        self.gdb.c(ops=100)
+        #self.gdb.c(ops=100)
+        self.gdb.c()
         assertEqual(self.gdb.p("status"), self.crc)
         os.unlink(self.download_c.name)
 
