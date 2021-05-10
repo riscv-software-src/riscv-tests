@@ -60,6 +60,18 @@ msip:
   # Make sure WFI doesn't trap when TW=0.
   wfi
 
+  # Check if paging is supported (Set SUM & MXR and read it back)
+  and t0, t0, zero
+  li t0, (SSTATUS_SUM | SSTATUS_MXR)
+  csrc sstatus, t0
+  and t1, t1, zero
+  li t1, (SSTATUS_SUM | SSTATUS_MXR) 
+  csrs sstatus, t1
+  csrr t2, sstatus
+  and t2, t2, t0
+  beqz t2, bare_s_1
+  csrc sstatus, t0
+
   # Make sure SFENCE.VMA and sptbr don't trap when TVM=0.
   sfence.vma
   csrr t0, sptbr
@@ -75,6 +87,7 @@ bad7:
   csrr t0, sptbr
   j fail
 
+test_tsr:
   # Make sure SRET doesn't trap when TSR=0.
   la t0, bad8
   csrw sepc, t0
@@ -94,7 +107,26 @@ bad9:
   sret
 1:
   j fail
+  j skip_bare_s
 
+bare_s_1:
+  # Make sure SFENCE.VMA trap when TVM=0.
+  sfence.vma
+  j fail
+
+bare_s_2:
+  # Set TVM=1. TVM should stay 0 and SFENCE.VMA should still trap 
+  sfence.vma
+  j fail
+
+  # And access to satp should not trap
+  csrr t0, sptbr
+bare_s_3:
+  .word 0
+  j fail
+  j test_tsr
+
+skip_bare_s:
   TEST_PASSFAIL
 
   .align 8
@@ -146,6 +178,12 @@ synchronous_exception:
   beq t0, t1, 8f
   la t1, bad9
   beq t0, t1, 9f
+  la t1, bare_s_1
+  beq t0, t1, 5f
+  la t1, bare_s_2
+  beq t0, t1, 7f
+  la t1, bare_s_3
+  beq t0, t1, 7f
   j fail
 2:
 6:
