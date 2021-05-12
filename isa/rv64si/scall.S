@@ -17,6 +17,7 @@ RVTEST_CODE_BEGIN
   #define sscratch mscratch
   #define sstatus mstatus
   #define scause mcause
+  #define stvec mtvec
   #define sepc mepc
   #define sret mret
   #define stvec_handler mtvec_handler
