@@ -559,16 +559,14 @@ class Gdb:
             11, 149, 107, 163, 73, 47, 43, 173, 7, 109, 101, 103, 191, 2, 139,
             97, 193, 157, 3, 29, 79, 113, 5, 89, 19, 37, 71, 179, 59, 137, 53)
 
-    def __init__(self, target, ports,
-            cmd="riscv64-unknown-elf-gdb",
-            timeout=60, binary=None):
+    def __init__(self, target, ports, cmd=None, timeout=60, binaries=None):
         assert ports
 
         self.target = target
         self.ports = ports
-        self.cmd = cmd
+        self.cmd = cmd or "riscv64-unknown-elf-gdb"
         self.timeout = timeout
-        self.binary = binary
+        self.binaries = binaries or [None] * len(ports)
 
         self.reset_delay_index = 0
         self.stack = []
@@ -582,14 +580,15 @@ class Gdb:
             self.logfiles.append(logfile)
             if print_log_names:
                 real_stdout.write("Temporary gdb log: %s\n" % logfile.name)
-            child = pexpect.spawn(cmd)
+            child = pexpect.spawn(self.cmd)
             child.logfile = logfile
-            child.logfile.write(("+ %s\n" % cmd).encode())
+            child.logfile.write(("+ %s\n" % self.cmd).encode())
             self.children.append(child)
         self.active_child = self.children[0]
 
     def connect(self):
-        for port, child in zip(self.ports, self.children):
+        for port, child, binary in zip(self.ports, self.children,
+                                       self.binaries):
             self.select_child(child)
             self.wait()
             self.command("set style enabled off", reset_delays=None)
@@ -602,8 +601,9 @@ class Gdb:
                          reset_delays=None)
             self.command("target extended-remote localhost:%d" % port, ops=10,
                          reset_delays=None)
-            if self.binary:
-                self.command("file %s" % self.binary)
+            if binary:
+                output = self.command("file %s" % binary)
+                assertIn("Reading symbols", output)
             threads = self.threads()
             for t in threads:
                 hartid = None
@@ -778,8 +778,8 @@ class Gdb:
         value = shlex.split(output.split('=')[-1].strip())[1]
         return value
 
-    def info_registers(self, group=""):
-        output = self.command("info registers %s" % group, ops=5)
+    def info_registers(self, group="", ops=5):
+        output = self.command("info registers %s" % group, ops=ops)
         result = {}
         for line in output.splitlines():
             m = re.match(r"(\w+)\s+({.*})(?:\s+(\(.*\)))?", line)
@@ -846,8 +846,6 @@ class Gdb:
             if m:
                 threads.append(Thread(*m.groups()))
         assert threads
-        #>>>if not threads:
-        #>>>    threads.append(Thread('1', '1', 'Default', '???'))
         return threads
 
     def thread(self, thread):
@@ -1002,6 +1000,7 @@ def print_log(path):
     print_log_handle(path, open(path, "r"))
 
 class BaseTest:
+    # pylint: disable=too-many-instance-attributes
     compiled = {}
 
     def __init__(self, target, hart=None):
@@ -1015,6 +1014,7 @@ class BaseTest:
         self.binary = None
         self.start = 0
         self.logs = []
+        self.binaries = []
 
     def early_applicable(self):
         """Return a false value if the test has determined it cannot run
@@ -1033,11 +1033,14 @@ class BaseTest:
 
     def compile(self):
         compile_args = getattr(self, 'compile_args', None)
+        self.binaries = []
         if compile_args:
-            if compile_args not in BaseTest.compiled:
-                BaseTest.compiled[compile_args] = \
-                        self.target.compile(self.hart, *compile_args)
-        self.binary = BaseTest.compiled.get(compile_args)
+            for hart in self.target.harts:
+                key = (compile_args, hart.misa)
+                if key not in BaseTest.compiled:
+                    BaseTest.compiled[key] = \
+                            self.target.compile(hart, *compile_args)
+                self.binaries.append(BaseTest.compiled.get(key))
 
     def classSetup(self):
         self.compile()
@@ -1061,7 +1064,7 @@ class BaseTest:
 
     def run(self):
         """
-        If compile_args is set, compile a program and set self.binary.
+        If compile_args is set, compile a program and set self.binaries.
 
         Call setup().
 
@@ -1132,12 +1135,8 @@ class GdbTest(BaseTest):
     def classSetup(self):
         BaseTest.classSetup(self)
 
-        if gdb_cmd:
-            self.gdb = Gdb(self.target, self.server.gdb_ports, gdb_cmd,
-                    timeout=self.target.timeout_sec, binary=self.binary)
-        else:
-            self.gdb = Gdb(self.target, self.server.gdb_ports,
-                    timeout=self.target.timeout_sec, binary=self.binary)
+        self.gdb = Gdb(self.target, self.server.gdb_ports, cmd=gdb_cmd,
+                       timeout=self.target.timeout_sec, binaries=self.binaries)
 
         self.logs += self.gdb.lognames()
         self.gdb.connect()
