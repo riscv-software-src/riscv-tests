@@ -10,10 +10,6 @@ class spike32_hart(targets.Hart):
     reset_vectors = [0x1000]
     link_script_path = "spike32.lds"
 
-    def __init__(self, misa, system=0):
-        super().__init__(system=system)
-        self.misa = misa
-
 class spike32(targets.Target):
     harts = [spike32_hart(misa=0x4034112d)]
     openocd_config_path = "spike-1.cfg"

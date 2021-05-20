@@ -9,10 +9,7 @@ class spike64_hart(targets.Hart):
     instruction_hardware_breakpoint_count = 4
     reset_vectors = [0x1000]
     link_script_path = "spike64.lds"
-
-    def __init__(self, misa=0x8000000000141125, system=0):
-        super().__init__(system=system)
-        self.misa = misa
+    misa = 0x8000000000141125
 
 class spike64(targets.Target):
     harts = [spike64_hart()]

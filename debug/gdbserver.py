@@ -87,6 +87,10 @@ class InfoTest(GdbTest):
                 continue
             if re.search(r"Disabling abstract command writes to CSRs.", line):
                 continue
+            if re.search(
+                    r"keep_alive.. was not invoked in the \d+ ms timelimit.",
+                    line):
+                continue
             k, v = line.strip().split()
             info[k] = v
         assertEqual(int(info.get("hart.xlen")), self.hart.xlen)
@@ -184,7 +188,7 @@ class CustomRegisterTest(SimpleRegisterTest):
         return self.target.implements_custom_test
 
     def check_custom(self, magic):
-        regs = {k: v for k, v in self.gdb.info_registers("all").items()
+        regs = {k: v for k, v in self.gdb.info_registers("all", ops=20).items()
                 if k.startswith("custom")}
         assertEqual(set(regs.keys()),
                 set(("custom1",
@@ -796,7 +800,8 @@ class MemorySampleTest(DebugTest):
         self.gdb.p("i=123")
 
     @staticmethod
-    def check_incrementing_samples(raw_samples, check_addr, tolerance=0x100000):
+    def check_incrementing_samples(raw_samples, check_addr,
+                                   tolerance=0x200000):
         first_timestamp = None
         end = None
         total_samples = 0
@@ -871,7 +876,7 @@ class MemorySampleMixed(MemorySampleTest):
 
         raw_samples = self.collect_samples()
         self.check_incrementing_samples(raw_samples, addr["j"],
-                                        tolerance=0x200000)
+                                        tolerance=0x400000)
         self.check_samples_equal(raw_samples, addr["i32"], 0xdeadbeef)
         self.check_samples_equal(raw_samples, addr["i64"], 0x1122334455667788)
 
@@ -935,7 +940,7 @@ class Semihosting(GdbSingleHartTest):
 
         self.gdb.b("main:begin")
         self.gdb.c()
-        self.gdb.p('filename="%s"' % temp.name)
+        self.gdb.p('filename="%s"' % temp.name, ops=2)
         self.exit()
 
         contents = open(temp.name, "r").readlines()
@@ -1431,6 +1436,8 @@ class WriteCsrs(RegsTest):
         assertEqual(123, self.gdb.p("$csr832"))
 
 class DownloadTest(GdbTest):
+    compile_args = ("programs/infinite_loop.S", )
+
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
         length = min(2**18, max(2**10, self.hart.ram_size - 2048))
@@ -1463,9 +1470,16 @@ class DownloadTest(GdbTest):
         if self.crc < 0:
             self.crc += 2**32
 
-        self.binary = self.target.compile(self.hart, self.download_c.name,
-                "programs/checksum.c")
-        self.gdb.global_command("file %s" % self.binary)
+        compiled = {}
+        for hart in self.target.harts:
+            key = hart.system
+            if key not in compiled:
+                compiled[key] = self.target.compile(hart, self.download_c.name,
+                        "programs/checksum.c")
+            self.gdb.select_hart(hart)
+            self.gdb.command("file %s" % compiled.get(key))
+
+        self.gdb.select_hart(self.hart)
 
     def test(self):
         self.gdb.load()
