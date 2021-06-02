@@ -95,6 +95,19 @@ RVTEST_CODE_BEGIN
   srli a0, a0, 20 # a0 = a0 >> 20
   andi a0, a0, 1  # a0 = a0 & 1
   beqz a0, finish # if no user mode, skip the rest of these checks
+
+  # Enable access to the cycle counter
+  csrwi mcounteren, 1
+
+  # Figure out if 'S' is set in misa
+  csrr a0, misa   # a0 = csr(misa)
+  srli a0, a0, 18 # a0 = a0 >> 20
+  andi a0, a0, 1  # a0 = a0 & 1
+  beqz a0, 1f
+
+  # Enable access to the cycle counter
+  csrwi scounteren, 1
+1:
 #endif /* __MACHINE_MODE */
 
   # jump to user land
