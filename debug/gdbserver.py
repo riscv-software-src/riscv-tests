@@ -940,7 +940,7 @@ class Semihosting(GdbSingleHartTest):
 
         self.gdb.b("main:begin")
         self.gdb.c()
-        self.gdb.p('filename="%s"' % temp.name, ops=2)
+        self.gdb.p('filename="%s"' % temp.name, ops=3)
         self.exit()
 
         contents = open(temp.name, "r").readlines()
