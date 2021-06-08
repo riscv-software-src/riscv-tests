@@ -457,6 +457,9 @@ class NoSymbol(Exception):
         Exception.__init__(self)
         self.symbol = symbol
 
+    def __repr__(self):
+        return "NoSymbol(%r)" % self.symbol
+
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
@@ -665,11 +668,11 @@ class Gdb:
                         len(self.reset_delays)
             self.command("monitor riscv reset_delays %d" % reset_delays,
                     reset_delays=None)
-        timeout = ops * self.timeout
+        timeout = max(1, ops) * self.timeout
         self.active_child.sendline(command)
         self.active_child.expect("\n", timeout=timeout)
         self.active_child.expect(r"\(gdb\)", timeout=timeout)
-        return self.active_child.before.strip().decode("utf-8")
+        return self.active_child.before.strip().decode("utf-8", errors="ignore")
 
     def global_command(self, command):
         """Execute this command on every gdb that we control."""
@@ -746,7 +749,8 @@ class Gdb:
             self.interrupt()
 
     def x(self, address, size='w', count=1):
-        output = self.command("x/%d%s %s" % (count, size, address))
+        output = self.command("x/%d%s %s" % (count, size, address),
+                              ops=count / 16)
         values = []
         for line in output.splitlines():
             for value in line.split(':')[1].strip().split():
@@ -997,7 +1001,7 @@ def print_log_handle(name, handle):
     print()
 
 def print_log(path):
-    print_log_handle(path, open(path, "r"))
+    print_log_handle(path, open(path, "r", errors='ignore'))
 
 class BaseTest:
     # pylint: disable=too-many-instance-attributes
@@ -1109,7 +1113,7 @@ class BaseTest:
             # Get handles to logs before the files are deleted.
             logs = []
             for log in self.logs:
-                logs.append((log, open(log, "r")))
+                logs.append((log, open(log, "r", errors='ignore')))
 
             self.classTeardown()
             for name, handle in logs:
