@@ -52,7 +52,7 @@ TVM Name | Description
 A test program for RISC-V is written within a single assembly language file,
 which is passed through the C preprocessor, and all regular assembly
 directives can be used. An example test program is shown below. Each test
-program should first include the `riscv test.h` header file, which defines the
+program should first include the `riscv_test.h` header file, which defines the
 macros used by the TVM. The header file will have different contents depending
 on the target environment for which the test will be built.  One of the goals
 of the various TVMs is to allow the same test program to be compiled and run
