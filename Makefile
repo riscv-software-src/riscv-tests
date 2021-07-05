@@ -13,7 +13,7 @@ else
   RV_DIR = isa/rv32ui
 endif
 
-ALL = $(basename $(notdir $(shell find $(RV_DIR)/. -name "*.S")))
+ALL = $(basename $(notdir $(shell find $(RV_DIR)/. -name "*.S" | grep -v fence_i.S)))
 
 all: $(addprefix Makefile-, $(ALL))
 	@echo "" $(ALL)
