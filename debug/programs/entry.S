@@ -71,6 +71,9 @@ handle_reset:
   addi  t0, t0, -1
   bnez  t0, 1b
 
+  # Catch trap in case trigger module is not implemented
+  la t2, 2f
+  csrrw t2, mtvec, t2
   # Clear all hardware triggers
   li    t0, ~0
 1:
@@ -79,6 +82,10 @@ handle_reset:
   csrw  CSR_TDATA1, zero
   csrr  t1, CSR_TSELECT
   beq   t0, t1, 1b
+.p2align 2
+2:
+  # Restore mtvec
+  csrw mtvec, t2
 
 #ifdef MULTICORE
   csrr  t0, CSR_MHARTID
