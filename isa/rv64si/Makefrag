@@ -7,6 +7,7 @@ rv64si_sc_tests = \
 	dirty \
 	icache-alias \
 	ma_fetch \
+	napot \
 	scall \
 	wfi \
 	sbreak \
