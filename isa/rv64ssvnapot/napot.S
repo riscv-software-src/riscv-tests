@@ -58,7 +58,7 @@ RVTEST_CODE_BEGIN
   la a0, page_table
   srl a0, a0, 12
   sll a0, a0, PTE_PPN_SHIFT
-  li a1, PTE_V | PTE_U
+  li a1, PTE_V
   or a0, a0, a1
 
   # Level 1 PTE address
@@ -78,7 +78,7 @@ RVTEST_CODE_BEGIN
   add a0, a0, a1
   srl a0, a0, 12
   sll a0, a0, PTE_PPN_SHIFT
-  li a1, PTE_V | PTE_U
+  li a1, PTE_V
   or a0, a0, a1
 
   # Level 2 PTE address
