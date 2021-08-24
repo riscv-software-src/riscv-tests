@@ -27,6 +27,8 @@ RVTEST_CODE_BEGIN
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
+  li a3, ~MCONTROL_MASKMAX(__riscv_xlen)
+  and a1, a1, a3
   bne a0, a1, 2f
   .align 2
 1:
@@ -44,6 +46,8 @@ RVTEST_CODE_BEGIN
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
+  li a3, ~MCONTROL_MASKMAX(__riscv_xlen)
+  and a1, a1, a3
   bne a0, a1, 2f
   la a2, data1
   csrw tdata2, a2
@@ -63,6 +67,8 @@ RVTEST_CODE_BEGIN
   csrw tdata1, a0
   # Skip if breakpoint type is unsupported.
   csrr a1, tdata1
+  li a3, ~MCONTROL_MASKMAX(__riscv_xlen)
+  and a1, a1, a3
   bne a0, a1, 2f
 
   # Trap handler should skip this instruction.
