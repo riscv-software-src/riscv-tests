@@ -19,13 +19,11 @@ class multispike(targets.Target):
     support_memory_sampling = False # Needs SBA
 
     def create(self):
-        # TODO: It would be nice to test with slen=128, but spike currently
-        # requires vlen==slen.
         return testlib.MultiSpike(
             [
                 testlib.Spike(self, isa="RV64IMAFDV",
                     support_hasel=False, support_abstract_csr=False,
-                    vlen=512, elen=64, slen=512, harts=self.harts[2:]),
+                    vlen=512, elen=64, harts=self.harts[2:]),
                 testlib.Spike(self, isa="RV32IMAFDCV",
                     support_abstract_csr=True, support_haltgroups=False,
                     # elen must be at least 64 because D is supported.
