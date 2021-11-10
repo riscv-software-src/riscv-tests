@@ -553,7 +553,9 @@ class DebugTurbostep(DebugTest):
         last_pc = None
         advances = 0
         jumps = 0
-        for _ in range(10):
+        start = time.time()
+        count = 10
+        for _ in range(count):
             self.gdb.stepi()
             pc = self.gdb.p("$pc")
             assertNotEqual(last_pc, pc)
@@ -562,6 +564,8 @@ class DebugTurbostep(DebugTest):
             else:
                 jumps += 1
             last_pc = pc
+        end = time.time()
+        print("%.2f seconds/step" % ((end - start) / count))
         # Some basic sanity that we're not running between breakpoints or
         # something.
         assertGreater(jumps, 1)
