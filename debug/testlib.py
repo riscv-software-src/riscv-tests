@@ -585,11 +585,6 @@ class Gdb:
             child.logfile = logfile
             child.logfile.write(("+ %s\n" % self.cmd).encode())
             self.children.append(child)
-        self.active_child = self.children[0]
-
-    def connect(self):
-        for port, child, binary in zip(self.ports, self.children,
-                                       self.binaries):
             self.select_child(child)
             self.wait()
             self.command("set style enabled off", reset_delays=None)
@@ -599,28 +594,42 @@ class Gdb:
             # Force consistency.
             self.command("set print entry-values no", reset_delays=None)
             self.command("set remotetimeout %d" % self.timeout,
-                         reset_delays=None)
-            self.command("target extended-remote localhost:%d" % port, ops=10,
-                         reset_delays=None)
-            if binary:
-                output = self.command("file %s" % binary)
-                assertIn("Reading symbols", output)
-            threads = self.threads()
-            for t in threads:
-                hartid = None
-                if t.name:
-                    m = re.search(r"Hart (\d+)", t.name)
-                    if m:
-                        hartid = int(m.group(1))
-                if hartid is None:
-                    if self.harts:
-                        hartid = max(self.harts) + 1
-                    else:
-                        hartid = 0
-                # solo: True iff this is the only thread on this child
-                self.harts[hartid] = {'child': child,
-                        'thread': t,
-                        'solo': len(threads) == 1}
+                        reset_delays=None)
+            self.command("set remotetimeout %d" % self.target.timeout_sec)
+        self.active_child = self.children[0]
+
+    def connect(self):
+        with PrivateState(self):
+            for port, child, binary in zip(self.ports, self.children,
+                                        self.binaries):
+                self.select_child(child)
+                self.command("target extended-remote localhost:%d" % port,
+                        ops=10, reset_delays=None)
+                if binary:
+                    output = self.command("file %s" % binary)
+                    assertIn("Reading symbols", output)
+                threads = self.threads()
+                for t in threads:
+                    hartid = None
+                    if t.name:
+                        m = re.search(r"Hart (\d+)", t.name)
+                        if m:
+                            hartid = int(m.group(1))
+                    if hartid is None:
+                        if self.harts:
+                            hartid = max(self.harts) + 1
+                        else:
+                            hartid = 0
+                    # solo: True iff this is the only thread on this child
+                    self.harts[hartid] = {'child': child,
+                            'thread': t,
+                            'solo': len(threads) == 1}
+
+    def disconnect(self):
+        with PrivateState(self):
+            for child in self.children:
+                self.select_child(child)
+                self.command("disconnect")
 
     def __del__(self):
         for child in self.children:
@@ -1143,9 +1152,6 @@ class GdbTest(BaseTest):
         self.logs += self.gdb.lognames()
         self.gdb.connect()
 
-        self.gdb.global_command("set remotetimeout %d" %
-            self.target.timeout_sec)
-
         for cmd in self.target.gdb_setup:
             self.gdb.command(cmd)
 
@@ -1236,9 +1242,9 @@ class TestNotApplicable(Exception):
         Exception.__init__(self)
         self.message = message
 
-def assertEqual(a, b):
+def assertEqual(a, b, comment=None):
     if a != b:
-        raise TestFailed("%r != %r" % (a, b))
+        raise TestFailed("%r != %r" % (a, b), comment)
 
 def assertNotEqual(a, b, comment=None):
     if a == b:

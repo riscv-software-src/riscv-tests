@@ -409,6 +409,21 @@ class MemTestBlock2(MemTestBlock):
     def test(self):
         return self.test_block(2)
 
+class DisconnectTest(GdbTest):
+    def test(self):
+        old_values = self.gdb.info_registers("all", ops=20)
+        self.gdb.disconnect()
+        self.gdb.connect()
+        self.gdb.select_hart(self.hart)
+        new_values = self.gdb.info_registers("all", ops=20)
+
+        regnames = set(old_values.keys()).union(set(new_values.keys()))
+        for regname in regnames:
+            if regname in ("mcycle", "minstret", "instret", "cycle"):
+                continue
+            assertEqual(old_values[regname], new_values[regname],
+                    "Register %s didn't match" % regname)
+
 class InstantHaltTest(GdbTest):
     def test(self):
         """Assert that reset is really resetting what it should."""
