@@ -1572,14 +1572,13 @@ class CheckMisa(GdbTest):
             misa = self.gdb.p("$misa")
             assertEqual(misa, hart.misa)
 
-class TranslateTest(GdbTest):
+class TranslateTest(GdbSingleHartTest):
     compile_args = ("programs/translate.c", )
 
     def setup(self):
         self.disable_pmp()
 
         self.gdb.load()
-        self.parkOtherHarts()
         self.gdb.b("main")
         output = self.gdb.c()
         assertRegex(output, r"\bmain\b")
@@ -1602,6 +1601,7 @@ class TranslateTest(GdbTest):
         self.gdb.b("error")
         self.gdb.b("handle_trap")
         self.gdb.b("main:active")
+
         output = self.gdb.c()
         assertRegex(output, r"\bmain\b")
         assertEqual(0xdeadbeef, self.gdb.p("physical[0]"))

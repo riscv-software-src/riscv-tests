@@ -141,7 +141,7 @@ void add_entry(char *table, unsigned level, uint64_t virtual, uint64_t physical)
             // Create a new page
             void *new_page = get_page();
             setup_page_table(new_page, current_level - 1, virtual);
-            entry_set(table, index, PTE_V | PTE_U | PTE_A | PTE_D |
+            entry_set(table, index, PTE_V |
                     ((((reg_t) new_page) >> 2) & ~((1 << 10) - 1)));
             table = new_page;
         } else {
@@ -177,9 +177,11 @@ int main()
 
     // Address translation is enabled.
     physical[0] = 0xdeadbeef;
-    assert(virtual[0] == physical[0]);
     virtual[1] = 0x55667788;
-    assert(virtual[1] == physical[1]);
+    assert(virtual[0] == 0xdeadbeef);
+    assert(physical[0] == 0xdeadbeef);
+    assert(virtual[1] == 0x55667788);
+    assert(physical[1] == 0x55667788);
 
 active:
 end:
