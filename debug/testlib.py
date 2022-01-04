@@ -681,6 +681,24 @@ class Gdb:
         self.active_child.expect(r"\(gdb\)", timeout=timeout)
         return self.active_child.before.strip().decode("utf-8", errors="ignore")
 
+    def interact(self):
+        """Call this from a test at a point where you just want to interact with
+        gdb directly. This is useful when you're debugging a problem and just
+        want to take over at a certain point in the test."""
+        saved_stdout = sys.stdout
+        sys.stdout = real_stdout
+        try:
+            print()
+            print("Interact with the gdb instance created by the test.")
+            print("This is not a true gdb prompt, so things like tab ")
+            print("completion won't work.")
+            while True:
+                command = input("(gdb) ")
+                print(self.command(command))
+        finally:
+            sys.stdout = saved_stdout
+
+
     def global_command(self, command):
         """Execute this command on every gdb that we control."""
         with PrivateState(self):
