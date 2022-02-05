@@ -1788,6 +1788,15 @@ class FreeRtosTest(GdbTest):
             self.gdb.thread(thread)
             assertEqual(self.gdb.p("$s11"), values[thread.id] ^ int(thread.id))
 
+class GregTest(GdbTest):
+    def test(self):
+        self.gdb.command("thread 2")
+        output = self.gdb.stepi()
+        if re.search(r"[Switching to Thread 1]", output):        
+            raise TestFailed("GDB switched to thread 1 after stepping thread 2")            
+        
+        
+
 parsed = None
 def main():
     parser = argparse.ArgumentParser(
