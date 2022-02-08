@@ -1788,14 +1788,22 @@ class FreeRtosTest(GdbTest):
             self.gdb.thread(thread)
             assertEqual(self.gdb.p("$s11"), values[thread.id] ^ int(thread.id))
 
-class CheckThatSteppingLeavesCurrentThreadIntactTest(GdbTest):
+class StepThread2Test(GdbTest):
+    # Check that we can do stepi on thread 2 without GDB switching to thread 1.
+    # There was a bug where this could happen, because OpenOCD was mistakenly
+    # omitting a thread ID in its stop reply.  This was addressed in OpenOCD,
+    # but if there is a regression in the future, this test should catch it)
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
     def test(self):
-        self.gdb.command("thread 2")
+        output = self.gdb.command("thread 2")
+        if "Unknown thread" in output:
+            raise TestNotApplicable
         output = self.gdb.stepi()
-        if re.search(r"Switching to Thread 1", output):        
-            raise TestFailed("GDB switched to thread 1 after stepping thread 2")            
-        
-        
+        assertNotIn("Switching to Thread 1", output)
+
 
 parsed = None
 def main():
