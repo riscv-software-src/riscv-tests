@@ -1801,8 +1801,12 @@ class StepThread2Test(GdbTest):
         output = self.gdb.command("thread 2")
         if "Unknown thread" in output:
             raise TestNotApplicable
-        output = self.gdb.stepi()
-        assertNotIn("Switching to Thread 1", output)
+        before = self.gdb.command("thread")
+        self.gdb.stepi()
+        after = self.gdb.command("thread")
+        # make sure that single-step doesn't alter
+        # GDB's conception of the current thread
+        assertEqual(before, after)
 
 
 parsed = None
