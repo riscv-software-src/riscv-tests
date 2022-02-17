@@ -834,6 +834,7 @@ class MemorySampleTest(DebugTest):
                 else:
                     end = (timestamp, total_samples)
             else:
+                assertRegex(line, r"^0x[0-f]+: 0x[0-f]+$")
                 address, value = line.split(': ')
                 address = int(address, 16)
                 if address == check_addr:
