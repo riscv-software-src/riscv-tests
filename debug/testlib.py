@@ -870,7 +870,8 @@ class Gdb:
         for line in output.splitlines():
             m = re.match(
                     r"[\s\*]*(\d+)\s*"
-                    r"(Remote target|Thread (\d+)\s*\(Name: ([^\)]+))"
+                    r'(Remote target'
+                    r'|Thread (\d+)\s*(?:".*?")?\s*\(Name: ([^\)]+))'
                     r"\s*(.*)", line)
             if m:
                 threads.append(Thread(*m.groups()))
