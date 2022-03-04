@@ -30,6 +30,7 @@ bmarks = \
 	mt-vvadd \
 	mt-matmul \
 	pmp \
+	coremark \
 
 #--------------------------------------------------------------------
 # Build rules
