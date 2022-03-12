@@ -26,7 +26,7 @@ bgeu a2, a3, 1b
 bltu a1, a3, 1b
 
 # make sure that sc without a reservation fails.
-TEST_CASE( 2, a4, 1, \
+TEST_CASE_NEQ( 2, a4, 0, \
   la a0, foo; \
   li a5, 0xdeadbeef; \
   sc.w a4, a5, (a0); \

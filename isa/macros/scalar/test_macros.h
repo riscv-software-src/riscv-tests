@@ -8,7 +8,8 @@
 # Helper macros
 #-----------------------------------------------------------------------
 
-#define MASK_XLEN(x) ((x) & ((1 << (__riscv_xlen - 1) << 1) - 1))
+#define XLEN_MASK ((1 << (__riscv_xlen - 1) << 1) - 1)
+#define MASK_XLEN(x) ((x) & (XLEN_MASK))
 
 #define TEST_CASE( testnum, testreg, correctval, code... ) \
 test_ ## testnum: \
@@ -16,6 +17,15 @@ test_ ## testnum: \
     li  x7, MASK_XLEN(correctval); \
     li  TESTNUM, testnum; \
     bne testreg, x7, fail;
+
+#define TEST_CASE_NEQ( testnum, testreg, wrongval, code... ) \
+test_ ## testnum: \
+    code; \
+    andi testreg, testreg, XLEN_MASK; \
+    li   x7, MASK_XLEN(wrongval); \
+    li   TESTNUM, testnum; \
+    beq  testreg, x7, fail;
+
 
 # We use a macro hack to simpify code generation for various numbers
 # of bubble cycles.
