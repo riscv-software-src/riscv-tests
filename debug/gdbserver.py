@@ -1470,8 +1470,8 @@ class DownloadTest(GdbTest):
         self.download_c.write(b"#include <stdint.h>\n")
         self.download_c.write(
                 b"unsigned int crc32a(uint8_t *message, unsigned int size);\n")
-        self.download_c.write(b"uint32_t length = %d;\n" % length)
-        self.download_c.write(b"uint8_t d[%d] = {\n" % length)
+        self.download_c.write(b"const uint32_t length = %d;\n" % length)
+        self.download_c.write(b"const uint8_t d[%d] = {\n" % length)
         self.crc = 0
         assert length % 16 == 0
         for i in range(length // 16):
