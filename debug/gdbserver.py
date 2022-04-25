@@ -1735,6 +1735,37 @@ class VectorTest(GdbSingleHartTest):
         assertIn("_exit", output)
         assertEqual(self.gdb.p("status"), 0)
 
+class EbreakTest(GdbSingleHartTest):
+    """Test that we work correctly when somebody puts an ebreak directly into
+    their code."""
+    compile_args = ("programs/ebreak.c", )
+
+    def setup(self):
+        self.gdb.load()
+        self.gdb.b("_exit")
+
+    def test(self):
+        # Should hit ebreak in the code.
+        output = self.gdb.c()
+        assertIn("ebreak", output)
+        ebreak_pc = self.gdb.p("$pc")
+
+        # Simple resume, we should hit the same ebreak again.
+        output = self.gdb.c()
+        assertIn("ebreak", output)
+        assertEqual(ebreak_pc, self.gdb.p("$pc"))
+
+        # Test getting past the ebreak by changing the PC.
+        for _ in range(2):
+            self.gdb.p("$pc=$pc+4")
+            output = self.gdb.c()
+            assertIn("ebreak", output)
+            assertEqual(ebreak_pc, self.gdb.p("$pc"))
+
+        self.gdb.p("$pc=$pc+4")
+        output = self.gdb.c()
+        assertIn("_exit", output)
+
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
         return self.target.freertos_binary
