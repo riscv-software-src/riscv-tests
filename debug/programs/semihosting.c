@@ -65,9 +65,11 @@ int main()
 {
     char *filename = NULL;
     const char *message = "Hello, world!\n";
+    const char *message2 = "Do re mi fa so la ti do!\n";
     int fd;
 
 begin:
     fd = open(filename, O_WRONLY, 0644);
     write(fd, message, strlen(message));
+    write(1, message2, strlen(message2));
 }
