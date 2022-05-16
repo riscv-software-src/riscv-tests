@@ -1610,8 +1610,8 @@ class TranslateTest(GdbSingleHartTest):
             satp = mode << 60
         try:
             self.gdb.p("$satp=0x%x" % satp)
-        except testlib.CouldNotFetch:
-            raise TestNotApplicable
+        except testlib.CouldNotFetch as cnf:
+            raise TestNotApplicable from cnf
         readback = self.gdb.p("$satp")
         self.gdb.p("$satp=0")
         if readback != satp:

@@ -1,8 +1,8 @@
-import targets
-import testlib
-
 import spike32  # pylint: disable=import-error
 import spike64  # pylint: disable=import-error
+
+import targets
+import testlib
 
 class multispike(targets.Target):
     harts = [

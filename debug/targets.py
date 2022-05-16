@@ -226,6 +226,7 @@ class Target:
                     self.compiler_supports_v = False
                 else:
                     raise
+        return None
 
 def add_target_options(parser):
     parser.add_argument("target", help=".py file that contains definition for "

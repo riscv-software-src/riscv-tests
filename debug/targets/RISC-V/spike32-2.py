@@ -1,7 +1,7 @@
+import spike32  # pylint: disable=import-error
+
 import targets
 import testlib
-
-import spike32  # pylint: disable=import-error
 
 class spike32_2(targets.Target):
     harts = [spike32.spike32_hart(misa=0x40141125),
