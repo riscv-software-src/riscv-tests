@@ -952,16 +952,37 @@ class Semihosting(GdbSingleHartTest):
         assertIn("Breakpoint", output)
         assertIn("_exit", output)
         assertEqual(self.gdb.p("status"), expected_result)
+        return output
 
     def test(self):
-        """Sending gdb ^C while the program is running should cause it to
-        halt."""
         temp = tempfile.NamedTemporaryFile(suffix=".data")
 
         self.gdb.b("main:begin")
         self.gdb.c()
         self.gdb.p('filename="%s"' % temp.name, ops=3)
         self.exit()
+
+        contents = open(temp.name, "r").readlines()
+        assertIn("Hello, world!\n", contents)
+
+        # stdout should end up in the OpenOCD log
+        log = open(self.server.logname).read()
+        assertIn("Do re mi fa so la ti do!", log)
+
+class SemihostingFileio(Semihosting):
+    def setup(self):
+        self.gdb.command("monitor arm semihosting_fileio enable")
+        super().setup()
+
+    def test(self):
+        temp = tempfile.NamedTemporaryFile(suffix=".data")
+
+        self.gdb.b("main:begin")
+        self.gdb.c()
+        self.gdb.p('filename="%s"' % temp.name, ops=3)
+        output = self.exit()
+        # stdout should end up in gdb's CLI
+        assertIn("Do re mi fa so la ti do!", output)
 
         contents = open(temp.name, "r").readlines()
         assertIn("Hello, world!\n", contents)
@@ -1464,7 +1485,7 @@ class DownloadTest(GdbTest):
         # TODO: remove the next line so we get a bit more code to download. The
         # line above that allows for more data runs into some error I don't
         # have time to track down right now.
-        length = min(2**14, max(2**10, self.hart.ram_size - 2048))
+        #length = min(2**14, max(2**10, self.hart.ram_size - 2048))
         self.download_c = tempfile.NamedTemporaryFile(prefix="download_",
                 suffix=".c", delete=False)
         self.download_c.write(b"#include <stdint.h>\n")
