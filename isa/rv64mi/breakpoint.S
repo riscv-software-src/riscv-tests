@@ -130,7 +130,6 @@ RVTEST_CODE_BEGIN
 
   # Slow path because CSR was *just* written. (This is spike-specific.)
   sw x0, (a2)
-  beqz a2, fail
 
   # Normal aligned store, so that the next time we'll hit the fast path.
   li TESTNUM, 17
@@ -139,7 +138,6 @@ RVTEST_CODE_BEGIN
   # Fast path
   li TESTNUM, 18
   sw x0, (a2)
-  beqz a2, fail
 
 
 2:
