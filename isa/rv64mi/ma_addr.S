@@ -99,10 +99,12 @@ mtvec_handler:
   bne t0, s1, fail
 
   csrr t0, mbadaddr
+  beqz t0, 1f
   bne t0, t1, fail
 
   lb t0, (t0)
   beqz t0, fail
+1:
 
   csrw mepc, t2
   mret
