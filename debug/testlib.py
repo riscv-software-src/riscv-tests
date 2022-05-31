@@ -1208,8 +1208,14 @@ class GdbTest(BaseTest):
         # memory.
         try:
             self.gdb.p("$pmpcfg0=0xf")  # TOR, R, W, X
-            self.gdb.p("$pmpaddr0=0x%x" %
-                    ((self.hart.ram + self.hart.ram_size) >> 2))
+            if self.gdb.p("$pmpcfg0") != 0xf:
+                # TOR is unsupported (detected via WARL) so use NAPOT instead
+                self.gdb.p("$pmpcfg0=0x1f") # NAPOT, R, W, X
+                self.gdb.p("$pmpaddr0=0x" + "f" * (self.hart.xlen // 4))
+            else:
+                # pmcfg0 readback matches write, so TOR is supported.
+                self.gdb.p("$pmpaddr0=0x%x" %
+                        ((self.hart.ram + self.hart.ram_size) >> 2))
         except CouldNotFetch:
             # PMP registers are optional
             pass
