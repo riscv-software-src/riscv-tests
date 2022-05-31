@@ -1,7 +1,7 @@
+import spike64  # pylint: disable=import-error
+
 import targets
 import testlib
-
-import spike64  # pylint: disable=import-error
 
 class spike64_2_rtos(targets.Target):
     harts = [spike64.spike64_hart(misa=0x8000000000141129),
