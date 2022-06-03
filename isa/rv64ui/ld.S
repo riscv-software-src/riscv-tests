@@ -74,34 +74,7 @@ RVTEST_CODE_BEGIN
     li  x2, 2; \
   )
 
-  # Test unaligned accesses, if the target supports them.
-  # Assume little-endian
-  TEST_LD_OP( 1000, ld, 0x00ff00ff00ff00ff, 0,  tdat );
-  TEST_LD_OP( 1001, ld, 0x0000ff00ff00ff00, 1,  tdat );
-  TEST_LD_OP( 1002, ld, 0xff0000ff00ff00ff, 2,  tdat );
-  TEST_LD_OP( 1003, ld, 0x00ff0000ff00ff00, 3,  tdat );
-  TEST_LD_OP( 1004, ld, 0xff00ff0000ff00ff, 4,  tdat );
-  TEST_LD_OP( 1005, ld, 0x00ff00ff0000ff00, 5,  tdat );
-  TEST_LD_OP( 1006, ld, 0xff00ff00ff0000ff, 6,  tdat );
-  TEST_LD_OP( 1007, ld, 0x00ff00ff00ff0000, 7,  tdat );
-
-skip_unaligned_tests:
   TEST_PASSFAIL
-
-  .align 2
-  .global mtvec_handler
-mtvec_handler:
-  # Only unaligned access tests should trap
-  li t0, 1000
-  blt TESTNUM, t0, fail
-
-  li t0, CAUSE_MISALIGNED_LOAD
-  csrr t1, mcause
-  bne t0, t1, fail
-
-  la t0, skip_unaligned_tests
-  csrw mepc, t0
-  mret
 
 RVTEST_CODE_END
 
