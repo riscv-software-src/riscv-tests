@@ -12,5 +12,8 @@ rv64mi_sc_tests = \
 	ma_addr \
 	scall \
 	sbreak \
+        ld-misaligned \
+        lw-misaligned \
+        lh-misaligned \
 
 rv64mi_p_tests = $(addprefix rv64mi-p-, $(rv64mi_sc_tests))
