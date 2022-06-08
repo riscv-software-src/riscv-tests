@@ -204,6 +204,11 @@ trap_entry:
 loop_forever:
   j loop_forever
 
+  .align 2
+cease:
+  .word 0x30500073  // cease
+  j loop_forever
+
   // Fill the stack with data so we can see if it was overrun.
   .section .data
   .align 4

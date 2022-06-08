@@ -1813,6 +1813,33 @@ class EbreakTest(GdbSingleHartTest):
         output = self.gdb.c()
         assertIn("_exit", output)
 
+class CeaseTest(ProgramTest):
+    """Test that we work correctly when a hart ceases to respond (e.g. because
+    it's powered down)."""
+
+    def early_applicable(self):
+        return len(self.target.harts) > 1
+
+    def setup(self):
+        ProgramTest.setup(self)
+        self.parkOtherHarts("cease")
+
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+
+        for hart in self.target.harts:
+            # Try to read the PC on the ceased harts
+            if hart != self.hart:
+                self.gdb.select_hart(hart)
+                self.gdb.p("$pc")
+
+        self.gdb.select_hart(self.hart)
+
+        self.exit()
+
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
         return self.target.freertos_binary

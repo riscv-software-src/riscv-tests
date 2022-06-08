@@ -1231,13 +1231,13 @@ class GdbTest(BaseTest):
         del self.gdb
         BaseTest.classTeardown(self)
 
-    def parkOtherHarts(self):
+    def parkOtherHarts(self, symbol="loop_forever"):
         """Park harts besides the currently selected one in loop_forever()."""
         for hart in self.target.harts:
             # Park all harts that we're not using in a safe place.
             if hart != self.hart:
                 self.gdb.select_hart(hart)
-                self.gdb.p("$pc=loop_forever")
+                self.gdb.p("$pc=%s" % symbol)
 
         self.gdb.select_hart(self.hart)
 
