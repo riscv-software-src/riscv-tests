@@ -12,9 +12,9 @@
 
 #define TEST_CASE( testnum, testreg, correctval, code... ) \
 test_ ## testnum: \
+    li  TESTNUM, testnum; \
     code; \
     li  x7, MASK_XLEN(correctval); \
-    li  TESTNUM, testnum; \
     bne testreg, x7, fail;
 
 # We use a macro hack to simpify code generation for various numbers
@@ -217,6 +217,7 @@ test_ ## testnum: \
 
 #define TEST_LD_OP( testnum, inst, result, offset, base ) \
     TEST_CASE( testnum, x14, result, \
+      li  x15, result; /* Tell the exception handler the expected result. */ \
       la  x1, base; \
       inst x14, offset(x1); \
     )
@@ -700,6 +701,21 @@ test_ ## testnum: \
     .popsection
 
 // ^ x14 is used in some other macros, to avoid issues we use x15 for upper word
+
+#define MISALIGNED_LOAD_HANDLER \
+  li t0, CAUSE_MISALIGNED_LOAD; \
+  csrr t1, mcause; \
+  bne t0, t1, fail; \
+  \
+  /* We got a misaligned exception. Pretend we handled it in software */ \
+  /* by loading the correct result here. */ \
+  mv  a4, a5; \
+  \
+  /* And skip this instruction */ \
+  csrr t0, mepc; \
+  addi t0, t0, 4; \
+  csrw mepc, t0; \
+  mret
 
 #-----------------------------------------------------------------------
 # Pass and fail code (assumes test num is in TESTNUM)
