@@ -14,5 +14,7 @@ rv32mi_sc_tests = \
 	shamt \
         lw-misaligned \
         lh-misaligned \
+	sh-misaligned \
+	sw-misaligned \
 
 rv32mi_p_tests = $(addprefix rv32mi-p-, $(rv32mi_sc_tests))
