@@ -15,5 +15,8 @@ rv64mi_sc_tests = \
         ld-misaligned \
         lw-misaligned \
         lh-misaligned \
+        sh-misaligned \
+        sw-misaligned \
+        sd-misaligned \
 
 rv64mi_p_tests = $(addprefix rv64mi-p-, $(rv64mi_sc_tests))

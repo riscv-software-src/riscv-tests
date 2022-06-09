@@ -226,8 +226,14 @@ test_ ## testnum: \
     TEST_CASE( testnum, x14, result, \
       la  x1, base; \
       li  x2, result; \
+      la  x15, 7f; /* Tell the exception handler how to skip this test. */ \
       store_inst x2, offset(x1); \
       load_inst x14, offset(x1); \
+      j 8f; \
+7:    \
+      /* Set up the correct result for TEST_CASE(). */ \
+      mv x14, x2; \
+8:    \
     )
 
 #define TEST_LD_DEST_BYPASS( testnum, nop_cycles, inst, result, offset, base ) \
@@ -715,6 +721,15 @@ test_ ## testnum: \
   csrr t0, mepc; \
   addi t0, t0, 4; \
   csrw mepc, t0; \
+  mret
+
+#define MISALIGNED_STORE_HANDLER \
+  li t0, CAUSE_MISALIGNED_STORE; \
+  csrr t1, mcause; \
+  bne t0, t1, fail; \
+  \
+  /* We got a misaligned exception. Skip this test. */ \
+  csrw mepc, x15; \
   mret
 
 #-----------------------------------------------------------------------
