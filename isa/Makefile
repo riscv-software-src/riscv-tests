@@ -17,6 +17,7 @@ include $(src_dir)/rv64uzfh/Makefrag
 include $(src_dir)/rv64si/Makefrag
 include $(src_dir)/rv64ssvnapot/Makefrag
 include $(src_dir)/rv64mi/Makefrag
+include $(src_dir)/rv64uv/Makefrag
 endif
 include $(src_dir)/rv32ui/Makefrag
 include $(src_dir)/rv32uc/Makefrag
@@ -98,6 +99,7 @@ $(eval $(call compile_template,rv64uzfh,-march=rv64g_zfh -mabi=lp64))
 $(eval $(call compile_template,rv64si,-march=rv64g -mabi=lp64))
 $(eval $(call compile_template,rv64ssvnapot,-march=rv64g -mabi=lp64))
 $(eval $(call compile_template,rv64mi,-march=rv64g -mabi=lp64))
+$(eval $(call compile_template,rv64uv,-march=rv64gv -mabi=lp64))
 endif
 
 tests_dump = $(addsuffix .dump, $(tests))
@@ -106,8 +108,6 @@ tests_out = $(addsuffix .out, $(filter rv64%,$(tests)))
 tests32_out = $(addsuffix .out32, $(filter rv32%,$(tests)))
 
 run: $(tests_out) $(tests32_out)
-
-junk += $(tests) $(tests_dump) $(tests_hex) $(tests_out) $(tests32_out)
 
 #------------------------------------------------------------
 # Default
@@ -118,4 +118,9 @@ all: $(tests_dump)
 # Clean up
 
 clean:
-	rm -rf $(junk)
+	rm -rf $(tests)
+	rm -rf $(tests_dump)
+	rm -rf $(tests_hex)
+	rm -rf $(tests_out)
+	rm -rf $(tests32_out)
+	rm -rf rv64uv

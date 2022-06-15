@@ -17,6 +17,12 @@ test_ ## testnum: \
     li  x7, MASK_XLEN(correctval); \
     bne testreg, x7, fail;
 
+#define TEST_CASE_REG( testnum, testreg, correctreg, code... ) \
+test_ ## testnum: \
+    code; \
+    li TESTNUM, testnum; \
+    bne testreg, correctreg, fail;
+
 # We use a macro hack to simpify code generation for various numbers
 # of bubble cycles.
 

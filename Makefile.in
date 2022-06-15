@@ -12,7 +12,7 @@ bmarkdir        := $(abs_top_src_dir)/benchmarks
 isa_src_dir     := $(abs_top_src_dir)/isa
 debug_src_dir   := $(abs_top_src_dir)/debug
 
-all: benchmarks isa
+all: gen benchmarks isa
 
 install: all
 	install -d $(instbasedir)/share/riscv-tests/isa
@@ -23,6 +23,9 @@ install: all
 benchmarks:
 	mkdir -p benchmarks
 	$(MAKE) -C benchmarks -f $(bmarkdir)/Makefile src_dir=$(bmarkdir) XLEN=$(XLEN) $(RISCV_PREFIX_VAR)
+
+gen:
+	python3 codegen/vector/main.py
 
 isa:
 	mkdir -p isa

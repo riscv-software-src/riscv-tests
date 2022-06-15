@@ -1,0 +1,5 @@
+"""
+Constants.
+"""
+
+VLEN = 256
