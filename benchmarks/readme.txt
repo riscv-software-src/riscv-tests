@@ -3,10 +3,8 @@ Benchmarks for RISCV Processor
 -------------------------------------------------------------------------
 
 The benchmarks make use of the RISCV C compiler toolchain. You will need
-to include a bmark.mk makefile fragment in each benchmark directory. The
-fragment should include the object files and a rule to actually link
-these object files into an executable. There are a couple important
-points to make about the toolchain.
+to list each benchmark in bmarks variable of Makefile. There are a couple
+important points to make about the toolchain.
 
  + The toolchain sets the stack pointer to memory address 0x20000 so your
    main memory _must_ be larger than 0x20000 bytes or else the stack will
