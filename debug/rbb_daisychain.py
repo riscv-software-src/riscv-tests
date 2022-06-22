@@ -56,8 +56,8 @@ class Chain:
             assert len(values) == 0
             values = list(tap.execute(bytes(tmp_commands)))
             if self.debug:
-                sys.stdout.write("    %d %r -> %r\n" % (i, bytes(tmp_commands),
-                                                        bytes(values)))
+                sys.stdout.write(f"    {i} {bytes(tmp_commands)!r} -> "
+                                 f"{bytes(values)!r}\n")
         return bytes(values)
 
 def main():
@@ -80,7 +80,7 @@ def main():
     for port in args.tap_port:
         chain.append(Tap(port))
 
-    sys.stdout.write("Listening on port %d.\n" % server.getsockname()[1])
+    sys.stdout.write(f"Listening on port {server.getsockname()[1]}.\n")
     sys.stdout.flush()
 
     while True:
@@ -98,10 +98,10 @@ def main():
                 break
 
             if args.debug:
-                sys.stdout.write("%r\n" % commands)
+                sys.stdout.write(f"{commands!r}\n")
             result = chain.execute(commands)
             if args.debug:
-                sys.stdout.write("   -> %r\n" % result)
+                sys.stdout.write(f"   -> {result!r}\n")
             client.send(result)
 
         client.close()
