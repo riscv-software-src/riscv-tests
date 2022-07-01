@@ -1869,23 +1869,27 @@ class CeaseMultiTest(ProgramTest):
 
     def setup(self):
         ProgramTest.setup(self)
-        self.parkOtherHarts("cease")
+        self.parkOtherHarts("precease")
 
     def test(self):
-        self.gdb.b("main")
-        output = self.gdb.c()
-        assertIn("Breakpoint", output)
-        assertIn("main", output)
+        # Run all the way to the infinite loop in exit
+        self.gdb.c(wait=False)
+        self.gdb.expect(r"Hart became unavailable.")
+        self.gdb.interrupt()
 
         for hart in self.target.harts:
             # Try to read the PC on the ceased harts
             if hart != self.hart:
                 self.gdb.select_hart(hart)
-                self.gdb.p("$pc")
+                try:
+                    self.gdb.p("$misa")
+                    assert False, "Shouldn't be able " \
+                        "to access unavailable hart."
+                except (testlib.CouldNotFetch, testlib.CouldNotReadRegisters):
+                    pass
 
         self.gdb.select_hart(self.hart)
-
-        self.exit()
+        self.gdb.stepi()
 
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
