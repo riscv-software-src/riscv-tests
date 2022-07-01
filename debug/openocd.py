@@ -25,7 +25,7 @@ class OpenOcdTest(testlib.BaseTest):
     def write_nops(self, count):
         for address in range(self.target.ram, self.target.ram + 4 * count, 4):
             # 0x13 is nop
-            self.cli.command("mww 0x%x 0x13" % address)
+            self.cli.command(f"mww 0x{address:x} 0x13")
 
 class RegTest(OpenOcdTest):
     def test(self):
@@ -35,7 +35,7 @@ class RegTest(OpenOcdTest):
         assertIn("x18", regs)
 
         self.cli.command("reg x18 0x11782")
-        self.cli.command("step 0x%x" % self.target.ram)
+        self.cli.command(f"step 0x{self.target.ram:x}")
 
         assertEqual(self.cli.reg("x18"), 0x11782)
 
@@ -43,7 +43,7 @@ class StepTest(OpenOcdTest):
     def test(self):
         self.write_nops(4)
 
-        self.cli.command("step 0x%x" % self.target.ram)
+        self.cli.command("step 0x{self.target.ram:x}")
         for i in range(4):
             pc = self.cli.reg("pc")
             assertEqual(pc, self.target.ram + 4 * (i+1))
@@ -53,16 +53,16 @@ class ResumeTest(OpenOcdTest):
     def test(self):
         self.write_nops(16)
 
-        self.cli.command("bp 0x%x 4" % (self.target.ram + 12))
-        self.cli.command("bp 0x%x 4" % (self.target.ram + 24))
+        self.cli.command(f"bp 0x{self.target.ram + 12:x} 4")
+        self.cli.command(f"bp 0x{self.target.ram + 24:x} 4")
 
-        self.cli.command("resume 0x%x" % self.target.ram)
+        self.cli.command(f"resume 0x{self.target.ram:x}")
         assertEqual(self.cli.reg("pc"), self.target.ram + 12)
 
         self.cli.command("resume")
         assertEqual(self.cli.reg("pc"), self.target.ram + 24)
 
-        self.cli.command("resume 0x%x" % self.target.ram)
+        self.cli.command(f"resume 0x{self.target.ram:x}")
         assertEqual(self.cli.reg("pc"), self.target.ram + 12)
 
 def main():
