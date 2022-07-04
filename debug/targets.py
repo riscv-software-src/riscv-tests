@@ -50,6 +50,9 @@ class Hart:
     # is fine.
     system = None
 
+    # Supports the cease instruction, which causes a hart to become unavailable.
+    support_cease = False
+
     def __init__(self, misa=None, system=None, link_script_path=None):
         if misa:
             self.misa = misa

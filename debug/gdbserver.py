@@ -1818,7 +1818,7 @@ class CeaseStepiSingleTest(ProgramTest):
     """Test that we work correctly when the hart we're debugging ceases to
     respond."""
     def early_applicable(self):
-        return len(self.target.harts) == 1
+        return self.hart.support_cease and len(self.target.harts) == 1
 
     def test(self):
         self.gdb.b("main")
@@ -1841,7 +1841,7 @@ class CeaseRunSingleTest(ProgramTest):
     """Test that we work correctly when the hart we're debugging ceases to
     respond."""
     def early_applicable(self):
-        return len(self.target.harts) == 1
+        return self.hart.support_cease and len(self.target.harts) == 1
 
     def test(self):
         self.gdb.b("main")
@@ -1865,7 +1865,7 @@ class CeaseMultiTest(ProgramTest):
     it's powered down)."""
 
     def early_applicable(self):
-        return len(self.target.harts) > 1
+        return self.hart.support_cease and len(self.target.harts) > 1
 
     def setup(self):
         ProgramTest.setup(self)
