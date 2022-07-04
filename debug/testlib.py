@@ -475,6 +475,9 @@ class CouldNotFetch(Exception):
         self.regname = regname
         self.explanation = explanation
 
+class NoRegisters(Exception):
+    pass
+
 class NoSymbol(Exception):
     def __init__(self, symbol):
         Exception.__init__(self)
@@ -507,6 +510,8 @@ def tokenize(text):
                     lambda m: CannotAccess(int(m.group(1), 0))),
                 (r"Cannot insert breakpoint (\d+).",
                     lambda m: CannotInsertBreakpoint(int(m.group(1)))),
+                (r"No registers.",
+                    lambda m: NoRegisters()),
                 (r'No symbol "(\w+)" in current context.',
                     lambda m: NoSymbol(m.group(1))),
                 (r'"([^"]*)"', lambda m: m.group(1)),
