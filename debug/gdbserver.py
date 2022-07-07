@@ -1845,9 +1845,11 @@ class CeaseRunSingleTest(ProgramTest):
         except CouldNotReadRegisters:
             pass
 
-class CeaseMultiTest(ProgramTest):
+class CeaseMultiTest(GdbTest):
     """Test that we work correctly when a hart ceases to respond (e.g. because
     it's powered down)."""
+    compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC",
+            "-DDEFINE_FREE")
 
     def early_applicable(self):
         return self.hart.support_cease and len(self.target.harts) > 1
@@ -1859,22 +1861,32 @@ class CeaseMultiTest(ProgramTest):
     def test(self):
         # Run all the way to the infinite loop in exit
         self.gdb.c(wait=False)
-        self.gdb.expect(r"Hart became unavailable.")
+        self.gdb.expect(r"became unavailable.")
         self.gdb.interrupt()
 
         for hart in self.target.harts:
-            # Try to read the PC on the ceased harts
+            # Try to select the ceased harts.
             if hart != self.hart:
-                self.gdb.select_hart(hart)
                 try:
-                    self.gdb.p("$misa")
+                    self.gdb.select_hart(hart)
                     assert False, "Shouldn't be able " \
                         "to access unavailable hart."
-                except (testlib.CouldNotFetch, testlib.CouldNotReadRegisters):
+                except testlib.UnknownThread:
                     pass
 
+        # Check that the main hart can still be debugged.
         self.gdb.select_hart(self.hart)
+        main_addr = self.gdb.p("$pc=main")
         self.gdb.stepi()
+        # Assume the first instruction of main is not a jump.
+        pc = self.gdb.p("$pc")
+        assertGreater(pc, main_addr)
+        assertLess(pc, main_addr + 8)
+
+        self.gdb.p("$pc=_start")
+        self.gdb.stepi()    #<<<
+        self.gdb.stepi()    #<<<
+        self.exit()
 
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
