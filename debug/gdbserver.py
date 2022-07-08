@@ -972,7 +972,8 @@ class Semihosting(GdbSingleHartTest):
 
 class SemihostingFileio(Semihosting):
     def setup(self):
-        self.gdb.command("monitor arm semihosting_fileio enable")
+        self.gdb.command("monitor foreach t [target names] { "
+            "targets $t; arm semihosting_fileio enable }")
         super().setup()
 
     def test(self):
