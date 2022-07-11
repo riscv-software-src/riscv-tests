@@ -887,7 +887,10 @@ class MemorySampleSingle(MemorySampleTest):
 class MemorySampleMixed(MemorySampleTest):
     def test(self):
         addr = {}
-        for i, name in enumerate(("j", "i32", "i64")):
+        test_vars = ["j", "i32"]
+        if self.hart.xlen >= 64:
+            test_vars.append("i64")
+        for i, name in enumerate(test_vars):
             addr[name] = self.gdb.p(f"&{name}")
             sizeof = self.gdb.p(f"sizeof({name})")
             self.gdb.command(f"monitor riscv memory_sample {i} "
@@ -897,7 +900,8 @@ class MemorySampleMixed(MemorySampleTest):
         self.check_incrementing_samples(raw_samples, addr["j"],
                                         tolerance=0x400000)
         self.check_samples_equal(raw_samples, addr["i32"], 0xdeadbeef)
-        self.check_samples_equal(raw_samples, addr["i64"], 0x1122334455667788)
+        if self.hart.xlen >= 64:
+            self.check_samples_equal(raw_samples, addr["i64"], 0x1122334455667788)
 
 class RepeatReadTest(DebugTest):
     def early_applicable(self):
