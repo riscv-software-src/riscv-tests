@@ -901,7 +901,8 @@ class MemorySampleMixed(MemorySampleTest):
                                         tolerance=0x400000)
         self.check_samples_equal(raw_samples, addr["i32"], 0xdeadbeef)
         if self.hart.xlen >= 64:
-            self.check_samples_equal(raw_samples, addr["i64"], 0x1122334455667788)
+            self.check_samples_equal(raw_samples, addr["i64"],
+                                     0x1122334455667788)
 
 class RepeatReadTest(DebugTest):
     def early_applicable(self):
