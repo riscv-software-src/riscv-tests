@@ -975,6 +975,17 @@ class Semihosting(GdbSingleHartTest):
         assertIn("Do re mi fa so la ti do!", log)
 
 class SemihostingFileio(Semihosting):
+    def early_applicable(self):
+        # Semihosting file i/o doesn't work right when there are multiple harts
+        # in SMP mode, and the semihosting call comes from a hart other than the
+        # first one.
+        # The problem is that semihosting_common_fileio_info() is called only
+        # for the first target in an SMP list. Either the caller needs to be
+        # made aware of SMP targets, or that function needs to walk the list
+        # itself. (Or maybe we need to make a separate function just for RISC-V
+        # that does that.)
+        return len(self.target.harts) == 1
+
     def setup(self):
         self.gdb.command("monitor foreach t [target names] { "
             "targets $t; arm semihosting_fileio enable }")
