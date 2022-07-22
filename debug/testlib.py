@@ -1310,7 +1310,7 @@ def assertLess(a, b, comment=None):
 
 def assertTrue(a):
     if not a:
-        raise TestFailed(f"{a!r} is not True" % a)
+        raise TestFailed(f"{a!r} is not True", a)
 
 def assertRegex(text, regexp):
     if not re.search(regexp, text):
