@@ -12,6 +12,7 @@ rv64ui_sc_tests = \
 	jal jalr \
 	lb lbu lh lhu lw lwu ld \
 	lui \
+	ma_data \
 	or ori \
 	sb sh sw sd \
 	sll slli slliw sllw \
