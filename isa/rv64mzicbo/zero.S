@@ -11,7 +11,7 @@ RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
   la  x1, tdat
-  .word 0x0040A00F  ; cbo.zero(x1)
+  .word 0x0040A00F  # cbo.zero(x1)
   TEST_LD_OP( 1, ld, 0, 0,  tdat )
   TEST_LD_OP( 2, ld, 0, 8,  tdat )
   TEST_LD_OP( 3, ld, 0, 16, tdat )
