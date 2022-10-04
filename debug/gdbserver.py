@@ -879,7 +879,7 @@ class MemorySampleSingle(MemorySampleTest):
         self.gdb.command(f"monitor riscv memory_sample 0 0x{addr:x} {sizeof_j}")
 
         raw_samples = self.collect_samples()
-        self.check_incrementing_samples(raw_samples, addr)
+        self.check_incrementing_samples(raw_samples, addr, tolerance=0x500000)
 
         # Buffer should have been emptied by dumping.
         raw_samples = self.gdb.command("monitor riscv dump_sample_buf", ops=5)
@@ -899,7 +899,7 @@ class MemorySampleMixed(MemorySampleTest):
 
         raw_samples = self.collect_samples()
         self.check_incrementing_samples(raw_samples, addr["j"],
-                                        tolerance=0x400000)
+                                        tolerance=0x500000)
         self.check_samples_equal(raw_samples, addr["i32"], 0xdeadbeef)
         if self.hart.xlen >= 64:
             self.check_samples_equal(raw_samples, addr["i64"],
