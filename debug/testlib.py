@@ -293,8 +293,9 @@ class Openocd:
     logname = logfile.name
 
     def __init__(self, server_cmd=None, config=None, debug=False, timeout=60,
-                 freertos=False):
+                 freertos=False, debug_openocd=False):
         self.timeout = timeout
+        self.debug_openocd = debug_openocd
 
         if server_cmd:
             cmd = shlex.split(server_cmd)
@@ -387,7 +388,7 @@ class Openocd:
                         self.gdb_ports.append(int(m.group(1)))
 
                     if "telnet server disabled" in line:
-                        return process
+                        break
 
                     if not messaged and time.time() - start > 1:
                         messaged = True
@@ -395,6 +396,12 @@ class Openocd:
                     if (time.time() - start) > self.timeout:
                         raise Exception("Timed out waiting for OpenOCD to "
                                 "listen for gdb")
+
+            if self.debug_openocd:
+                # pylint: disable=consider-using-with
+                self.debugger = subprocess.Popen(["gnome-terminal", "-e",
+                                                  f"gdb --pid={process.pid}"])
+            return process
 
         except Exception:
             print_log(Openocd.logname)
