@@ -136,6 +136,7 @@ class Target:
         self.directory = os.path.dirname(path)
         self.server_cmd = parsed.server_cmd
         self.sim_cmd = parsed.sim_cmd
+        self.debug_server = parsed.debug_server
         self.temporary_binary = None
         self.compiler_supports_v = True
         Target.isolate = parsed.isolate
@@ -166,7 +167,8 @@ class Target:
         return testlib.Openocd(server_cmd=self.server_cmd,
                 config=self.openocd_config_path,
                 timeout=self.server_timeout_sec,
-                freertos=test.freertos())
+                freertos=test.freertos(),
+                debug_openocd=self.debug_server)
 
     def do_compile(self, hart, *sources):
         binary_name = (
@@ -237,6 +239,8 @@ def add_target_options(parser):
             "simulation)", default="spike")
     parser.add_argument("--server_cmd",
             help="The command to use to start the debug server (e.g. OpenOCD)")
+    parser.add_argument("--debug_server", action="store_true",
+            help="Open gdb in a separate terminal on the debug server")
 
     xlen_group = parser.add_mutually_exclusive_group()
     xlen_group.add_argument("--32", action="store_const", const=32,
