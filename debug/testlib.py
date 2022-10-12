@@ -699,8 +699,9 @@ class Gdb:
         self.active_child.sendline(command)
         self.active_child.expect("\n", timeout=timeout)
         self.active_child.expect(r"\(gdb\)", timeout=timeout)
+        output = self.active_child.before.decode("utf-8", errors="ignore")
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        return ansi_escape.sub('', self.active_child.before.strip().decode("utf-8", errors="ignore")).strip()
+        return ansi_escape.sub('', output).strip()
 
     def interact(self):
         """Call this from a test at a point where you just want to interact with
