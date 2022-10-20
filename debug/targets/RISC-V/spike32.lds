@@ -4,7 +4,7 @@ SECTIONS
 {
   /* Leave some space for pk's data structures, which includes tohost/fromhost
    * which are special addresses we ought to leave alone.  */
-  . = 0x10010000;
+  . = 0x10110000;
   .text : 
   {
     *(.text.entry)

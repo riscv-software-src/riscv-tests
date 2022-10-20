@@ -3,7 +3,7 @@ import testlib
 
 class spike32_hart(targets.Hart):
     xlen = 32
-    ram = 0x10000000
+    ram = 0x10100000
     ram_size = 0x10000000
     bad_address = ram - 8
     instruction_hardware_breakpoint_count = 4
