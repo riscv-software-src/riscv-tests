@@ -65,6 +65,7 @@ class Spike:
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
             support_hasel=True, support_abstract_csr=True,
+            support_abstract_fpr=False,
             support_haltgroups=True, vlen=128, elen=64, harts=None):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
@@ -74,6 +75,7 @@ class Spike:
         self.dmi_rti = dmi_rti
         self.abstract_rti = abstract_rti
         self.support_abstract_csr = support_abstract_csr
+        self.support_abstract_fpr = support_abstract_fpr
         self.support_hasel = support_hasel
         self.support_haltgroups = support_haltgroups
         self.vlen = vlen
@@ -148,6 +150,9 @@ class Spike:
 
         if not self.support_abstract_csr:
             cmd.append("--dm-no-abstract-csr")
+
+        if not self.support_abstract_fpr:
+            cmd.append("--dm-no-abstract-fpr")
 
         if not self.support_hasel:
             cmd.append("--dm-no-hasel")
