@@ -790,7 +790,9 @@ class Gdb:
                 for child in self.children:
                     child.expect(r"\(gdb\)")
 
-    def interrupt(self, ops=1):
+    def interrupt(self, ops=None):
+        if not ops:
+            ops = len(self.harts)
         self.active_child.send("\003")
         self.active_child.expect(r"\(gdb\)", timeout=self.timeout * ops)
         return self.active_child.before.strip().decode()
