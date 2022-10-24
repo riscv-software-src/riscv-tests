@@ -65,7 +65,7 @@ class Spike:
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
             support_hasel=True, support_abstract_csr=True,
-            support_abstract_fpr=False,
+            support_abstract_fpr=True,
             support_haltgroups=True, vlen=128, elen=64, harts=None):
         """Launch spike. Return tuple of its process and the port it's running
         on."""
