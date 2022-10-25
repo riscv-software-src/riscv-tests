@@ -40,14 +40,14 @@ write_loop:
         j       main_exit
 
 write_store_trigger:
-        li      a0, (1<<6) | (1<<1)
+        li      a0, (2<<60) | (2<<28) | (1<<6) | (1<<1)
         li      a1, 0xdeadbee0
         jal     write_triggers
         la      a0, data
         jal     read_triggers
 
 write_load_trigger:
-        li      a0, (1<<6) | (1<<0)
+        li      a0, (2<<60) | (2<<28) | (1<<6) | (1<<0)
         li      a1, 0xfeedac00
         jal     write_triggers
         la      a0, data
