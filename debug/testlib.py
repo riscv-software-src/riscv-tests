@@ -240,6 +240,7 @@ class VcsSim:
     # pylint: disable-next=consider-using-with
     logfile = tempfile.NamedTemporaryFile(prefix='simv', suffix='.log')
     logname = logfile.name
+    lognames = [logname]
 
     def __init__(self, sim_cmd=None, debug=False, timeout=300):
         if sim_cmd:
