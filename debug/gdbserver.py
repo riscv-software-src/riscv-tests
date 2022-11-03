@@ -1637,6 +1637,9 @@ class CheckMisa(GdbTest):
 class TranslateTest(GdbSingleHartTest):
     compile_args = ("programs/translate.c", )
 
+    def early_applicable(self):
+        return self.hart.ram_size >= 32 * 1024
+
     def setup(self):
         self.disable_pmp()
 
@@ -1680,7 +1683,7 @@ SATP_MODE_SV64 = 11
 
 class Sv32Test(TranslateTest):
     def early_applicable(self):
-        return self.hart.xlen == 32
+        return TranslateTest.early_applicable(self) and self.hart.xlen == 32
 
     def test(self):
         self.check_satp(SATP_MODE_SV32)
@@ -1689,7 +1692,7 @@ class Sv32Test(TranslateTest):
 
 class Sv39Test(TranslateTest):
     def early_applicable(self):
-        return self.hart.xlen > 32
+        return TranslateTest.early_applicable(self) and self.hart.xlen > 32
 
     def test(self):
         self.check_satp(SATP_MODE_SV39)
@@ -1698,7 +1701,7 @@ class Sv39Test(TranslateTest):
 
 class Sv48Test(TranslateTest):
     def early_applicable(self):
-        return self.hart.xlen > 32
+        return TranslateTest.early_applicable(self) and self.hart.xlen > 32
 
     def test(self):
         self.check_satp(SATP_MODE_SV48)
