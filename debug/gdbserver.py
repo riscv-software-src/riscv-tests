@@ -15,7 +15,7 @@ import testlib
 from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
 from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
-from testlib import assertTrue, TestNotApplicable, CompileError
+from testlib import TestNotApplicable, CompileError
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1621,9 +1621,10 @@ class PrivChange(PrivTest):
         # User mode
         self.gdb.p("$priv=0")
         self.gdb.stepi()
-        # Should have taken an exception, so be nowhere near main.
+        # Should have taken an exception, so be at trap_entry
         pc = self.gdb.p("$pc")
-        assertTrue(pc < main_address or pc > main_address + 0x100)
+        trap_entry = self.gdb.p("&trap_entry")
+        assertEqual(pc, trap_entry)
 
 class CheckMisa(GdbTest):
     """Make sure the misa we're using is actually what the target exposes."""
