@@ -41,4 +41,4 @@ main_post_csrr:
         addi    x30, x29, 1
         addi    x31, x30, 1
 main_end:
-        j       main
+        j       main_end

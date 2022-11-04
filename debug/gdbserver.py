@@ -1062,24 +1062,21 @@ class MulticoreRegTest(GdbTest):
             self.gdb.p("$pc=_start")
 
     def test(self):
-        # Run to main
-        for hart in self.target.harts:
-            self.gdb.select_hart(hart)
-            self.gdb.b("main")
-            self.gdb.c()
-            assertIn("main", self.gdb.where())
-            self.gdb.command("delete breakpoints")
+        # We use time instead of breakpoints, because otherwise we can't
+        # guarantee that every hart runs all the way through the loop. (The
+        # problem is that we can't guarantee resuming at the same time, so the
+        # first hart that is resumed will hit a breakpoint at the end of the
+        # loop before another hart has executed the whole loop.)
 
-        # Run through the entire loop.
-        for hart in self.target.harts:
-            self.gdb.select_hart(hart)
-            self.gdb.b("main_end")
-            self.gdb.c()
-            assertIn("main_end", self.gdb.where())
+        # Run through the whole loop.
+        self.gdb.c_all(wait=False)
+        time.sleep(1)
+        self.gdb.interrupt_all()
 
         hart_ids = set()
         for hart in self.target.harts:
             self.gdb.select_hart(hart)
+            assertIn("main_end", self.gdb.where())
             # Check register values.
             x1 = self.gdb.p("$x1")
             hart_id = self.gdb.p("$mhartid")
@@ -1097,10 +1094,15 @@ class MulticoreRegTest(GdbTest):
             self.gdb.select_hart(hart)
             self.gdb.p(f"$x1=0x{hart.index * 4096:x}")
             self.gdb.p("$pc=main_post_csrr")
-            self.gdb.c()
+
+        # Run through the whole loop.
+        self.gdb.c_all(wait=False)
+        time.sleep(1)
+        self.gdb.interrupt_all()
+
         for hart in self.target.harts:
             self.gdb.select_hart(hart)
-            assertIn("main", self.gdb.where())
+            assertIn("main_end", self.gdb.where())
             # Check register values.
             for n in range(1, 32):
                 value = self.gdb.p(f"$x{n}")
