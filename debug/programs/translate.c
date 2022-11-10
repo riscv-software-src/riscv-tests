@@ -13,7 +13,7 @@ typedef uint64_t reg_t;
 typedef uint32_t reg_t;
 #endif
 
-static char page_buffer[4096 * 8];
+static char page_buffer[4096 * 6];
 static char *page_buffer_next = page_buffer;
 
 typedef struct {
