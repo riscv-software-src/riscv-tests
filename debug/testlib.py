@@ -1253,6 +1253,14 @@ class GdbTest(BaseTest):
             # PMP registers are optional
             pass
 
+    def exit(self, expected_result=10):
+        self.gdb.command("delete")
+        self.gdb.b("_exit")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("_exit", output)
+        assertEqual(self.gdb.p("status"), expected_result)
+
 class GdbSingleHartTest(GdbTest):
     def classSetup(self):
         GdbTest.classSetup(self)
