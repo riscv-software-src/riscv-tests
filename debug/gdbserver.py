@@ -18,6 +18,7 @@ from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import TestNotApplicable, CompileError
 from testlib import UnknownThread
+from testlib import CouldNotReadRegisters
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1832,6 +1833,28 @@ class CeaseMultiTest(GdbTest):
         self.gdb.p("$pc=_start")
 
         self.exit()
+class CeaseStepiTest(ProgramTest):
+    """Test that we work correctly when the hart we're debugging ceases to
+    respond."""
+    def early_applicable(self):
+        return self.hart.support_cease
+
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+
+        self.gdb.p("$pc=cease")
+        self.gdb.stepi(wait=False)
+        self.gdb.expect(r"\S+ became unavailable.")
+        self.gdb.interrupt()
+        try:
+            self.gdb.p("$pc")
+            assert False, ("Registers shouldn't be accessible when the hart is "
+                           "unavailable.")
+        except CouldNotReadRegisters:
+            pass
 
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
