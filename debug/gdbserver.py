@@ -12,10 +12,12 @@ import re
 
 import targets
 import testlib
-from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
+from testlib import assertEqual, assertNotEqual
+from testlib import assertIn, assertNotIn
 from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import TestNotApplicable, CompileError
+from testlib import UnknownThread
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1797,6 +1799,49 @@ class EbreakTest(GdbSingleHartTest):
         self.gdb.p("$pc=$pc+4")
         output = self.gdb.c()
         assertIn("_exit", output)
+
+class CeaseMultiTest(GdbTest):
+    """Test that we work correctly when a hart ceases to respond (e.g. because
+    it's powered down)."""
+    compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC",
+            "-DDEFINE_FREE")
+
+    def early_applicable(self):
+        return self.hart.support_cease and len(self.target.harts) > 1
+
+    def setup(self):
+        ProgramTest.setup(self)
+        self.parkOtherHarts("precease")
+
+    def test(self):
+        # Run all the way to the infinite loop in exit
+        self.gdb.c(wait=False)
+        self.gdb.expect(r"\S+ became unavailable.")
+        self.gdb.interrupt()
+
+        for hart in self.target.harts:
+            # Try to read misa on the ceased harts
+            if hart != self.hart:
+                try:
+                    self.gdb.select_hart(hart)
+                    self.gdb.p("$misa")
+                    assert False, \
+                        "Shouldn't be able to access unavailable hart."
+                except UnknownThread:
+                    pass
+
+        # Check that the main hart can still be debugged.
+        self.gdb.select_hart(self.hart)
+        main_addr = self.gdb.p("$pc=main")
+        self.gdb.stepi()
+        # Assume the first instruction of main is not a jump.
+        pc = self.gdb.p("$pc")
+        assertGreater(pc, main_addr)
+        assertLess(pc, main_addr + 8)
+
+        self.gdb.p("$pc=_start")
+
+        self.exit()
 
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
