@@ -12,7 +12,8 @@ import re
 
 import targets
 import testlib
-from testlib import assertEqual, assertNotEqual, assertIn, assertNotIn
+from testlib import CouldNotReadRegisters, assertEqual, assertNotEqual
+from testlib import assertIn, assertNotIn
 from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import TestNotApplicable, CompileError
@@ -1813,7 +1814,30 @@ class EbreakTest(GdbSingleHartTest):
         output = self.gdb.c()
         assertIn("_exit", output)
 
-class CeaseTest(ProgramTest):
+class CeaseSingleTest(ProgramTest):
+    """Test that we work correctly when the hart we're debugging ceases to
+    respond."""
+    def early_applicable(self):
+        return len(self.target.harts) == 1
+
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+
+        self.gdb.p("$pc=cease")
+        self.gdb.stepi(wait=False)
+        self.gdb.expect("Hart 0 became unavailable.")
+        self.gdb.interrupt()
+        try:
+            self.gdb.p("$pc")
+            assert False, \
+                "Registers shouldn't be accessible when the hart is unavailable."
+        except CouldNotReadRegisters:
+            pass
+
+class CeaseMultiTest(ProgramTest):
     """Test that we work correctly when a hart ceases to respond (e.g. because
     it's powered down)."""
 
