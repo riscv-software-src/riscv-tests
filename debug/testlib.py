@@ -863,9 +863,13 @@ class Gdb:
                 result[name] = parse_rhs(parts[1])
         return result
 
-    def stepi(self):
-        output = self.command("stepi", ops=10)
-        return output
+    def stepi(self, wait=True):
+        if wait:
+            return self.command("stepi", ops=10)
+        else:
+            self.active_child.sendline("stepi")
+            self.active_child.expect("stepi", timeout=self.timeout)
+            return ""
 
     def load(self):
         output = self.system_command("load", ops=1000)
