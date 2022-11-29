@@ -205,6 +205,13 @@ loop_forever:
   j loop_forever
 
   .align 2
+precease:
+    // Loop a while so that OpenOCD might have confirmed the resume before the
+    // hart becomes unavailable.
+    li t1, 100000
+1:
+    addi t1, t1, -1
+    bnez t1, 1b
 cease:
   .word 0x30500073  // cease
   j loop_forever
