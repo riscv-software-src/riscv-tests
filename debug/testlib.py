@@ -871,6 +871,9 @@ class Gdb:
             self.active_child.expect("stepi", timeout=self.timeout)
             return ""
 
+    def expect(self, text, ops=1):
+        return self.active_child.expect(text, timeout=ops * self.timeout)
+
     def load(self):
         output = self.system_command("load", ops=1000)
         assert "failed" not in  output
