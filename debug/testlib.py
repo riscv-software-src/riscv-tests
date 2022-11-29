@@ -478,6 +478,11 @@ class CouldNotFetch(Exception):
 class NoRegisters(Exception):
     pass
 
+class CouldNotReadRegisters(Exception):
+    def __init__(self, explanation):
+        Exception.__init__(self)
+        self.explanation = explanation
+
 class NoSymbol(Exception):
     def __init__(self, symbol):
         Exception.__init__(self)
@@ -506,6 +511,8 @@ def tokenize(text):
                 (r"<repeats (\d+) times>", lambda m: Repeat(int(m.group(1)))),
                 (r"Could not fetch register \"(\w+)\"; (.*)$",
                     lambda m: CouldNotFetch(m.group(1), m.group(2))),
+                (r"Could not read registers; (.*)$",
+                    lambda m: CouldNotReadRegisters(m.group(1))),
                 (r"Cannot access memory at address (0x[0-9a-f]+)",
                     lambda m: CannotAccess(int(m.group(1), 0))),
                 (r"Cannot insert breakpoint (\d+).",
