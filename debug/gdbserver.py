@@ -1814,7 +1814,7 @@ class EbreakTest(GdbSingleHartTest):
         output = self.gdb.c()
         assertIn("_exit", output)
 
-class CeaseSingleTest(ProgramTest):
+class CeaseStepiSingleTest(ProgramTest):
     """Test that we work correctly when the hart we're debugging ceases to
     respond."""
     def early_applicable(self):
@@ -1828,14 +1828,15 @@ class CeaseSingleTest(ProgramTest):
 
         self.gdb.p("$pc=cease")
         self.gdb.stepi(wait=False)
-        self.gdb.expect("Hart 0 became unavailable.")
+        self.gdb.expect("Hart became unavailable.")
         self.gdb.interrupt()
         try:
             self.gdb.p("$pc")
-            assert False, \
-                "Registers shouldn't be accessible when the hart is unavailable."
+            assert False, "Registers shouldn't be accessible " \
+                "when the hart is unavailable."
         except CouldNotReadRegisters:
             pass
+
 
 class CeaseMultiTest(ProgramTest):
     """Test that we work correctly when a hart ceases to respond (e.g. because
