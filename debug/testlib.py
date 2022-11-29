@@ -491,6 +491,11 @@ class NoSymbol(Exception):
     def __repr__(self):
         return f"NoSymbol({self.symbol!r})"
 
+class UnknownThread(Exception):
+    def __init__(self, hart_id):
+        Exception.__init__(self)
+        self.hart_id = hart_id
+
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
@@ -686,7 +691,8 @@ class Gdb:
         self.select_child(h['child'])
         if not h['solo']:
             output = self.command(f"thread {h['thread'].id}", ops=5)
-            assert "Unknown" not in output
+            if "Unknown thread" in output:
+                raise UnknownThread(hart.id)
 
     def push_state(self):
         self.stack.append({
