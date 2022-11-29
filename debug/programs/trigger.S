@@ -60,7 +60,7 @@ clear_triggers:
         jal     write_triggers
 
 main_exit:
-        li      a0, 0
+        li      a0, 10
         j       _exit
 
 write_triggers:

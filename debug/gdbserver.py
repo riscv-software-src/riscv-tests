@@ -467,14 +467,6 @@ class ProgramTest(GdbSingleHartTest):
     def setup(self):
         self.gdb.load()
 
-    def exit(self, expected_result=10):
-        self.gdb.command("delete")
-        self.gdb.b("_exit")
-        output = self.gdb.c()
-        assertIn("Breakpoint", output)
-        assertIn("_exit", output)
-        assertEqual(self.gdb.p("status"), expected_result)
-
 class ProgramHwWatchpoint(ProgramTest):
     def test(self):
         mainbp = self.gdb.b("main")
@@ -1322,13 +1314,6 @@ class TriggerTest(GdbSingleHartTest):
         self.gdb.b("main")
         self.gdb.c()
         self.gdb.command("delete")
-
-    def exit(self):
-        self.gdb.command("delete")
-        self.gdb.b("_exit")
-        output = self.gdb.c()
-        assertIn("Breakpoint", output)
-        assertIn("_exit", output)
 
 class TriggerExecuteInstant(TriggerTest):
     """Test an execute breakpoint on the first instruction executed out of
