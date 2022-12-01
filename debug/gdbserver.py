@@ -1973,6 +1973,32 @@ class EtriggerTest(DebugTest):
         assertIn("breakpoint", output)
         assertIn("trap_entry", self.gdb.where())
 
+class ItriggerTest(GdbSingleHartTest):
+    compile_args = ("programs/interrupt.c",)
+
+    def early_applicable(self):
+        return self.target.supports_clint_mtime
+
+    def setup(self):
+        self.gdb.load()
+
+    def test(self):
+        self.gdb.command(f"monitor targets {self.hart.id}")
+        output = self.gdb.command("monitor riscv itrigger set 0x80")
+        assertIn("Doesn't make sense", output)
+        output = self.gdb.command("monitor riscv itrigger set m 0")
+        assertIn("Doesn't make sense", output)
+        output = self.gdb.command("monitor riscv itrigger clear")
+        assertIn("No itrigger is set", output)
+        self.gdb.command("monitor riscv itrigger set m 0x80")
+
+        self.gdb.c()
+        assertIn("trap_entry", self.gdb.where())
+
+        self.gdb.command("monitor riscv itrigger clear")
+        self.gdb.p("keep_running=0")
+        self.exit()
+
 parsed = None
 def main():
     parser = argparse.ArgumentParser(
