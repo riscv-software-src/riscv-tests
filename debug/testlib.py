@@ -1219,7 +1219,7 @@ class GdbTest(BaseTest):
         self.gdb.command("info breakpoints", reset_delays=None)
         self.gdb.command("disassemble", ops=20, reset_delays=None)
         self.gdb.command("info registers all", ops=20, reset_delays=None)
-        self.gdb.command("flush regs", reset_delays=None)
+        self.gdb.command("maintenance flush register-cache", reset_delays=None)
         self.gdb.command("info threads", ops=20, reset_delays=None)
 
     def classTeardown(self):
