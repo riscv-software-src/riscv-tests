@@ -72,4 +72,6 @@ begin:
     fd = open(filename, O_WRONLY, 0644);
     write(fd, message, strlen(message));
     write(1, message2, strlen(message2));
+
+    return 10;
 }

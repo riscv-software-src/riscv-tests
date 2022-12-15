@@ -521,10 +521,7 @@ class DebugTest(GdbSingleHartTest):
         self.gdb.b("_exit")
 
     def exit(self, expected_result=0xc86455d4):
-        output = self.gdb.c()
-        assertIn("Breakpoint", output)
-        assertIn("_exit", output)
-        assertEqual(self.gdb.p("status"), expected_result)
+        super().exit(expected_result)
 
 class DebugCompareSections(DebugTest):
     def test(self):
@@ -943,13 +940,6 @@ class Semihosting(GdbSingleHartTest):
         self.gdb.load()
         self.parkOtherHarts()
         self.gdb.b("_exit")
-
-    def exit(self, expected_result=0):
-        output = self.gdb.c()
-        assertIn("Breakpoint", output)
-        assertIn("_exit", output)
-        assertEqual(self.gdb.p("status"), expected_result)
-        return output
 
     def test(self):
         with tempfile.NamedTemporaryFile(suffix=".data") as temp:

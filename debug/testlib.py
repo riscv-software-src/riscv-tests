@@ -1267,6 +1267,7 @@ class GdbTest(BaseTest):
         assertIn("Breakpoint", output)
         assertIn("_exit", output)
         assertEqual(self.gdb.p("status"), expected_result)
+        return output
 
 class GdbSingleHartTest(GdbTest):
     def classSetup(self):
