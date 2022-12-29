@@ -1953,6 +1953,25 @@ class StepThread2Test(GdbTest):
         # GDB's conception of the current thread
         assertEqual(before, after)
 
+class EtriggerTest(DebugTest):
+    def setup(self):
+        DebugTest.setup(self)
+        self.gdb.b("main:start")
+        self.gdb.c()
+        self.gdb.b("handle_trap")
+
+    def test(self):
+        # Set trigger on Load access fault
+        self.gdb.command("monitor riscv etrigger set m 0x20")
+        # Set fox to a null pointer so we'll get a load access exception later.
+        self.gdb.p("fox=(char*)0")
+        output = self.gdb.c()
+        # We should not be at handle_trap
+        assertNotIn("handle_trap", output)
+        # Instead, we should have hit a breakpoint at trap_entry, which is the
+        # actual exception handler.
+        assertIn("breakpoint", output)
+        assertIn("trap_entry", self.gdb.where())
 
 parsed = None
 def main():
