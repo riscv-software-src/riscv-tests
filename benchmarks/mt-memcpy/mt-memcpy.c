@@ -43,26 +43,26 @@
 void thread_entry(int cid, int nc)
 {
    // static allocates data in the binary, which is visible to both threads
-   static int results_data[DATA_SIZE];
+   static long results_data[DATA_SIZE];
 
    size_t block = (DATA_SIZE / nc) + 1;
    size_t n = (nc == cid + 1) ? DATA_SIZE - cid * block : block;
 
 
-   // First do out-of-place vvadd
+   // First do out-of-place memcpy
 #if PREALLOCATE
    barrier(nc);
-   memcpy(results_data + block * cid, input_data + block * cid, sizeof(int) * n);
+   memcpy(results_data + block * cid, input_data + block * cid, sizeof(long) * n);
 #endif
 
    barrier(nc);
-   stats(memcpy(results_data + block * cid, input_data + block * cid, sizeof(int) * n); barrier(nc), DATA_SIZE);
-  /* barrier(nc); */
-   /* if(cid == 0) { */
-   /*   int res = verify(DATA_SIZE, results_data, input_data); */
-   /*   if(res) exit(res); */
-   /* } */
+   stats(memcpy(results_data + block * cid, input_data + block * cid, sizeof(long) * n); barrier(nc), DATA_SIZE);
+   barrier(nc);
 
+   if (cid == 0) {
+     int res = verify(DATA_SIZE * sizeof(long) / sizeof(int), (int*) results_data, (int*) input_data);
+     if (res) exit(res);
+   }
    barrier(nc);
    exit(0);
 }

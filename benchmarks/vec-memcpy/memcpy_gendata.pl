@@ -31,7 +31,7 @@ sub usage()
   print "\n";
   print " Options:\n";
   print "  --help  print this message\n";
-  print "  --size  size of input data [6000]\n";
+  print "  --size  size of input data [1000]\n";
   print "  --seed  random seed [1]\n";
   print "$usageMsg";
 
@@ -42,7 +42,7 @@ sub processCommandLine()
 {
 
   $opts{"help"} = 0;
-  $opts{"size"} = 6000;
+  $opts{"size"} = 1000;
   $opts{"seed"} = 1;
   Getopt::Long::GetOptions( \%opts, 'help|?', 'size:i', 'seed:i' ) or usage();
   $opts{"help"} and usage();
@@ -61,7 +61,7 @@ sub printArray
   my $numCols = 20;
   my $arrayLen = scalar(@{$arrayRef});
 
-  print "long ".$arrayName."[DATA_SIZE] = \n";
+  print "int ".$arrayName."[DATA_SIZE] = \n";
   print "{\n";
 
   if ( $arrayLen <= $numCols ) {
