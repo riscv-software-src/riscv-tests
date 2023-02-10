@@ -4,7 +4,7 @@
 // Memcpy benchmark
 //--------------------------------------------------------------------------
 //
-// This benchmark tests the memcpy implementation in syscalls.c.
+// This benchmark tests a vectorized memcpy implementation.
 // The input data (and reference data) should be generated using
 // the memcpy_gendata.pl perl script and dumped to a file named
 // dataset1.h.
