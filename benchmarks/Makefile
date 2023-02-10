@@ -33,6 +33,7 @@ bmarks = \
 	mt-memcpy \
 	pmp \
 	vec-memcpy \
+	vec-daxpy \
 
 #--------------------------------------------------------------------
 # Build rules
