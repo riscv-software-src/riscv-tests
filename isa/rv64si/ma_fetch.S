@@ -212,7 +212,7 @@ stvec_handler:
   bne a0, t0, fail
 1:
 
-  addi a1, a1, 12
+  addi a1, a1, 8
   csrw sepc, a1
   sret
 
