@@ -35,6 +35,7 @@ bmarks = \
 	vec-memcpy \
 	vec-daxpy \
 	vec-sgemm \
+	vec-strcmp \
 
 #--------------------------------------------------------------------
 # Build rules
