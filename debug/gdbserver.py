@@ -1961,6 +1961,7 @@ class EtriggerTest(DebugTest):
         self.gdb.b("handle_trap")
 
     def test(self):
+        self.gdb.command(f"monitor targets {self.hart.id}")
         # Set trigger on Load access fault
         self.gdb.command("monitor riscv etrigger set m 0x20")
         # Set fox to a null pointer so we'll get a load access exception later.
