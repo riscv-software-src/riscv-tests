@@ -21,14 +21,22 @@ RVTEST_CODE_BEGIN
   TEST_INT_FP_OP_H( 3,  fcvt.h.w,                  -2.0, -2);
 
   TEST_INT_FP_OP_H( 4, fcvt.h.wu,                   2.0,  2);
+  #ifdef __GNU__
   TEST_INT_FP_OP_H( 5, fcvt.h.wu,               0h:7c00, -2);
+  #else
+  TEST_INT_FP_OP_H( 5, fcvt.h.wu,                 31744, -2);
+  #endif
 
 #if __riscv_xlen >= 64
   TEST_INT_FP_OP_H( 6,  fcvt.h.l,                   2.0,  2);
   TEST_INT_FP_OP_H( 7,  fcvt.h.l,                  -2.0, -2);
 
   TEST_INT_FP_OP_H( 8, fcvt.h.lu,                   2.0,  2);
+  #ifdef __GNU__
   TEST_INT_FP_OP_H( 9, fcvt.h.lu,               0h:7c00, -2);
+  #else
+  TEST_INT_FP_OP_H( 9, fcvt.h.wu,                 31744, -2);
+  #endif
 #endif
   
   TEST_FCVT_H_S( 10, -1.5, -1.5)

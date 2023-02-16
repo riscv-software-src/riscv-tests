@@ -22,8 +22,13 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_H( 5,  fcvt.w.h, 0x01,          0,     0.9, rtz);
   TEST_FP_INT_OP_H( 6,  fcvt.w.h, 0x00,          1,     1.0, rtz);
   TEST_FP_INT_OP_H( 7,  fcvt.w.h, 0x01,          1,     1.1, rtz);
+  #ifdef __GNU__
   TEST_FP_INT_OP_H( 8,  fcvt.w.h, 0x00,      -2054, 0h:e803, rtz);
   TEST_FP_INT_OP_H( 9,  fcvt.w.h, 0x00,       2054, 0h:6803, rtz);
+  #else
+  TEST_FP_INT_OP_H( 8,  fcvt.w.h, 0x00,      -2054,   59395, rtz);
+  TEST_FP_INT_OP_H( 9,  fcvt.w.h, 0x00,       2054,   26627, rtz);
+  #endif  
 
   TEST_FP_INT_OP_H(12, fcvt.wu.h, 0x10,          0,    -3.0, rtz);
   TEST_FP_INT_OP_H(13, fcvt.wu.h, 0x10,          0,    -1.0, rtz);
@@ -31,8 +36,13 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_H(15, fcvt.wu.h, 0x01,          0,     0.9, rtz);
   TEST_FP_INT_OP_H(16, fcvt.wu.h, 0x00,          1,     1.0, rtz);
   TEST_FP_INT_OP_H(17, fcvt.wu.h, 0x01,          1,     1.1, rtz);
+  #ifdef __GNU__
   TEST_FP_INT_OP_H(18, fcvt.wu.h, 0x10,          0, 0h:e803, rtz);
   TEST_FP_INT_OP_H(19, fcvt.wu.h, 0x00,       2054, 0h:6803, rtz);
+  #else
+  TEST_FP_INT_OP_H(18, fcvt.wu.h, 0x10,          0,   59395, rtz);
+  TEST_FP_INT_OP_H(19, fcvt.wu.h, 0x00,       2054,   26627, rtz);
+  #endif
 
 #if __riscv_xlen >= 64
   TEST_FP_INT_OP_H(22,  fcvt.l.h, 0x01,         -1,    -1.1, rtz);
@@ -48,7 +58,11 @@ RVTEST_CODE_BEGIN
   TEST_FP_INT_OP_H(35, fcvt.lu.h, 0x01,          0,     0.9, rtz);
   TEST_FP_INT_OP_H(36, fcvt.lu.h, 0x00,          1,     1.0, rtz);
   TEST_FP_INT_OP_H(37, fcvt.lu.h, 0x01,          1,     1.1, rtz);
+  #ifdef __GNU__
   TEST_FP_INT_OP_H(38, fcvt.lu.h, 0x10,          0, 0h:e483, rtz);
+  #else
+  TEST_FP_INT_OP_H(38, fcvt.lu.h, 0x10,          0,   58499, rtz);
+  #endif
 #endif
 
   # test negative NaN, negative infinity conversion

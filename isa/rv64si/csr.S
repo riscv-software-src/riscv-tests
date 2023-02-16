@@ -131,7 +131,7 @@ finish:
   TEST_PASSFAIL
 
   .align 2
-  .global stvec_handler
+  .weak stvec_handler
 stvec_handler:
   # Trapping on tests 13-15 is good news.
   li t0, 13
