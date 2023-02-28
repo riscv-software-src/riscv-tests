@@ -1180,9 +1180,9 @@ class BaseTest:
             traceback.print_exc(file=sys.stdout)
             try:
                 self.postMortem()
-            except Exception as e:  # pylint: disable=broad-except
+            except Exception as ex:  # pylint: disable=broad-except
                 header("postMortem Exception")
-                print(e)
+                print(ex)
                 traceback.print_exc(file=sys.stdout)
             return result
 
