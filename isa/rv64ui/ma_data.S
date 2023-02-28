@@ -272,6 +272,7 @@ RVTEST_CODE_BEGIN
 
 /* Check that a misaligned store writes the correct value, checked by a wider load. */
 
+#if __riscv_xlen == 64
 # within quadword
   MISMATCHED_STORE_TEST(136, sb, lh,  s0, 1, 1, 0x98, SEXT(0xb898, 16))
   MISMATCHED_STORE_TEST(137, sb, lhu, s0, 2, 1, 0x99, 0x9998)
@@ -279,7 +280,6 @@ RVTEST_CODE_BEGIN
   MISMATCHED_STORE_TEST(139, sh, lw,  s0, 3, 2, 0x9d9c, SEXT(0xd09d9c9b, 32))
   MISMATCHED_STORE_TEST(140, sh, lw,  s0, 5, 3, 0x9f9e, SEXT(0x9f9e9d9c, 32))
 
-#if __riscv_xlen == 64
   MISMATCHED_STORE_TEST(141, sb, lwu, s0, 2, 1, 0xa0, 0x9d9ca09a)
   MISMATCHED_STORE_TEST(142, sh, lwu, s0, 3, 2, 0xa2a1, 0x9ea2a1a0)
   MISMATCHED_STORE_TEST(143, sh, lwu, s0, 5, 3, 0xa4a3, 0xa4a3a2a1)
@@ -291,7 +291,6 @@ RVTEST_CODE_BEGIN
   MISMATCHED_STORE_TEST(148, sw, ld, s0, 7,  5, 0xb1b0afae, 0xe5e4b1b0afaeabaa)
   MISMATCHED_STORE_TEST(149, sw, ld, s0, 9,  6, 0xb5b4b3b2, 0xe6b5b4b3b2afaeab)
   MISMATCHED_STORE_TEST(150, sw, ld, s0, 11, 7, 0xb9b8b7b6, 0xb9b8b7b6b3b2afae)
-#endif
 
 # octword crossing
   MISMATCHED_STORE_TEST(151, sb, lh,  s0, 31, 31, 0xba, SEXT(0x31ba, 16))
@@ -300,7 +299,6 @@ RVTEST_CODE_BEGIN
   MISMATCHED_STORE_TEST(154, sh, lw,  s0, 31, 30, 0xbfbe, SEXT(0x32bfbebc, 32))
   MISMATCHED_STORE_TEST(155, sh, lw,  s0, 32, 30, 0xc1c0, SEXT(0xc1c0bebc, 32))
 
-#if __riscv_xlen == 64
   MISMATCHED_STORE_TEST(156, sb, lwu, s0, 32, 31, 0xc2, 0x33c1c2be)
   MISMATCHED_STORE_TEST(157, sh, lwu, s0, 31, 29, 0xc4c3, 0xc4c3bc20)
   MISMATCHED_STORE_TEST(158, sh, lwu, s0, 32, 30, 0xc6c5, 0xc6c5c3bc)
@@ -312,7 +310,6 @@ RVTEST_CODE_BEGIN
   MISMATCHED_STORE_TEST(163, sw, ld, s0, 31, 29, 0xd3d2d1d0, 0x35cfd3d2d1d0bc20)
   MISMATCHED_STORE_TEST(164, sw, ld, s0, 30, 30, 0xd7d6d5d4, 0x3635cfd3d7d6d5d4)
   MISMATCHED_STORE_TEST(165, sw, ld, s0, 29, 31, 0xdbdad9d8, 0x373635cfd3d7dbda)
-#endif
 
 # cacheline crossing
   MISMATCHED_STORE_TEST(166, sb, lh,  s0, 63, 63, 0xdc, SEXT(0x91dc, 16))
@@ -321,7 +318,6 @@ RVTEST_CODE_BEGIN
   MISMATCHED_STORE_TEST(169, sh, lw,  s0, 63, 62, 0xe1e0, SEXT(0x92e1e0de, 32))
   MISMATCHED_STORE_TEST(170, sh, lw,  s0, 64, 62, 0xe3e2, SEXT(0xe3e2e0de, 32))
 
-#if __riscv_xlen == 64
   MISMATCHED_STORE_TEST(171, sb, lwu, s0, 64, 63, 0xe4, 0x93e3e4e0)
   MISMATCHED_STORE_TEST(172, sh, lwu, s0, 63, 61, 0xe6e5, 0xe6e5de80)
   MISMATCHED_STORE_TEST(173, sh, lwu, s0, 64, 62, 0xe8e7, 0xe8e7e5de)
