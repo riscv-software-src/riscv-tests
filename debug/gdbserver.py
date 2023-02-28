@@ -1974,6 +1974,33 @@ class EtriggerTest(DebugTest):
         assertIn("breakpoint", output)
         assertIn("trap_entry", self.gdb.where())
 
+class IcountTest(DebugTest):
+    compile_args = ("programs/infinite_loop.S", "-DMULTICORE")
+
+    def setup(self):
+        DebugTest.setup(self)
+        self.gdb.b("main")
+        self.gdb.c()
+        self.gdb.command(f"monitor targets {self.hart.id}")
+
+    def test(self):
+        # Execute 2 instructions.
+        output = self.gdb.command("monitor riscv icount set m 2")
+        assertNotIn("Failed", output)
+        output = self.gdb.c()
+        assertIn("breakpoint", output)
+        main_post_csrr = self.gdb.p("&main_post_csrr")
+        assertEqual(self.gdb.p("$pc"), main_post_csrr)
+
+        self.gdb.command("monitor riscv icount clear")
+
+        # Execute 1 instruction.
+        output = self.gdb.command("monitor riscv icount set m 1")
+        assertNotIn("Failed", output)
+        output = self.gdb.c()
+        assertIn("breakpoint", output)
+        assertEqual(self.gdb.p("$pc"), main_post_csrr + 4)
+
 class ItriggerTest(GdbSingleHartTest):
     compile_args = ("programs/interrupt.c",)
 
