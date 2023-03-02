@@ -1975,7 +1975,7 @@ class EtriggerTest(DebugTest):
         assertIn("trap_entry", self.gdb.where())
 
 class IcountTest(DebugTest):
-    compile_args = ("programs/infinite_loop.S", "-DMULTICORE")
+    compile_args = ("programs/infinite_loop.S", )
 
     def setup(self):
         DebugTest.setup(self)
