@@ -31,6 +31,16 @@ RVTEST_CODE_BEGIN
 
   TEST_CASE(5, a5, 0xffffffffffffffff, lw a5, 0(a3))
 
+  TEST_CASE(6, a4, 1, \
+    li a0, 0x0000000000000001; \
+    li a1, 0x0000000080000000; \
+    la a3, amo_operand; \
+    sw a0, 0(a3); \
+    amomin.w	a4, a1, 0(a3); \
+  )
+
+  TEST_CASE(7, a5, 0xffffffff80000000, lw a5, 0(a3))
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
