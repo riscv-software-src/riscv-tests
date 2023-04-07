@@ -83,12 +83,15 @@ TEST_CASE( 5, a0, 0, \
 )
 
 # make sure that sc-after-successful-sc fails.
-TEST_CASE( 6, a1, 1, \
+TEST_CASE( 6, a1, 2, \
   la a0, foo; \
 1:lr.w a1, (a0); \
   sc.w a1, x0, (a0); \
   bnez a1, 1b; \
-  sc.w a1, x0, (a0)
+  sc.w a1, x0, (a0); \
+  /* make sure that sc-after-failed-sc fails, too */ \
+  sc.w a2, x0, (a0); \
+  add a1, a1, a2
 )
 
 TEST_PASSFAIL
