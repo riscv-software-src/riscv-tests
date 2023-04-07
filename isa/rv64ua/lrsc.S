@@ -97,7 +97,7 @@ TEST_CASE( 7, a1, 1, \
   addi a3, a0, 8; \
 1:lr.w a1, (a0); \
   sc.w a1, x0, (a3); \
-  bnez a1, 1b; \
+  beqz a1, 1b; \
   sc.w a1, x0, (a0)
 )
 
