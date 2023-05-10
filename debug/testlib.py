@@ -9,7 +9,6 @@ import sys
 import tempfile
 import time
 import traceback
-import pipes
 
 import pexpect
 
@@ -119,7 +118,6 @@ class Spike:
 
     # pylint: disable=too-many-branches
     def command(self, target, halted, timeout, with_jtag_gdb):
-        # pylint: disable=no-self-use
         if target.sim_cmd:
             cmd = shlex.split(target.sim_cmd)
         else:
@@ -358,7 +356,7 @@ class Openocd:
         parts = [
             " ".join(f"{key}={os.environ[key]}" for key in env_entries),
             " ".join(f"{k}={v}" for k, v in extra_env.items()),
-            " ".join(map(pipes.quote, cmd))
+            " ".join(map(shlex.quote, cmd))
         ]
         logfile.write(("+ " + " ".join(parts) + "\n").encode())
         logfile.flush()
@@ -509,7 +507,10 @@ def tokenize(text):
                 (r"0x[\da-fA-F]+", lambda m: int(m.group(0)[2:], 16)),
                 (r"-?\d*\.\d+(e[-+]\d+)?", lambda m: float(m.group(0))),
                 (r"-?\d+", lambda m: int(m.group(0))),
-                (r"-?nan\(0x[a-f0-9]+\)", lambda m: float("nan")),
+                # We want something that can compare equal, and float(nan) does
+                # not do that. So use something else that isn't good for math,
+                # but we don't actually do math with NaN.
+                (r"-?nan\(0x[a-f0-9]+\)", lambda m: "nan"),
                 (r"<repeats (\d+) times>", lambda m: Repeat(int(m.group(1)))),
                 (r"Could not fetch register \"(\w+)\"; (.*)$",
                     lambda m: CouldNotFetch(m.group(1), m.group(2))),
@@ -669,8 +670,8 @@ class Gdb:
                 self.command("disconnect")
 
     def __del__(self):
-        for child in self.children:
-            del child
+        for i, _ in enumerate(self.children):
+            del self.children[i]
 
     def one_hart_per_gdb(self):
         return all(h['solo'] for h in self.harts.values())
@@ -1100,13 +1101,11 @@ class BaseTest:
     def early_applicable(self):
         """Return a false value if the test has determined it cannot run
         without ever needing to talk to the target or server."""
-        # pylint: disable=no-self-use
         return True
 
     def freertos(self):
         """Return a true value if the test is running a FreeRTOS binary where
         the debugger should expose FreeRTOS threads to gdb."""
-        # pylint: disable=no-self-use
         return False
 
     def setup(self):
