@@ -634,18 +634,18 @@ def MCONTROL_DMODE(xlen):
 def MCONTROL_MASKMAX(xlen):
     return 0x3<<((xlen)-11)
 
-MCONTROL_SELECT = (1<<19)
-MCONTROL_TIMING = (1<<18)
-MCONTROL_ACTION = (0x3f<<12)
-MCONTROL_CHAIN = (1<<11)
-MCONTROL_MATCH = (0xf<<7)
-MCONTROL_M = (1<<6)
-MCONTROL_H = (1<<5)
-MCONTROL_S = (1<<4)
-MCONTROL_U = (1<<3)
-MCONTROL_EXECUTE = (1<<2)
-MCONTROL_STORE = (1<<1)
-MCONTROL_LOAD = (1<<0)
+MCONTROL_SELECT = 1<<19
+MCONTROL_TIMING = 1<<18
+MCONTROL_ACTION = 0x3f<<12
+MCONTROL_CHAIN = 1<<11
+MCONTROL_MATCH = 0xf<<7
+MCONTROL_M = 1<<6
+MCONTROL_H = 1<<5
+MCONTROL_S = 1<<4
+MCONTROL_U = 1<<3
+MCONTROL_EXECUTE = 1<<2
+MCONTROL_STORE = 1<<1
+MCONTROL_LOAD = 1<<0
 
 MCONTROL_TYPE_NONE = 0
 MCONTROL_TYPE_MATCH = 2
@@ -801,6 +801,9 @@ class UserInterrupt(DebugTest):
         self.gdb.p("i=0")
         self.exit()
 
+class GdbServerError(Exception):
+    pass
+
 class MemorySampleTest(DebugTest):
     def early_applicable(self):
         return self.target.support_memory_sampling
@@ -842,7 +845,7 @@ class MemorySampleTest(DebugTest):
             samples_per_second = 1000 * end[1] / (end[0] - first_timestamp)
             print(f"{samples_per_second} samples/second")
         else:
-            raise Exception("No samples collected.")
+            raise GdbServerError("No samples collected.")
 
     @staticmethod
     def check_samples_equal(raw_samples, check_addr, check_value):

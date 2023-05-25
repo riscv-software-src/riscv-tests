@@ -256,6 +256,9 @@ def add_target_options(parser):
             "the same time. This may make it harder to debug a failure if it "
             "does occur.")
 
+class TargetsException(Exception):
+    pass
+
 def target(parsed):
     directory = os.path.dirname(parsed.target)
     filename = os.path.basename(parsed.target)
@@ -278,7 +281,7 @@ def target(parsed):
             if h.xlen == 0:
                 h.xlen = parsed.xlen
             elif h.xlen != parsed.xlen:
-                raise Exception("The target hart specified an XLEN of "
+                raise TargetsException("The target hart specified an XLEN of "
                         f"{h.xlen}, but the command line specified an XLEN of "
                         f"{parsed.xlen}. They must match.")
 
