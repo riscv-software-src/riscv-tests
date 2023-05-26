@@ -18,6 +18,9 @@ real_stdout = sys.stdout
 # Note that gdb comes with its own testsuite. I was unable to figure out how to
 # run that testsuite against the spike simulator.
 
+class TestLibError(Exception):
+    pass
+
 def find_file(path):
     for directory in (os.getcwd(), os.path.dirname(__file__)):
         fullpath = os.path.join(directory, path)
@@ -113,7 +116,7 @@ class Spike:
                 time.sleep(0.11)
             if not self.port:
                 print_log(logname)
-                raise Exception("Didn't get spike message about bitbang "
+                raise TestLibError("Didn't get spike message about bitbang "
                         "connection")
 
     # pylint: disable=too-many-branches
@@ -220,8 +223,9 @@ class MultiSpike:
             time.sleep(0.11)
         if not self.port:
             print_log(self.lognames[-1])
-            raise Exception("Didn't get daisy chain message about which port "
-                            "it's listening on.")
+            raise TestLibError(
+                    "Didn't get daisy chain message about which port "
+                    "it's listening on.")
 
         os.environ['REMOTE_BITBANG_HOST'] = 'localhost'
         os.environ['REMOTE_BITBANG_PORT'] = str(self.port)
@@ -281,7 +285,7 @@ class VcsSim:
                     os.environ['JTAG_VPI_PORT'] = str(self.port)
 
                 if (time.time() - start) > timeout:
-                    raise Exception(
+                    raise TestLibError(
                         "Timed out waiting for VCS to listen for JTAG vpi")
 
     def __del__(self):
@@ -382,7 +386,7 @@ class Openocd:
                     line = fd.readline()
                     if not line:
                         if not process.poll() is None:
-                            raise Exception("OpenOCD exited early.")
+                            raise TestLibError("OpenOCD exited early.")
                         time.sleep(0.1)
                         continue
 
@@ -398,7 +402,7 @@ class Openocd:
                         messaged = True
                         print("Waiting for OpenOCD to start...")
                     if (time.time() - start) > self.timeout:
-                        raise Exception("Timed out waiting for OpenOCD to "
+                        raise TestLibError("Timed out waiting for OpenOCD to "
                                 "listen for gdb")
 
             if self.debug_openocd:
@@ -533,7 +537,7 @@ def tokenize(text):
                     yield token
                 break
         else:
-            raise Exception(repr(text[index:]))
+            raise TestLibError(repr(text[index:]))
 
 def parse_dict(tokens):
     assert tokens[0] == "{"
@@ -579,13 +583,13 @@ def parse_tokens(tokens):
         return parse_dict_or_list(tokens)
     if isinstance(tokens[0], str):
         return tokens.pop(0)
-    raise Exception(f"Unsupported tokens: {tokens!r}")
+    raise TestLibError(f"Unsupported tokens: {tokens!r}")
 
 def parse_rhs(text):
     tokens = list(tokenize(text))
     result = parse_tokens(tokens)
     if tokens:
-        raise Exception(f"Unexpected input: {tokens!r}")
+        raise TestLibError(f"Unexpected input: {tokens!r}")
     return result
 
 class Gdb:
