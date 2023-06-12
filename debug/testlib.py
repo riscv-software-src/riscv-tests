@@ -39,10 +39,7 @@ class CompileError(Exception):
 
 gcc_cmd = None
 def compile(args): # pylint: disable=redefined-builtin
-    if gcc_cmd:
-        cmd = [gcc_cmd]
-    else:
-        cmd = ["riscv64-unknown-elf-gcc"]
+    cmd = [gcc_cmd]
     cmd.append("-g")
     for arg in args:
         found = find_file(arg)
@@ -607,7 +604,7 @@ class Gdb:
 
         self.target = target
         self.ports = ports
-        self.cmd = cmd or "riscv64-unknown-elf-gdb"
+        self.cmd = cmd
         self.timeout = timeout
         self.binaries = binaries or [None] * len(ports)
 
@@ -1059,9 +1056,15 @@ def add_test_run_options(parser):
     parser.add_argument("test", nargs='*',
             help="Run only tests that are named here.")
     parser.add_argument("--gcc",
-            help="The command to use to start gcc.")
+            help="The command to use to start gcc. Defaults to the contents of "
+                    "RISCV_TESTS_DEBUG_GCC, or riscv64-unknown-elf-gcc.",
+            default=os.environ.get("RISCV_TESTS_DEBUG_GCC",
+                                   "riscv64-unknown-elf-gcc"))
     parser.add_argument("--gdb",
-            help="The command to use to start gdb.")
+            help="The command to use to start gdb. Defaults to the contents of "
+                    "RISCV_TESTS_DEBUG_GDB, or riscv64-unknown-elf-gdb.",
+            default=os.environ.get("RISCV_TESTS_DEBUG_GDB",
+                                   "riscv64-unknown-elf-gdb"))
     parser.add_argument("--misaval",
             help="Don't run ExamineTarget, just assume the misa value which is "
             "specified.")
