@@ -1,0 +1,17 @@
+# This is an example file showing the exclusion list format.
+# It can be passed to gdb_server.py using the --exclude-tests argument.
+
+
+# Tests excluded for all targets
+all:
+  - SimpleF18Test
+
+# Tests excluded for the "spike32" target only
+spike32:
+  - MemTest32
+  - PrivRw
+  - Sv32Test
+
+# Tests excluded for the "spike64" target only
+spike64:
+  - UserInterrupt

@@ -11,6 +11,7 @@ import time
 import traceback
 
 import pexpect
+import yaml
 
 print_log_names = False
 real_stdout = sys.stdout
@@ -947,6 +948,32 @@ class PrivateState:
     def __exit__(self, _type, _value, _traceback):
         self.gdb.pop_state()
 
+
+def load_excluded_tests(excluded_tests_file, target_name):
+    result = []
+    if excluded_tests_file is None or len(excluded_tests_file) == 0:
+        return result
+
+    target_excludes = {}
+    with open(excluded_tests_file) as file:
+        raw_data = yaml.safe_load(file)
+        for (target, test_list) in raw_data.items():
+            if not isinstance(test_list, list):
+                raise ValueError(f"Target {target!r} does not contain a test list", excluded_tests_file, test_list)
+            if not all(isinstance(s, str) for s in test_list):
+                raise ValueError(f"Not every element in the target test list {target!r} is a string",
+                                 excluded_tests_file, test_list)
+
+        target_excludes.update(raw_data)
+
+    if target_name in target_excludes:
+        result += target_excludes[target_name]
+    if "all" in target_excludes:
+        result += target_excludes["all"]
+
+    return result
+
+
 def run_all_tests(module, target, parsed):
     todo = []
     for name in dir(module):
@@ -984,6 +1011,9 @@ def run_all_tests(module, target, parsed):
         elif not examine_added:
             todo.insert(0, ("ExamineTarget", ExamineTarget, None))
             examine_added = True
+
+    excluded_tests = load_excluded_tests(parsed.exclude_tests, target.name)
+    target.skip_tests += excluded_tests
 
     results, count = run_tests(parsed, target, todo)
 
@@ -1065,6 +1095,8 @@ def add_test_run_options(parser):
     parser.add_argument("--misaval",
             help="Don't run ExamineTarget, just assume the misa value which is "
             "specified.")
+    parser.add_argument("--exclude-tests",
+            help="Specify yaml file listing tests to exclude")
 
 def header(title, dash='-', length=78):
     if title:

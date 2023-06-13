@@ -23,7 +23,8 @@ run.%:
 		--isolate \
 		--print-failures \
 		--sim_cmd $(RISCV)/bin/$(RISCV_SIM) \
-		--server_cmd $(RISCV)/bin/openocd
+		--server_cmd $(RISCV)/bin/openocd \
+		$(if $(EXCLUDE_TESTS),--exclude-tests $(EXCLUDE_TESTS))
 
 # Target to check all the multicore options.
 multi-tests: spike32-2 spike32-2-hwthread
