@@ -1905,8 +1905,20 @@ class FreeRtosTest(GdbTest):
         # thread.
         self.gdb.threads()
 
-        bp = self.gdb.b("prvQueueReceiveTask")
+        # fake 'Current Execution' thread is created.
+        threads = self.gdb.threads()
+        assertEqual(len(threads), 1)
+        assertIn("Current Execution", threads[0])
 
+        bp = self.gdb.b("vTaskStartScheduler")
+        self.gdb.c()
+        self.gdb.command(f"delete {bp}")
+        # 'Current Execution' is still there before the scheduler has been started.
+        # Now there are 3 threads: Current Execution, Rx, Tx.
+        threads = self.gdb.threads()
+        assertEqual(len(threads), 3)
+
+        bp = self.gdb.b("prvQueueReceiveTask")
         self.gdb.c()
         self.gdb.command(f"delete {bp}")
 
@@ -1914,10 +1926,10 @@ class FreeRtosTest(GdbTest):
         self.gdb.c()
         self.gdb.command(f"delete {bp}")
 
-        # Now we know for sure at least 2 threads have executed.
-
+        # no more fake 'Current Execution' thread.
+        # Now there are 4 threads: Rx, Tx, IDLE, Tmr Svc.
         threads = self.gdb.threads()
-        assertGreater(len(threads), 1)
+        assertEqual(len(threads), 4)
 
         values = {}
         for thread in threads:
