@@ -1,7 +1,6 @@
 import collections
 import os
 import os.path
-import random
 import re
 import shlex
 import subprocess
@@ -1136,7 +1135,9 @@ class BaseTest:
         if hart:
             self.hart = hart
         else:
+            import random   # pylint: disable=import-outside-toplevel
             self.hart = random.choice(target.harts)
+            #self.hart = target.harts[-1]
         self.server = None
         self.target_process = None
         self.binary = None
