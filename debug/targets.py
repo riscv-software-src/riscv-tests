@@ -129,6 +129,9 @@ class Target:
     # in https://github.com/FreeRTOS/FreeRTOS.
     freertos_binary = None
 
+    # Supports controlling hart availability through DMCUSTOM.
+    support_unavailable_control = False
+
     # Internal variables:
     directory = None
     temporary_files = []

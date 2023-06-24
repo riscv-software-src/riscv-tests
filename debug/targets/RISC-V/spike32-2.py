@@ -9,6 +9,7 @@ class spike32_2(targets.Target):
     openocd_config_path = "spike-2.cfg"
     timeout_sec = 30
     implements_custom_test = True
+    support_unavailable_control = True
 
     def create(self):
         return testlib.Spike(self, isa="RV32IMAFC", progbufsize=0, dmi_rti=4,
