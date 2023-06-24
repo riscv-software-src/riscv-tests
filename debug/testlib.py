@@ -1309,6 +1309,7 @@ class GdbTest(BaseTest):
                     self.gdb.p(f"$pc={symbol}")
 
         self.gdb.select_hart(self.hart)
+        self.gdb.command(f"monitor targets {self.hart.id}")
 
     def disable_pmp(self):
         # Disable physical memory protection by allowing U mode access to all

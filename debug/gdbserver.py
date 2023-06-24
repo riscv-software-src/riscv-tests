@@ -1989,7 +1989,6 @@ class EtriggerTest(DebugTest):
         self.gdb.b("handle_trap")
 
     def test(self):
-        self.gdb.command(f"monitor targets {self.hart.id}")
         # Set trigger on Load access fault
         self.gdb.command("monitor riscv etrigger set m 0x20")
         # Set fox to a null pointer so we'll get a load access exception later.
@@ -2009,7 +2008,6 @@ class IcountTest(DebugTest):
         DebugTest.setup(self)
         self.gdb.b("main")
         self.gdb.c()
-        self.gdb.command(f"monitor targets {self.hart.id}")
 
     def test(self):
         # Execute 2 instructions.
@@ -2039,7 +2037,6 @@ class ItriggerTest(GdbSingleHartTest):
         self.gdb.load()
 
     def test(self):
-        self.gdb.command(f"monitor targets {self.hart.id}")
         output = self.gdb.command("monitor riscv itrigger set 0x80")
         assertIn("Doesn't make sense", output)
         output = self.gdb.command("monitor riscv itrigger set m 0")
