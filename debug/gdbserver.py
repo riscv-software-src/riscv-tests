@@ -1818,7 +1818,7 @@ class CeaseMultiTest(GdbTest):
 
     def setup(self):
         ProgramTest.setup(self)
-        self.parkOtherHarts("precease")
+        self.parkOtherHarts()
 
     def test(self):
         # Run all the way to the infinite loop in exit
