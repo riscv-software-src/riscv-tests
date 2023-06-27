@@ -952,14 +952,17 @@ def load_excluded_tests(excluded_tests_file, target_name):
         return result
 
     target_excludes = {}
-    with open(excluded_tests_file) as file:
+    with open(excluded_tests_file, encoding="utf-8") as file:
         raw_data = yaml.safe_load(file)
         for (target, test_list) in raw_data.items():
             if not isinstance(test_list, list):
-                raise ValueError(f"Target {target!r} does not contain a test list", excluded_tests_file, test_list)
+                raise ValueError(
+                        f"Target {target!r} does not contain a test list",
+                        excluded_tests_file, test_list)
             if not all(isinstance(s, str) for s in test_list):
-                raise ValueError(f"Not every element in the target test list {target!r} is a string",
-                                 excluded_tests_file, test_list)
+                raise ValueError(
+                        f"Not every element in the target test list {target!r} "
+                        "is a string", excluded_tests_file, test_list)
 
         target_excludes.update(raw_data)
 
