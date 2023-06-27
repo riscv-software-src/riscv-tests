@@ -1,0 +1,17 @@
+on: pull_request
+
+name: Check Code Style (checkpatch)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+      - name: Install required packages (pip3)
+        run: |
+            pip3 install pylint
+      - name: Run pylint
+        run: make -C debug pylint
