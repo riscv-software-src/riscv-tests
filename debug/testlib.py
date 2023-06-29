@@ -997,6 +997,8 @@ def run_all_tests(module, target, parsed):
     gdb_cmd = parsed.gdb
     global gcc_cmd  # pylint: disable=global-statement
     gcc_cmd = parsed.gcc
+    global target_timeout  # pylint: disable=global-statement
+    target_timeout = parsed.target_timeout
 
     examine_added = False
     for hart in target.harts:
@@ -1100,6 +1102,8 @@ def add_test_run_options(parser):
             "specified.")
     parser.add_argument("--exclude-tests",
             help="Specify yaml file listing tests to exclude")
+    parser.add_argument("--target-timeout",
+            help="Override the base target timeout.", default=None, type=int)
 
 def header(title, dash='-', length=78):
     if title:
@@ -1242,6 +1246,7 @@ class BaseTest:
         return result
 
 gdb_cmd = None
+target_timeout = None
 class GdbTest(BaseTest):
     def __init__(self, target, hart=None):
         BaseTest.__init__(self, target, hart=hart)
@@ -1257,7 +1262,8 @@ class GdbTest(BaseTest):
         BaseTest.classSetup(self)
 
         self.gdb = Gdb(self.target, self.server.gdb_ports, cmd=gdb_cmd,
-                       timeout=self.target.timeout_sec, binaries=self.binaries)
+                       timeout=target_timeout or self.target.timeout_sec,
+                       binaries=self.binaries)
 
         self.logs += self.gdb.lognames()
         self.gdb.connect()
