@@ -1913,8 +1913,8 @@ class FreeRtosTest(GdbTest):
         bp = self.gdb.b("vTaskStartScheduler")
         self.gdb.c()
         self.gdb.command(f"delete {bp}")
-        # 'Current Execution' is still there before the scheduler has been started.
-        # Now there are 3 threads: Current Execution, Rx, Tx.
+        # 'Current Execution' is still there before the scheduler has been
+        # started.  Now there are 3 threads: Current Execution, Rx, Tx.
         threads = self.gdb.threads()
         assertEqual(len(threads), 3)
 
