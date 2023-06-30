@@ -196,7 +196,7 @@ class Target:
                 "-o", binary_name]
 
         if hart.extensionSupported('e'):
-            args.append("-march=rv32e")
+            args.append("-march=rv32e_zicsr")
             args.append("-mabi=ilp32e")
             args.append("-DRV32E")
         else:
@@ -206,7 +206,7 @@ class Target:
                     march += letter
             if hart.extensionSupported("v") and self.compiler_supports_v:
                 march += "v"
-            args.append(f"-march={march}")
+            args.append(f"-march={march}_zicsr")
             if hart.xlen == 32:
                 args.append("-mabi=ilp32")
             else:
