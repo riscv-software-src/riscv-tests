@@ -1,4 +1,3 @@
-RISCV_SIM ?= spike
 XLEN ?= 64
 
 src_dir ?= .
@@ -22,8 +21,6 @@ run.%:
 		$(word 3, $(subst ., ,$@)) \
 		--isolate \
 		--print-failures \
-		--sim_cmd $(RISCV)/bin/$(RISCV_SIM) \
-		--server_cmd $(RISCV)/bin/openocd \
 		$(if $(EXCLUDE_TESTS),--exclude-tests $(EXCLUDE_TESTS))
 
 # Target to check all the multicore options.
