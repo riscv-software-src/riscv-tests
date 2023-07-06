@@ -1917,6 +1917,33 @@ class UnavailableRunTest(ProgramTest):
         except CouldNotReadRegisters:
             pass
 
+class UnavailableCycleTest(ProgramTest):
+    """Test that harts can be debugged after becoming temporarily
+    unavailable."""
+    def early_applicable(self):
+        return self.target.support_unavailable_control
+
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+
+        self.gdb.p("$pc=loop_forever")
+        self.gdb.c(wait=False)
+        self.server.wait_until_running([self.hart])
+        self.server.command(
+                f"riscv dmi_write 0x1f 0x{(~(1<<self.hart.id))&0x3:x}")
+        self.gdb.expect(r"\S+ became unavailable.")
+
+        # Now send a DMI command through OpenOCD to make the hart available
+        # again.
+
+        self.server.command("riscv dmi_write 0x1f 0x3")
+        self.gdb.expect(r"\S+ became available")
+        self.gdb.interrupt()
+        self.gdb.p("$pc")
+
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
         return self.target.freertos_binary
