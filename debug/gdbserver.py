@@ -19,7 +19,7 @@ from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import TestNotApplicable, CompileError
 from testlib import UnknownThread
-from testlib import CouldNotReadRegisters
+from testlib import CouldNotReadRegisters, CommandException
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1807,14 +1807,16 @@ class EbreakTest(GdbSingleHartTest):
         output = self.gdb.c()
         assertIn("_exit", output)
 
-class CeaseMultiTest(GdbTest):
-    """Test that we work correctly when a hart ceases to respond (e.g. because
+class UnavailableMultiTest(GdbTest):
+    """Test that we work correctly when a hart becomes unavailable (e.g. because
     it's powered down)."""
     compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC",
             "-DDEFINE_FREE")
 
     def early_applicable(self):
-        return self.hart.support_cease and len(self.target.harts) > 1
+        return (self.hart.support_cease or
+                self.target.support_unavailable_control) \
+            and len(self.target.harts) > 1
 
     def setup(self):
         ProgramTest.setup(self)
@@ -1822,7 +1824,12 @@ class CeaseMultiTest(GdbTest):
 
     def test(self):
         # Run all the way to the infinite loop in exit
-        self.gdb.c(wait=False)
+        self.gdb.c_all(wait=False)
+        # Other hart should have become unavailable.
+        if self.target.support_unavailable_control:
+            self.server.wait_until_running(self.target.harts)
+            self.server.command(
+                    f"riscv dmi_write 0x1f 0x{(1<<self.hart.id)&0x3:x}")
         self.gdb.expect(r"\S+ became unavailable.")
         self.gdb.interrupt()
 
@@ -1834,7 +1841,7 @@ class CeaseMultiTest(GdbTest):
                     self.gdb.p("$misa")
                     assert False, \
                         "Shouldn't be able to access unavailable hart."
-                except UnknownThread:
+                except (UnknownThread, CommandException):
                     pass
 
         # Check that the main hart can still be debugged.

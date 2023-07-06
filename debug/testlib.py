@@ -652,6 +652,15 @@ def parse_rhs(text):
         raise TestLibError(f"Unexpected input: {tokens!r}")
     return result
 
+class CommandException(Exception):
+    pass
+
+class CommandSendTimeout(CommandException):
+    pass
+
+class CommandCompleteTimeout(CommandException):
+    pass
+
 class Gdb:
     """A single gdb class which can interact with one or more gdb instances."""
 
@@ -780,8 +789,14 @@ class Gdb:
                     reset_delays=None)
         timeout = max(1, ops) * self.timeout
         self.active_child.sendline(command)
-        self.active_child.expect("\n", timeout=timeout)
-        self.active_child.expect(r"\(gdb\)", timeout=timeout)
+        try:
+            self.active_child.expect("\n", timeout=timeout)
+        except pexpect.exceptions.TIMEOUT as exc:
+            raise CommandSendTimeout(command) from exc
+        try:
+            self.active_child.expect(r"\(gdb\)", timeout=timeout)
+        except pexpect.exceptions.TIMEOUT as exc:
+            raise CommandCompleteTimeout(command) from exc
         output = self.active_child.before.decode("utf-8", errors="ignore")
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         return ansi_escape.sub('', output).strip()
