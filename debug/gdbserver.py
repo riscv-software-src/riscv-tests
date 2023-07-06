@@ -20,6 +20,7 @@ from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import TestNotApplicable, CompileError
 from testlib import UnknownThread
 from testlib import CouldNotReadRegisters, CommandException
+from testlib import ThreadTerminated
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1879,11 +1880,12 @@ class CeaseStepiTest(ProgramTest):
         except CouldNotReadRegisters:
             pass
 
-class CeaseRunTest(ProgramTest):
+class UnavailableRunTest(ProgramTest):
     """Test that we work correctly when the hart we're debugging ceases to
     respond."""
     def early_applicable(self):
-        return self.hart.support_cease
+        return self.hart.support_cease or \
+            self.target.support_unavailable_control
 
     def test(self):
         self.gdb.b("main")
@@ -1891,10 +1893,23 @@ class CeaseRunTest(ProgramTest):
         assertIn("Breakpoint", output)
         assertIn("main", output)
 
-        self.gdb.p("$pc=precease")
+        if self.target.support_unavailable_control:
+            self.gdb.p("$pc=loop_forever")
+        else:
+            self.gdb.p("$pc=cease")
         self.gdb.c(wait=False)
+        if self.target.support_unavailable_control:
+            self.server.wait_until_running([self.hart])
+            self.server.command(
+                    f"riscv dmi_write 0x1f 0x{(~(1<<self.hart.id))&0x3:x}")
         self.gdb.expect(r"\S+ became unavailable.")
         self.gdb.interrupt()
+        # gdb might automatically switch to the available hart.
+        try:
+            self.gdb.select_hart(self.hart)
+        except ThreadTerminated:
+            # GDB sees that the thread is gone. Count this as success.
+            return
         try:
             self.gdb.p("$pc")
             assert False, ("Registers shouldn't be accessible when the hart is "

@@ -555,6 +555,9 @@ class UnknownThread(Exception):
     def __init__(self, explanation):
         Exception.__init__(self, explanation)
 
+class ThreadTerminated(Exception):
+    pass
+
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
 
@@ -762,6 +765,8 @@ class Gdb:
             output = self.command(f"thread {h['thread'].id}", ops=5)
             if "Unknown" in output:
                 raise UnknownThread(output)
+            if f"Thread ID {h['thread'].id} has terminated" in output:
+                raise ThreadTerminated(output)
 
     def push_state(self):
         self.stack.append({
