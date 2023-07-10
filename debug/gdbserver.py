@@ -9,6 +9,7 @@ import tempfile
 import time
 import os
 import re
+import itertools
 
 import targets
 import testlib
@@ -904,6 +905,9 @@ class RepeatReadTest(DebugTest):
     def early_applicable(self):
         return self.target.supports_clint_mtime
 
+    warning_re = re.compile(r"\[(?P<target_name>[^\]]+)\] Re-reading memory "
+            r"from addresses 0x(?P<addr>[\da-f]+) and 0x(?P=addr)\.")
+
     def test(self):
         self.gdb.b("main:start")
         self.gdb.c()
@@ -912,8 +916,17 @@ class RepeatReadTest(DebugTest):
         output = self.gdb.command(
             f"monitor riscv repeat_read {count} 0x{mtime_addr:x} 4")
         values = []
-        for line in output.splitlines():
-            # Ignore warnings
+        def is_valid_warning(line):
+            match = self.warning_re.match(line)
+            if match is None:
+                return False
+            assertEqual(int(match["addr"], 16), mtime_addr,
+                    "The repeat read is reading from the wrong address")
+            return True
+
+        for line in itertools.dropwhile(is_valid_warning, output.splitlines()):
+            # This `if` is to be removed after
+            # https://github.com/riscv/riscv-openocd/pull/871 is merged.
             if line.startswith("Batch memory"):
                 continue
             for v in line.split():
