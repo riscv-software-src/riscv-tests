@@ -17,7 +17,7 @@ all:
   - Semihosting
   - SemihostingFileio
 
-HiFive1-flash:
+HiFive1Flash:
   - DebugBreakpoint
   - DebugExit
   - DebugFunctionCall
