@@ -1,0 +1,28 @@
+# Below are known failing tests on riscv-openocd on HiFive1 board, rev. A01.
+# This board uses the legacy debug spec v 0.11.
+
+# Tested on Jun-26-2023.
+# riscv-openocd commit: a45589d60aa6864475fddcded885c8ff47d50be1
+# riscv-tests commit: 7b52ba3b7167acb4d8b38f4d4633112b4699cb26
+
+all:
+  - EtriggerTest
+  - IcountTest
+  - InstantHaltTest
+  - ItriggerTest
+  - MemorySampleMixed
+  - MemorySampleSingle
+  - MemTestReadInvalid
+  - RepeatReadTest
+  - Semihosting
+  - SemihostingFileio
+
+HiFive1Flash:
+  - DebugBreakpoint
+  - DebugExit
+  - DebugFunctionCall
+  - Hwbp1
+  - Hwbp2
+  - Registers
+  - TooManyHwbp
+  - UserInterrupt
