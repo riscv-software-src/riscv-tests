@@ -433,7 +433,7 @@ class InstantHaltTest(GdbTest):
     def test(self):
         """Assert that reset is really resetting what it should."""
         self.gdb.command("monitor reset halt")
-        self.gdb.command("flushregs")
+        self.gdb.command("maintenance flush register-cache")
         threads = self.gdb.threads()
         pcs = []
         for t in threads:
@@ -451,7 +451,7 @@ class InstantChangePc(GdbTest):
         """Change the PC right as we come out of reset."""
         # 0x13 is nop
         self.gdb.command("monitor reset halt")
-        self.gdb.command("flushregs")
+        self.gdb.command("maintenance flush register-cache")
         self.gdb.command(f"p *((int*) 0x{self.hart.ram:x})=0x13")
         self.gdb.command(f"p *((int*) 0x{self.hart.ram + 4:x})=0x13")
         self.gdb.command(f"p *((int*) 0x{self.hart.ram + 8:x})=0x13")
@@ -1743,10 +1743,10 @@ class VectorTest(GdbSingleHartTest):
             value = self.gdb.p(regname)
             assertNotEqual(value, 0)
             self.gdb.p(f"{regname}=0")
-            self.gdb.command("flushregs")
+            self.gdb.command("maintenance flush register-cache")
             assertEqual(self.gdb.p(regname), 0)
             self.gdb.p(f"{regname}=0x{value:x}")
-            self.gdb.command("flushregs")
+            self.gdb.command("maintenance flush register-cache")
             assertEqual(self.gdb.p(regname), value)
 
         assertEqual(self.gdb.p("$a0"), 0)
