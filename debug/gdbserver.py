@@ -925,10 +925,6 @@ class RepeatReadTest(DebugTest):
             return True
 
         for line in itertools.dropwhile(is_valid_warning, output.splitlines()):
-            # This `if` is to be removed after
-            # https://github.com/riscv/riscv-openocd/pull/871 is merged.
-            if line.startswith("Batch memory"):
-                continue
             for v in line.split():
                 values.append(int(v, 16))
 
