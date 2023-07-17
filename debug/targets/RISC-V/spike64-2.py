@@ -10,6 +10,7 @@ class spike64_2(targets.Target):
     timeout_sec = 5
     implements_custom_test = True
     support_memory_sampling = False # Needs SBA
+    support_unavailable_control = True
 
     def create(self):
         return testlib.Spike(self)

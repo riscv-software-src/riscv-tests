@@ -13,6 +13,7 @@ class spike64_2_rtos(targets.Target):
     test_semihosting = False
     support_manual_hwbp = False # not supported with `-rtos riscv`
     support_memory_sampling = False # not supported with `-rtos riscv`
+    support_unavailable_control = True
 
     def create(self):
         return testlib.Spike(self, abstract_rti=30, support_hasel=False,

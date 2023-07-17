@@ -13,6 +13,7 @@ class spike64_2(targets.Target):
     implements_custom_test = True
     support_hasel = False
     support_memory_sampling = False # Needs SBA
+    support_unavailable_control = True
 
     def create(self):
         return testlib.Spike(self, isa="RV64IMAFDV", abstract_rti=30,

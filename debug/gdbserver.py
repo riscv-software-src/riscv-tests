@@ -19,7 +19,8 @@ from testlib import assertGreater, assertRegex, assertLess
 from testlib import GdbTest, GdbSingleHartTest, TestFailed
 from testlib import TestNotApplicable, CompileError
 from testlib import UnknownThread
-from testlib import CouldNotReadRegisters
+from testlib import CouldNotReadRegisters, CommandException
+from testlib import ThreadTerminated
 
 MSTATUS_UIE = 0x00000001
 MSTATUS_SIE = 0x00000002
@@ -1807,22 +1808,29 @@ class EbreakTest(GdbSingleHartTest):
         output = self.gdb.c()
         assertIn("_exit", output)
 
-class CeaseMultiTest(GdbTest):
-    """Test that we work correctly when a hart ceases to respond (e.g. because
+class UnavailableMultiTest(GdbTest):
+    """Test that we work correctly when a hart becomes unavailable (e.g. because
     it's powered down)."""
     compile_args = ("programs/counting_loop.c", "-DDEFINE_MALLOC",
             "-DDEFINE_FREE")
 
     def early_applicable(self):
-        return self.hart.support_cease and len(self.target.harts) > 1
+        return (self.hart.support_cease or
+                self.target.support_unavailable_control) \
+            and len(self.target.harts) > 1
 
     def setup(self):
         ProgramTest.setup(self)
-        self.parkOtherHarts("precease")
+        self.parkOtherHarts()
 
     def test(self):
         # Run all the way to the infinite loop in exit
-        self.gdb.c(wait=False)
+        self.gdb.c_all(wait=False)
+        # Other hart should have become unavailable.
+        if self.target.support_unavailable_control:
+            self.server.wait_until_running(self.target.harts)
+            self.server.command(
+                    f"riscv dmi_write 0x1f 0x{(1<<self.hart.id)&0x3:x}")
         self.gdb.expect(r"\S+ became unavailable.")
         self.gdb.interrupt()
 
@@ -1834,7 +1842,7 @@ class CeaseMultiTest(GdbTest):
                     self.gdb.p("$misa")
                     assert False, \
                         "Shouldn't be able to access unavailable hart."
-                except UnknownThread:
+                except (UnknownThread, CommandException):
                     pass
 
         # Check that the main hart can still be debugged.
@@ -1872,11 +1880,12 @@ class CeaseStepiTest(ProgramTest):
         except CouldNotReadRegisters:
             pass
 
-class CeaseRunTest(ProgramTest):
+class UnavailableRunTest(ProgramTest):
     """Test that we work correctly when the hart we're debugging ceases to
     respond."""
     def early_applicable(self):
-        return self.hart.support_cease
+        return self.hart.support_cease or \
+            self.target.support_unavailable_control
 
     def test(self):
         self.gdb.b("main")
@@ -1884,16 +1893,56 @@ class CeaseRunTest(ProgramTest):
         assertIn("Breakpoint", output)
         assertIn("main", output)
 
-        self.gdb.p("$pc=precease")
+        if self.target.support_unavailable_control:
+            self.gdb.p("$pc=loop_forever")
+        else:
+            self.gdb.p("$pc=cease")
         self.gdb.c(wait=False)
+        if self.target.support_unavailable_control:
+            self.server.wait_until_running([self.hart])
+            self.server.command(
+                    f"riscv dmi_write 0x1f 0x{(~(1<<self.hart.id))&0x3:x}")
         self.gdb.expect(r"\S+ became unavailable.")
         self.gdb.interrupt()
+        # gdb might automatically switch to the available hart.
+        try:
+            self.gdb.select_hart(self.hart)
+        except ThreadTerminated:
+            # GDB sees that the thread is gone. Count this as success.
+            return
         try:
             self.gdb.p("$pc")
             assert False, ("Registers shouldn't be accessible when the hart is "
                            "unavailable.")
         except CouldNotReadRegisters:
             pass
+
+class UnavailableCycleTest(ProgramTest):
+    """Test that harts can be debugged after becoming temporarily
+    unavailable."""
+    def early_applicable(self):
+        return self.target.support_unavailable_control
+
+    def test(self):
+        self.gdb.b("main")
+        output = self.gdb.c()
+        assertIn("Breakpoint", output)
+        assertIn("main", output)
+
+        self.gdb.p("$pc=loop_forever")
+        self.gdb.c(wait=False)
+        self.server.wait_until_running([self.hart])
+        self.server.command(
+                f"riscv dmi_write 0x1f 0x{(~(1<<self.hart.id))&0x3:x}")
+        self.gdb.expect(r"\S+ became unavailable.")
+
+        # Now send a DMI command through OpenOCD to make the hart available
+        # again.
+
+        self.server.command("riscv dmi_write 0x1f 0x3")
+        self.gdb.expect(r"\S+ became available")
+        self.gdb.interrupt()
+        self.gdb.p("$pc")
 
 class FreeRtosTest(GdbTest):
     def early_applicable(self):
@@ -1989,7 +2038,6 @@ class EtriggerTest(DebugTest):
         self.gdb.b("handle_trap")
 
     def test(self):
-        self.gdb.command(f"monitor targets {self.hart.id}")
         # Set trigger on Load access fault
         self.gdb.command("monitor riscv etrigger set m 0x20")
         # Set fox to a null pointer so we'll get a load access exception later.
@@ -2009,7 +2057,6 @@ class IcountTest(DebugTest):
         DebugTest.setup(self)
         self.gdb.b("main")
         self.gdb.c()
-        self.gdb.command(f"monitor targets {self.hart.id}")
 
     def test(self):
         # Execute 2 instructions.
@@ -2039,7 +2086,6 @@ class ItriggerTest(GdbSingleHartTest):
         self.gdb.load()
 
     def test(self):
-        self.gdb.command(f"monitor targets {self.hart.id}")
         output = self.gdb.command("monitor riscv itrigger set 0x80")
         assertIn("Doesn't make sense", output)
         output = self.gdb.command("monitor riscv itrigger set m 0")

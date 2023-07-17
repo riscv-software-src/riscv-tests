@@ -1,7 +1,6 @@
 import collections
 import os
 import os.path
-import random
 import re
 import shlex
 import subprocess
@@ -294,6 +293,7 @@ class VcsSim:
             pass
 
 class Openocd:
+    # pylint: disable=too-many-instance-attributes
     # pylint: disable-next=consider-using-with
     logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
     logname = logfile.name
@@ -302,6 +302,7 @@ class Openocd:
                  freertos=False, debug_openocd=False):
         self.timeout = timeout
         self.debug_openocd = debug_openocd
+        self.command_count = 0
 
         if server_cmd:
             cmd = shlex.split(server_cmd)
@@ -314,15 +315,13 @@ class Openocd:
         # line, since they are executed in order.
         cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
-            "--command",
-            "gdb_port 0",
-            # Disable tcl and telnet servers, since they are unused and because
-            # the port numbers will conflict if multiple OpenOCD processes are
-            # running on the same server.
-            "--command",
-            "tcl_port disabled",
-            "--command",
-            "telnet_port disabled",
+            "--command", "gdb_port 0",
+            # We don't use the TCL server.
+            "--command", "tcl_port disabled",
+            # Put the regular command prompt in stdin. Don't listen on a port
+            # because it will conflict if multiple OpenOCD instances are running
+            # at the same time.
+            "--command", "telnet_port pipe",
         ]
 
         if config:
@@ -343,6 +342,9 @@ class Openocd:
 
         # pylint: disable-next=consider-using-with
         raw_logfile = open(Openocd.logname, "wb")
+        # pylint: disable-next=consider-using-with
+        self.read_log_fd = open(Openocd.logname, "rb")
+        self.log_buf = b""
         try:
             # pylint: disable-next=consider-using-with
             spike_dasm = subprocess.Popen("spike-dasm", stdin=subprocess.PIPE,
@@ -364,12 +366,12 @@ class Openocd:
         logfile.flush()
 
         self.gdb_ports = []
-        self.process = self.start(cmd, logfile, extra_env)
+        self.start(cmd, logfile, extra_env)
 
     def start(self, cmd, logfile, extra_env):
         combined_env = {**os.environ, **extra_env}
         # pylint: disable-next=consider-using-with
-        process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 stdout=logfile, stderr=logfile, env=combined_env)
 
         try:
@@ -377,38 +379,21 @@ class Openocd:
             # using OpenOCD to communicate with a simulator this may take a
             # long time, and gdb will time out when trying to connect if we
             # attempt too early.
-            start = time.time()
-            messaged = False
-            with open(Openocd.logname, "r", encoding='utf-8') as fd:
-                while True:
-                    line = fd.readline()
-                    if not line:
-                        if not process.poll() is None:
-                            raise TestLibError("OpenOCD exited early.")
-                        time.sleep(0.1)
-                        continue
 
-                    m = re.search(
-                        r"Listening on port (\d+) for gdb connections", line)
-                    if m:
-                        self.gdb_ports.append(int(m.group(1)))
-
-                    if "telnet server disabled" in line:
-                        break
-
-                    if not messaged and time.time() - start > 1:
-                        messaged = True
-                        print("Waiting for OpenOCD to start...")
-                    if (time.time() - start) > self.timeout:
-                        raise TestLibError("Timed out waiting for OpenOCD to "
-                                "listen for gdb")
+            while True:
+                m = self.expect(
+                        rb"(Listening on port (\d+) for gdb connections|"
+                        rb"tcl server disabled)",
+                        message="Waiting for OpenOCD to start up...")
+                if b"gdb" in m.group(1):
+                    self.gdb_ports.append(int(m.group(2)))
+                else:
+                    break
 
             if self.debug_openocd:
                 # pylint: disable=consider-using-with
                 self.debugger = subprocess.Popen(["gnome-terminal", "-e",
-                                                  f"gdb --pid={process.pid}"])
-            return process
-
+                                            f"gdb --pid={self.process.pid}"])
         except Exception:
             print_log(Openocd.logname)
             raise
@@ -433,6 +418,83 @@ class Openocd:
                 if "target smp" in line:
                     return True
         return False
+
+    def command(self, cmd):
+        """Write the command to OpenOCD's stdin. Return the output of the
+        command, minus the prompt."""
+        self.process.stdin.write(f"{cmd}\n".encode())
+        self.process.stdin.flush()
+        m = self.expect(re.escape(f"{cmd}\n".encode()))
+
+        # The prompt isn't flushed to the log, so send a unique command that
+        # lets us find where output of the last command ends.
+        magic = f"# {self.command_count}x".encode()
+        self.command_count += 1
+        self.process.stdin.write(magic + b"\n")
+        self.process.stdin.flush()
+        m = self.expect(rb"(.*)^> " + re.escape(magic))
+        return m.group(1)
+
+    def expect(self, regex, message=None):
+        """Wait for the regex to match the log, and return the match object. If
+        message is given, print it while waiting.
+        We read the logfile to tell us what OpenOCD has done."""
+        messaged = False
+        start = time.time()
+
+        while True:
+            for line in self.read_log_fd.readlines():
+                line = line.rstrip()
+                # Remove nulls, carriage returns, and newlines.
+                line = re.sub(rb"[\x00\r\n]+", b"", line)
+                # Remove debug messages.
+                debug_match = re.search(rb"Debug: \d+ \d+ .*", line)
+                if debug_match:
+                    line = line[:debug_match.start()] + line[debug_match.end():]
+                    self.log_buf += line
+                else:
+                    self.log_buf += line + b"\n"
+
+            m = re.search(regex, self.log_buf, re.MULTILINE | re.DOTALL)
+            if m:
+                self.log_buf = self.log_buf[m.end():]
+                return m
+
+            if not self.process.poll() is None:
+                raise TestLibError("OpenOCD exited early.")
+
+            if message and not messaged and time.time() - start > 1:
+                messaged = True
+                print(message)
+
+            if (time.time() - start) > self.timeout:
+                raise TestLibError(f"Timed out waiting for {regex} in "
+                                   f"{Openocd.logname}")
+
+            time.sleep(0.1)
+
+    def targets(self):
+        """Run `targets` command."""
+        result = self.command("targets").decode()
+        #     TargetName         Type       Endian TapName            State
+        # --  ------------------ ---------- ------ ------------------ --------
+        #  0* riscv.cpu          riscv      little riscv.cpu          halted
+        lines = result.splitlines()
+        headers = lines[0].split()
+        data = []
+        for line in lines[2:]:
+            data.append(dict(zip(headers, line.split()[1:])))
+        return data
+
+    def wait_until_running(self, harts):
+        """Wait until the given harts are running."""
+        start = time.time()
+        while True:
+            targets = self.targets()
+            if all(targets[hart.id]["State"] == "running" for hart in harts):
+                return
+            if time.time() - start > self.timeout:
+                raise TestLibError("Timed out waiting for targets to run.")
 
 class OpenocdCli:
     def __init__(self, port=4444):
@@ -492,6 +554,9 @@ class NoSymbol(Exception):
 class UnknownThread(Exception):
     def __init__(self, explanation):
         Exception.__init__(self, explanation)
+
+class ThreadTerminated(Exception):
+    pass
 
 Thread = collections.namedtuple('Thread', ('id', 'description', 'target_id',
     'name', 'frame'))
@@ -589,6 +654,15 @@ def parse_rhs(text):
     if tokens:
         raise TestLibError(f"Unexpected input: {tokens!r}")
     return result
+
+class CommandException(Exception):
+    pass
+
+class CommandSendTimeout(CommandException):
+    pass
+
+class CommandCompleteTimeout(CommandException):
+    pass
 
 class Gdb:
     """A single gdb class which can interact with one or more gdb instances."""
@@ -691,6 +765,8 @@ class Gdb:
             output = self.command(f"thread {h['thread'].id}", ops=5)
             if "Unknown" in output:
                 raise UnknownThread(output)
+            if f"Thread ID {h['thread'].id} has terminated" in output:
+                raise ThreadTerminated(output)
 
     def push_state(self):
         self.stack.append({
@@ -718,8 +794,14 @@ class Gdb:
                     reset_delays=None)
         timeout = max(1, ops) * self.timeout
         self.active_child.sendline(command)
-        self.active_child.expect("\n", timeout=timeout)
-        self.active_child.expect(r"\(gdb\)", timeout=timeout)
+        try:
+            self.active_child.expect("\n", timeout=timeout)
+        except pexpect.exceptions.TIMEOUT as exc:
+            raise CommandSendTimeout(command) from exc
+        try:
+            self.active_child.expect(r"\(gdb\)", timeout=timeout)
+        except pexpect.exceptions.TIMEOUT as exc:
+            raise CommandCompleteTimeout(command) from exc
         output = self.active_child.before.decode("utf-8", errors="ignore")
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         return ansi_escape.sub('', output).strip()
@@ -1136,7 +1218,9 @@ class BaseTest:
         if hart:
             self.hart = hart
         else:
+            import random   # pylint: disable=import-outside-toplevel
             self.hart = random.choice(target.harts)
+            #self.hart = target.harts[-1]
         self.server = None
         self.target_process = None
         self.binary = None
@@ -1308,6 +1392,7 @@ class GdbTest(BaseTest):
                     self.gdb.p(f"$pc={symbol}")
 
         self.gdb.select_hart(self.hart)
+        self.gdb.command(f"monitor targets {self.hart.id}")
 
     def disable_pmp(self):
         # Disable physical memory protection by allowing U mode access to all
