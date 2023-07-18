@@ -22,10 +22,16 @@ RVTEST_CODE_BEGIN
   csrrw a0, mtvec, a0
   li a1, 0x8
   csrs tcontrol, a1
+  csrw mtvec, a0
+  j tcontrol_present
 .p2align 2
 1:
   csrw mtvec, a0
+  # triggers with action = 0 are suppressed when
+  # mie is 0 and tcontrol0 is not implemented
+  csrsi mstatus, MSTATUS_MIE
 
+tcontrol_present:
   # Skip tselect if hard-wired.
   csrw tselect, x0
   csrr a1, tselect
