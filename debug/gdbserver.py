@@ -1562,6 +1562,7 @@ class DownloadTest(GdbTest):
 #        assertIn("0xbead", output)
 
 class PrivTest(GdbSingleHartTest):
+    """Base class for a few tests that change privilege levels."""
     compile_args = ("programs/priv.S", )
     def setup(self):
         # pylint: disable=attribute-defined-outside-init
@@ -1588,8 +1589,8 @@ class PrivTest(GdbSingleHartTest):
             pass
 
 class PrivRw(PrivTest):
+    """Test reading/writing priv."""
     def test(self):
-        """Test reading/writing priv."""
         self.write_nop_program(4)
         for privilege in range(4):
             self.gdb.p(f"$priv={privilege}")
@@ -1600,9 +1601,9 @@ class PrivRw(PrivTest):
                 assertEqual(actual, privilege)
 
 class PrivChange(PrivTest):
+    """Test that the core's privilege level actually changes when the debugger
+    writes it."""
     def test(self):
-        """Test that the core's privilege level actually changes."""
-
         if 0 not in self.supported:
             raise TestNotApplicable
 
