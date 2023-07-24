@@ -432,7 +432,7 @@ class Openocd:
         self.command_count += 1
         self.process.stdin.write(magic + b"\n")
         self.process.stdin.flush()
-        m = self.expect(rb"(.*)^> " + re.escape(magic))
+        m = self.expect(rb"(.*)^>\s*" + re.escape(magic))
         return m.group(1)
 
     def expect(self, regex, message=None):
