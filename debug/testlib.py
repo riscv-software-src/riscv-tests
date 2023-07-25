@@ -795,6 +795,7 @@ class Gdb:
         timeout = max(1, ops) * self.timeout
         self.active_child.sendline(command)
         try:
+            self.active_child.expect(re.escape(command), timeout=timeout)
             self.active_child.expect("\n", timeout=timeout)
         except pexpect.exceptions.TIMEOUT as exc:
             raise CommandSendTimeout(command) from exc
