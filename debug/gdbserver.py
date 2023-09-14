@@ -1039,8 +1039,10 @@ class InterruptTest(GdbSingleHartTest):
             local = self.gdb.p("local")
             if interrupt_count > 1000 and \
                     local > 1000:
+                self.disable_timer()
                 return
 
+        self.disable_timer()
         assertGreater(interrupt_count, 1000)
         assertGreater(local, 1000)
 
@@ -1191,6 +1193,8 @@ class MulticoreRunAllHaltOne(GdbTest):
         time.sleep(1)
         self.gdb.p("buf", fmt="")
 
+        self.disable_timer(interrupt=True)
+
 class MulticoreRtosSwitchActiveHartTest(GdbTest):
     compile_args = ("programs/multicore.c", "-DMULTICORE")
 
@@ -1219,6 +1223,8 @@ class MulticoreRtosSwitchActiveHartTest(GdbTest):
             assertIn("hit Breakpoint", output)
             assertIn("set_trap_handler", output)
             assertNotIn("received signal SIGTRAP", output)
+
+        self.disable_timer()
 
 class SmpSimultaneousRunHalt(GdbTest):
     compile_args = ("programs/run_halt_timing.S", "-DMULTICORE")
