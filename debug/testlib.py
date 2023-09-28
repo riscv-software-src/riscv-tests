@@ -483,7 +483,8 @@ class Openocd:
         headers = lines[0].split()
         data = []
         for line in lines[2:]:
-            data.append(dict(zip(headers, line.split()[1:])))
+            if line.strip():
+                data.append(dict(zip(headers, line.split()[1:])))
         return data
 
     def wait_until_running(self, harts):
