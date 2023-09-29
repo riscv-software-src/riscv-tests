@@ -1058,11 +1058,15 @@ def load_excluded_tests(excluded_tests_file, target_name):
 
 def run_all_tests(module, target, parsed):
     todo = []
+    if not parsed.hart is None:
+        target_hart = target.harts[parsed.hart]
+    else:
+        target_hart = None
     for name in dir(module):
         definition = getattr(module, name)
         if isinstance(definition, type) and hasattr(definition, 'test') and \
                 (not parsed.test or any(test in name for test in parsed.test)):
-            todo.append((name, definition, None))
+            todo.append((name, definition, target_hart))
 
     if parsed.list_tests:
         for name, definition, hart in todo:
@@ -1130,7 +1134,10 @@ def run_tests(parsed, target, todo):
             result = instance.run()
             log_fd.write(f"Result: {result}\n")
             log_fd.write(f"Logfile: {log_name}\n")
-            log_fd.write(f"Reproduce: {sys.argv[0]} {parsed.target} {name}\n")
+            log_fd.write(f"Reproduce: {sys.argv[0]} {parsed.target} {name}")
+            if len(target.harts) > 1:
+                log_fd.write(f" --hart {instance.hart.id}")
+            log_fd.write("\n")
         finally:
             sys.stdout = real_stdout
             log_fd.write(f"Time elapsed: {time.time() - start:.2f}s\n")
@@ -1189,6 +1196,9 @@ def add_test_run_options(parser):
             help="Specify yaml file listing tests to exclude")
     parser.add_argument("--target-timeout",
             help="Override the base target timeout.", default=None, type=int)
+    parser.add_argument("--hart",
+            help="Run tests against this hart in multihart tests.",
+            default=None, type=int)
 
 def header(title, dash='-', length=78):
     if title:
@@ -1215,7 +1225,7 @@ class BaseTest:
 
     def __init__(self, target, hart=None):
         self.target = target
-        if hart:
+        if not hart is None:
             self.hart = hart
         else:
             import random   # pylint: disable=import-outside-toplevel
