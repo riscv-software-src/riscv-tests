@@ -896,9 +896,10 @@ class Gdb:
         return self.active_child.before.strip().decode()
 
     def interrupt_all(self):
-        for child in self.children:
-            self.select_child(child)
-            self.interrupt()
+        with PrivateState(self):
+            for child in self.children:
+                self.select_child(child)
+                self.interrupt()
 
     def x(self, address, size='w', count=1):
         output = self.command(f"x/{count}{size} {address}", ops=count / 16)
