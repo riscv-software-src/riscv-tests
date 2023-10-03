@@ -497,6 +497,30 @@ class Openocd:
             if time.time() - start > self.timeout:
                 raise TestLibError("Timed out waiting for targets to run.")
 
+    def set_available(self, harts):
+        """Set the given harts to available, and any others to be unavailable.
+        This uses a custom DMI register (0x1f) that is only implemented in
+        spike."""
+        available_mask = 0
+        for hart in harts:
+            available_mask |= 1 << hart.id
+        self.command(f"riscv dmi_write 0x1f 0x{available_mask:x}")
+
+        # Wait until it happened.
+        start = time.time()
+        while True:
+            currently_available = set()
+            currently_unavailable = set()
+            for i, target in enumerate(self.targets()):
+                if target["State"] == "unavailable":
+                    currently_unavailable.add(i)
+                else:
+                    currently_available.add(i)
+            if currently_available == set(hart.id for hart in harts):
+                return
+            if time.time() - start > self.timeout:
+                raise TestLibError("Timed out waiting for hart availability.")
+
 class OpenocdCli:
     def __init__(self, port=4444):
         self.child = pexpect.spawn(
