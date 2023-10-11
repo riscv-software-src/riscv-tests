@@ -1448,6 +1448,13 @@ class GdbTest(BaseTest):
             # PMP registers are optional
             pass
 
+    def disable_timer(self, interrupt=False):
+        for hart in self.target.harts:
+            self.gdb.select_hart(hart)
+            if interrupt:
+                self.gdb.interrupt()
+            self.gdb.p("$mie=$mie & ~0x80")
+
     def exit(self, expected_result=10):
         self.gdb.command("delete")
         self.gdb.b("_exit")
