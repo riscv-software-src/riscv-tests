@@ -19,6 +19,7 @@ The following should be in the user's path:
 * openocd (can be overridden with `--server_cmd` when running gdbserver.py
   manually), which should be the latest from
   https://github.com/riscv/riscv-openocd.git.
+* Python packages that might not be installed: pexpect
 
 Usage
 =====
