@@ -912,7 +912,7 @@ class RepeatReadTest(DebugTest):
     def test(self):
         self.gdb.b("main:start")
         self.gdb.c()
-        mtime_addr = 0x02000000 + 0xbff8
+        mtime_addr = self.target.clint_addr + 0xbff8
         count = 1024
         output = self.gdb.command(
             f"monitor riscv repeat_read {count} 0x{mtime_addr:x} 4")
@@ -1048,8 +1048,8 @@ class InterruptTest(GdbSingleHartTest):
 
     def postMortem(self):
         GdbSingleHartTest.postMortem(self)
-        self.gdb.p("*((long long*) 0x200bff8)")
-        self.gdb.p("*((long long*) 0x2004000)")
+        self.gdb.p(f"*((long long*) 0x{self.target.clint_addr + 0xbff8:x})")
+        self.gdb.p(f"*((long long*) 0x{self.target.clint_addr + 0x4000:x})")
         self.gdb.p("interrupt_count")
         self.gdb.p("local")
 

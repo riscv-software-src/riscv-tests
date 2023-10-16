@@ -93,8 +93,11 @@ class Target:
     # before starting the test.
     gdb_setup = []
 
-    # Supports mtime at 0x2004000
+    # Supports mtime default at clint_addr + 0x4000
     supports_clint_mtime = True
+
+    # CLINT register address, set to the default value of spike.
+    clint_addr = 0x02000000
 
     # Implements custom debug registers like spike does. It seems unlikely any
     # hardware will every do that.
@@ -189,6 +192,7 @@ class Target:
             Target.temporary_files.append(self.temporary_binary)
 
         args = list(sources) + [
+                f"-DCLINT={self.clint_addr}",
                 "programs/entry.S", "programs/init.c",
                 f"-DNHARTS={len(self.harts)}",
                 "-I", "../env",
