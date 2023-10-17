@@ -1,8 +1,10 @@
 #ifndef INIT_H
 #define INIT_H
 
-#define MTIME           (*(volatile long long *)(0x02000000 + 0xbff8))
-#define MTIMECMP        ((volatile long long *)(0x02000000 + 0x4000))
+#ifdef CLINT
+#define MTIME           (*(volatile long long *)(CLINT + 0xbff8))
+#define MTIMECMP        ((volatile long long *)(CLINT + 0x4000))
+#endif
 
 typedef void* (*trap_handler_t)(unsigned hartid, unsigned mcause, void *mepc,
         void *sp);
