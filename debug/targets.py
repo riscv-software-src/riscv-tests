@@ -33,6 +33,9 @@ class Hart:
     # no device mapped to that location.
     bad_address = None
 
+    # The non-existent register for access test
+    nonexist_csr = "csr2288"
+
     # Number of instruction triggers the hart supports.
     instruction_hardware_breakpoint_count = 0
 

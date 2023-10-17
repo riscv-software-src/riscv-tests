@@ -221,14 +221,15 @@ class CustomRegisterTest(SimpleRegisterTest):
 
 class SimpleNoExistTest(GdbTest):
     def test(self):
+        nonexist_csr = self.hart.nonexist_csr
         try:
-            self.gdb.p("$csr2288")
-            assert False, "Reading csr2288 should have failed"
+            self.gdb.p(f"${nonexist_csr}")
+            assert False, f"Reading the ${nonexist_csr} should have failed"
         except testlib.CouldNotFetch:
             pass
         try:
-            self.gdb.p("$csr2288=5")
-            assert False, "Writing csr2288 should have failed"
+            self.gdb.p(f"${nonexist_csr}=5")
+            assert False, f"Writing the ${nonexist_csr} should have failed"
         except testlib.CouldNotFetch:
             pass
 
