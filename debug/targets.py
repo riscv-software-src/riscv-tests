@@ -138,6 +138,9 @@ class Target:
     # Supports controlling hart availability through DMCUSTOM.
     support_unavailable_control = False
 
+    # Instruction count limit
+    icount_limit = 4
+
     # Internal variables:
     directory = None
     temporary_files = []
