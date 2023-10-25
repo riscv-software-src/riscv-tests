@@ -2129,9 +2129,13 @@ class IcountTest(DebugTest):
     def test(self):
         # Execute 2 instructions.
         output = self.gdb.command("monitor riscv icount set m 2")
-        assertNotIn("Failed", output)
+        if self.target.icount_limit > 1:
+            assertNotIn("Failed", output)
+        else:
+            assertIn("Failed", output)
+            self.gdb.b("main_post_csrr")
         output = self.gdb.c()
-        assertIn("breakpoint", output)
+        assertIn("main_post_csrr", output)
         main_post_csrr = self.gdb.p("&main_post_csrr")
         assertEqual(self.gdb.p("$pc"), main_post_csrr)
 
