@@ -1816,6 +1816,10 @@ class EbreakTest(GdbSingleHartTest):
         output = self.gdb.c()
         assertIn("_exit", output)
 
+# Use this to turn off some tests. See
+# https://github.com/riscv-software-src/riscv-tests/issues/520
+openocd_server_comms_reliable = False
+
 class UnavailableMultiTest(GdbTest):
     """Test that we work correctly when a hart becomes unavailable (e.g. because
     it's powered down)."""
@@ -1823,7 +1827,8 @@ class UnavailableMultiTest(GdbTest):
             "-DDEFINE_FREE")
 
     def early_applicable(self):
-        return (self.hart.support_cease or
+        return openocd_server_comms_reliable and \
+            (self.hart.support_cease or
                 self.target.support_unavailable_control) \
             and len(self.target.harts) > 1
 
@@ -1892,8 +1897,9 @@ class UnavailableRunTest(ProgramTest):
     """Test that we work correctly when the hart we're debugging ceases to
     respond."""
     def early_applicable(self):
-        return self.hart.support_cease or \
-            self.target.support_unavailable_control
+        return openocd_server_comms_reliable and (
+            self.hart.support_cease or
+            self.target.support_unavailable_control)
 
     def test(self):
         self.gdb.b("main")
@@ -1929,7 +1935,8 @@ class UnavailableCycleTest(ProgramTest):
     """Test that harts can be debugged after becoming temporarily
     unavailable."""
     def early_applicable(self):
-        return self.target.support_unavailable_control
+        return (openocd_server_comms_reliable and
+                self.target.support_unavailable_control)
 
     def test(self):
         self.gdb.b("main")
@@ -1955,7 +1962,8 @@ class UnavailableCycleTest(ProgramTest):
 class UnavailableHaltedTest(ProgramTest):
     """Test behavior when the current hart becomes unavailable while halted."""
     def early_applicable(self):
-        return self.target.support_unavailable_control
+        return (openocd_server_comms_reliable and
+                self.target.support_unavailable_control)
 
     def test_resume(self, c_expect=None):
         # Confirm things don't completely fall apart on `c`
