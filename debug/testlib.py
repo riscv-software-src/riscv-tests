@@ -9,6 +9,7 @@ import tempfile
 import time
 import traceback
 
+import tty
 import pexpect
 import yaml
 
@@ -308,20 +309,16 @@ class Openocd:
             cmd = shlex.split(server_cmd)
         else:
             cmd = ["openocd"]
-            if debug:
-                cmd.append("-d")
 
         # This command needs to come before any config scripts on the command
         # line, since they are executed in order.
         cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
             "--command", "gdb_port 0",
-            # We don't use the TCL server.
-            "--command", "tcl_port disabled",
-            # Put the regular command prompt in stdin. Don't listen on a port
-            # because it will conflict if multiple OpenOCD instances are running
-            # at the same time.
-            "--command", "telnet_port pipe",
+            # We create a socket for OpenOCD command line (TCL-RPC)
+            "--command", "tcl_port 0",
+            # don't use telnet
+            "--command", "telnet_port disabled",
         ]
 
         if config:
@@ -331,6 +328,7 @@ class Openocd:
                 sys.exit(1)
 
             cmd += ["-f", self.config_file]
+
         if debug:
             cmd.append("-d")
 
@@ -366,12 +364,18 @@ class Openocd:
         logfile.flush()
 
         self.gdb_ports = []
+        self.tclrpc_port = None
         self.start(cmd, logfile, extra_env)
+
+        self.openocd_cli = pexpect.spawn(f"nc localhost {self.tclrpc_port}")
+        # TCL-RPC uses \x1a as a watermark for end of message. We set raw
+        # pty mode to disable translation of \x1a to EOF
+        tty.setraw(self.openocd_cli.child_fd)
 
     def start(self, cmd, logfile, extra_env):
         combined_env = {**os.environ, **extra_env}
         # pylint: disable-next=consider-using-with
-        self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+        self.process = subprocess.Popen(cmd, stdin=None,
                 stdout=logfile, stderr=logfile, env=combined_env)
 
         try:
@@ -379,15 +383,28 @@ class Openocd:
             # using OpenOCD to communicate with a simulator this may take a
             # long time, and gdb will time out when trying to connect if we
             # attempt too early.
-
             while True:
                 m = self.expect(
-                        rb"(Listening on port (\d+) for gdb connections|"
-                        rb"tcl server disabled)",
+                        rb"Listening on port (?P<port>\d+) for "
+                        rb"(?P<server>(?:gdb)|(?:tcl)) connections",
                         message="Waiting for OpenOCD to start up...")
-                if b"gdb" in m.group(1):
-                    self.gdb_ports.append(int(m.group(2)))
-                else:
+                if m["server"] == b"gdb":
+                    self.gdb_ports.append(int(m["port"]))
+                elif m["server"] == b"tcl":
+                    if self.tclrpc_port:
+                        raise TestLibError(
+                            "unexpected re-definition of TCL-RPC port")
+                    self.tclrpc_port = int(m["port"])
+                # WARNING! WARNING! WARNING!
+                # The condition below works properly only if OpenOCD reports
+                # gdb/tcl ports in a specific order. Namely, it requires the
+                # gdb ports to be reported before the tcl one. At the moment
+                # this comment was written OpenOCD reports these ports in the
+                # required order if we have a call to `init` statement in
+                # either target configuration file or command-line parameter.
+                # All configuration files used in testing include a call to
+                # `init`
+                if self.tclrpc_port and (len(self.gdb_ports) > 0):
                     break
 
             if self.debug_openocd:
@@ -420,20 +437,12 @@ class Openocd:
         return False
 
     def command(self, cmd):
-        """Write the command to OpenOCD's stdin. Return the output of the
-        command, minus the prompt."""
-        self.process.stdin.write(f"{cmd}\n".encode())
-        self.process.stdin.flush()
-        m = self.expect(re.escape(f"{cmd}\n".encode()))
-
-        # The prompt isn't flushed to the log, so send a unique command that
-        # lets us find where output of the last command ends.
-        magic = f"# {self.command_count}x".encode()
-        self.command_count += 1
-        self.process.stdin.write(magic + b"\n")
-        self.process.stdin.flush()
-        m = self.expect(rb"(.*)^>\s*" + re.escape(magic))
-        return m.group(1)
+        """Send the command to OpenOCD's TCL-RPC server. Return the output of
+        the command, minus the prompt."""
+        self.openocd_cli.write(f"{cmd}\n\x1a")
+        self.openocd_cli.expect(rb"(.*)\x1a")
+        m = self.openocd_cli.match.group(1)
+        return m
 
     def expect(self, regex, message=None):
         """Wait for the regex to match the log, and return the match object. If
