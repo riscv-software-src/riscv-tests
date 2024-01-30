@@ -1232,6 +1232,9 @@ def add_test_run_options(parser):
             help="Specify yaml file listing tests to exclude")
     parser.add_argument("--target-timeout",
             help="Override the base target timeout.", default=None, type=int)
+    parser.add_argument("--seed",
+            help="Use user-specified seed value for PRNG.", default=None,
+            type=int)
     parser.add_argument("--hart",
             help="Run tests against this hart in multihart tests.",
             default=None, type=int)

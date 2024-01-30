@@ -11,6 +11,7 @@ import os
 import re
 import itertools
 
+from datetime import datetime
 import targets
 import testlib
 from testlib import assertEqual, assertNotEqual
@@ -2193,6 +2194,14 @@ def main():
     testlib.print_log_names = parsed.print_log_names
 
     module = sys.modules[__name__]
+
+    # initialize PRNG
+    selected_seed = parsed.seed
+    if parsed.seed is None:
+        selected_seed = int(datetime.now().timestamp())
+        print(f"PRNG seed for {target.name} is generated automatically")
+    print(f"PRNG seed for {target.name} is {selected_seed}")
+    random.seed(selected_seed)
 
     return testlib.run_all_tests(module, target, parsed)
 
