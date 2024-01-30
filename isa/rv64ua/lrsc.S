@@ -62,7 +62,7 @@ addi a2, a2, 1
 add a4, a4, a2
 sc.w a4, a4, (a0)
 bnez a4, 1b
-add a1, a1, -1
+addi a1, a1, -1
 bnez a1, 1b
 
 # wait for all cores to finish
