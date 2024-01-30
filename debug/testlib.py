@@ -744,7 +744,6 @@ class Gdb:
             # Force consistency.
             self.command("set print entry-values no", reset_delays=None)
             self.command(f"set remotetimeout {self.timeout}", reset_delays=None)
-            self.command(f"set remotetimeout {self.target.timeout_sec}")
             if logremote:
                 # pylint: disable-next=consider-using-with
                 remotelog = tempfile.NamedTemporaryFile(
