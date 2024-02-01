@@ -708,7 +708,8 @@ class Gdb:
             11, 149, 107, 163, 73, 47, 43, 173, 7, 109, 101, 103, 191, 2, 139,
             97, 193, 157, 3, 29, 79, 113, 5, 89, 19, 37, 71, 179, 59, 137, 53)
 
-    def __init__(self, target, ports, cmd=None, timeout=60, binaries=None):
+    def __init__(self, target, ports, cmd=None, timeout=60, binaries=None,
+                 logremote=False):
         assert ports
 
         self.target = target
@@ -744,6 +745,16 @@ class Gdb:
             self.command("set print entry-values no", reset_delays=None)
             self.command(f"set remotetimeout {self.timeout}", reset_delays=None)
             self.command(f"set remotetimeout {self.target.timeout_sec}")
+            if logremote:
+                # pylint: disable-next=consider-using-with
+                remotelog = tempfile.NamedTemporaryFile(
+                    prefix=f"remote.gdb@{port}-", suffix=".log")
+                if print_log_names:
+                    real_stdout.write(
+                        f"Temporary remotelog: {remotelog.name}\n")
+                self.logfiles.append(remotelog)
+                self.command(f"set remotelogfile {remotelog.name}",
+                             reset_delays=None)
         self.active_child = self.children[0]
 
     def connect(self):
@@ -1124,6 +1135,8 @@ def run_all_tests(module, target, parsed):
     gcc_cmd = parsed.gcc
     global target_timeout  # pylint: disable=global-statement
     target_timeout = parsed.target_timeout
+    global remotelogfile_enable  # pylint: disable=global-statement
+    remotelogfile_enable = parsed.remotelogfile_enable
 
     examine_added = False
     for hart in target.harts:
@@ -1235,6 +1248,10 @@ def add_test_run_options(parser):
     parser.add_argument("--seed",
             help="Use user-specified seed value for PRNG.", default=None,
             type=int)
+    parser.add_argument("--remotelogfile-enable",
+            help="If specified save GDB will record remote session to a file",
+            action="store_true",
+            default=False)
     parser.add_argument("--hart",
             help="Run tests against this hart in multihart tests.",
             default=None, type=int)
@@ -1383,6 +1400,7 @@ class BaseTest:
 
 gdb_cmd = None
 target_timeout = None
+remotelogfile_enable = False
 class GdbTest(BaseTest):
     def __init__(self, target, hart=None):
         BaseTest.__init__(self, target, hart=hart)
@@ -1399,7 +1417,8 @@ class GdbTest(BaseTest):
 
         self.gdb = Gdb(self.target, self.server.gdb_ports, cmd=gdb_cmd,
                        timeout=target_timeout or self.target.timeout_sec,
-                       binaries=self.binaries)
+                       binaries=self.binaries,
+                       logremote=remotelogfile_enable)
 
         self.logs += self.gdb.lognames()
         self.gdb.connect()
