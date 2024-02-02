@@ -1415,7 +1415,7 @@ class TriggerDmode(TriggerTest):
         i = 0
         for i in range(16):
             tdata1 = self.gdb.p(f"(({xlen_type} *)&data)[{2*i}]")
-            if tdata1 == 0:
+            if (tdata1 == 0) or (tdata1 >> (self.hart.xlen-4) == 15):
                 break
             tdata2 = self.gdb.p(f"(({xlen_type} *)&data)[{2*i+1}]")
 
