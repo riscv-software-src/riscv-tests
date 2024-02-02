@@ -2139,6 +2139,7 @@ class IcountTest(DebugTest):
         main_post_csrr = self.gdb.p("&main_post_csrr")
         assertEqual(self.gdb.p("$pc"), main_post_csrr)
 
+        self.gdb.command("delete")
         self.gdb.command("monitor riscv icount clear")
 
         # Execute 1 instruction.
