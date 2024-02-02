@@ -163,6 +163,7 @@ int main()
         virtual = (uint32_t *) (
                 (reg_t) virtual | ~(((reg_t) 1 << vms->vaddr_bits) - 1));
     add_entry(master_table, 0, (reg_t) virtual, (reg_t) physical);
+    __asm__ __volatile__ ("sfence.vma" ::: "memory"); // Virtual memory synchronization
 
     unsigned long satp = set_field(0, SATP_MODE, vms->mode);
     satp = set_field(satp, SATP_PPN, ((unsigned long) master_table) >> 12);
