@@ -121,6 +121,7 @@ RVTEST_CODE_BEGIN
   # Do a store to MY_VA
   li a0, MY_VA
   li a1, 42
+napot_store:
   sw a1, (a0)
 
   # Clear MPRV
@@ -153,6 +154,16 @@ RVTEST_CODE_BEGIN
   .align 2
   .global mtvec_handler
 mtvec_handler:
+  # Skip if Svnapot is not implemented.
+  csrr t5, mcause
+  li t6, CAUSE_STORE_PAGE_FAULT
+  bne t5, t6, die
+  csrr t5, mepc
+  la t6, napot_store
+  bne t5, t6, die
+  csrr t5, mtval
+  li t6, MY_VA
+  beq t5, t6, pass
 die:
   RVTEST_FAIL
 
