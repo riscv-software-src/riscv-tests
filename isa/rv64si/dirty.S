@@ -34,8 +34,20 @@ RVTEST_CODE_BEGIN
   li t2, 1
   sw t2, dummy - DRAM_BASE, a0
 
-  # Set SUM=1 so user memory access is permitted
   li TESTNUM, 3
+  # set ADUE to 0
+#if __riscv_xlen == 64
+  li a1, MENVCFG_ADUE
+  csrc menvcfg, a1
+#else
+  li a1, MENVCFGH_ADUE
+  csrc menvcfgh, a1
+#endif
+
+  # We do this test twice (as 3 and again as 4). For the second run,
+  # we'll have toggled ADUE and branch to here:
+1:
+  # Set SUM=1 so user memory access is permitted
   li a1, ((MSTATUS_MPP & ~(MSTATUS_MPP<<1)) * PRV_S) | MSTATUS_SUM
   csrs mstatus, a1
 
@@ -43,7 +55,24 @@ RVTEST_CODE_BEGIN
   lw t0, dummy - DRAM_BASE
   bnez t0, die
 
-  # Try a non-faulting store to make sure dirty bit is set
+  # Clear D bit, then do a non-faulting store and ensure D bit is set
+  # Leave MPRV
+  li t0, MSTATUS_MPRV
+  csrc mstatus, t0
+
+  # Clear D bit
+  lw t0, page_table_1
+  li a0, ~(PTE_D)
+  and t0, t0, a0
+  sw t0, page_table_1, a0
+  sfence.vma
+
+  # Enter MPRV again
+  li t0, MSTATUS_MPRV
+  csrs mstatus, t0
+
+  # Now, the non-faulting store
+  addi t2, t2, 1
   sw t2, dummy - DRAM_BASE, a0
 
   # Make sure it succeeded
@@ -55,6 +84,7 @@ RVTEST_CODE_BEGIN
   csrc mstatus, t0
 
   # Make sure D bit is set
+  sfence.vma
   lw t0, page_table_1
   li a0, PTE_A | PTE_D
   and t0, t0, a0
@@ -64,8 +94,26 @@ RVTEST_CODE_BEGIN
   li t0, MSTATUS_MPRV
   csrs mstatus, t0
 
+  addi TESTNUM, TESTNUM, 1
+  li t0, 5
+  beq TESTNUM, t0, 1f
+
+  # reset this value:
+  sw zero, dummy - DRAM_BASE, a0
+
+  # set ADUE to 1
+#if __riscv_xlen == 64
+  li a1, MENVCFG_ADUE
+  csrs menvcfg, a1
+#else
+  li a1, MENVCFGH_ADUE
+  csrs menvcfgh, a1
+#endif
+
+  j 1b
+1:
   # Make sure that superpage entries trap when PPN LSBs are set.
-  li TESTNUM, 4
+  li TESTNUM, 5
   lw a0, page_table_1 - DRAM_BASE
   or a0, a0, 1 << PTE_PPN_SHIFT
   sw a0, page_table_1 - DRAM_BASE, t0
@@ -97,9 +145,21 @@ skip:
   mret
 
 1:
-  li t1, 3
-  bne TESTNUM, t1, 1f
+  li t1, 4
+  bgt TESTNUM, t1, 1f
   # The implementation doesn't appear to set D bits in HW.
+  # Verify that ADUE is 0.
+#if __riscv_xlen == 64
+  csrr a1, menvcfg
+  li t0, MENVCFG_ADUE
+  and a1, a1, t0
+  bnez a1, die
+#else
+  csrr a1, menvcfgh
+  li t0, MENVCFGH_ADUE
+  and a1, a1, t0
+  bnez a1, die
+#endif
   # Make sure the D bit really is clear.
   lw t0, page_table_1
   and t1, t0, PTE_D
@@ -111,7 +171,7 @@ skip:
   mret
 
 1:
-  li t1, 4
+  li t1, 5
   bne TESTNUM, t1, 1f
   j pass
 
