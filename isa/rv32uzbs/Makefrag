@@ -1,0 +1,15 @@
+#=======================================================================
+# Makefrag for rv32uzbs tests
+#-----------------------------------------------------------------------
+
+rv32uzbs_sc_tests = \
+	bclr bclri \
+	bext bexti \
+	binv binvi \
+	bset bseti \
+
+rv32uzbs_p_tests = $(addprefix rv32uzbs-p-, $(rv32uzbs_sc_tests))
+rv32uzbs_v_tests = $(addprefix rv32uzbs-v-, $(rv32uzbs_sc_tests))
+rv32uzbs_ps_tests = $(addprefix rv32uzbs-ps-, $(rv32uzbs_sc_tests))
+
+spike_tests += $(rv32uzbs_p_tests) $(rv32uzbs_v_tests)
