@@ -26,6 +26,9 @@ RVTEST_CODE_BEGIN
 1:
   csrw mtvec, a0
 
+  # Enable interrupts; see https://github.com/riscv/riscv-debug-spec/blob/f510a7dd33317d0eee0f26b4fa082cd43a5ac7ea/Sdtrig.tex#L213-L214
+  csrsi mstatus, MSTATUS_MIE
+
   # Skip tselect if hard-wired.
   csrw tselect, x0
   csrr a1, tselect
