@@ -1,0 +1,26 @@
+#=======================================================================
+# Makefrag for rv64uzbb tests
+#-----------------------------------------------------------------------
+
+rv64uzbb_sc_tests = \
+	andn \
+	clz clzw \
+	cpop cpopw \
+	ctz ctzw \
+	max maxu \
+	min minu \
+	orc_b \
+	orn \
+	rev8 \
+	rol rolw \
+	ror rorw \
+	rori roriw \
+	sext_b sext_h \
+	xnor \
+	zext_h \
+
+rv64uzbb_p_tests = $(addprefix rv64uzbb-p-, $(rv64uzbb_sc_tests))
+rv64uzbb_v_tests = $(addprefix rv64uzbb-v-, $(rv64uzbb_sc_tests))
+rv64uzbb_ps_tests = $(addprefix rv64uzbb-ps-, $(rv64uzbb_sc_tests))
+
+spike_tests += $(rv64uzbb_p_tests) $(rv64uzbb_v_tests)
