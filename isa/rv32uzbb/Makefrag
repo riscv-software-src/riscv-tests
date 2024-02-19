@@ -1,0 +1,26 @@
+#=======================================================================
+# Makefrag for rv32uzbb tests
+#-----------------------------------------------------------------------
+
+rv32uzbb_sc_tests = \
+	andn \
+	clz \
+	cpop \
+	ctz \
+	max maxu \
+	min minu \
+	orc_b \
+	orn \
+	rev8 \
+	rol \
+	ror \
+	rori \
+	sext_b sext_h \
+	xnor \
+	zext_h \
+
+rv32uzbb_p_tests = $(addprefix rv32uzbb-p-, $(rv32uzbb_sc_tests))
+rv32uzbb_v_tests = $(addprefix rv32uzbb-v-, $(rv32uzbb_sc_tests))
+rv32uzbb_ps_tests = $(addprefix rv32uzbb-ps-, $(rv32uzbb_sc_tests))
+
+spike_tests += $(rv32uzbb_p_tests) $(rv32uzbb_v_tests)

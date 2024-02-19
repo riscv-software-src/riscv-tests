@@ -1,0 +1,16 @@
+#=======================================================================
+# Makefrag for rv64uzba tests
+#-----------------------------------------------------------------------
+
+rv64uzba_sc_tests = \
+	add_uw \
+	sh1add sh1add_uw \
+	sh2add sh2add_uw \
+	sh3add sh3add_uw \
+	slli_uw \
+
+rv64uzba_p_tests = $(addprefix rv64uzba-p-, $(rv64uzba_sc_tests))
+rv64uzba_v_tests = $(addprefix rv64uzba-v-, $(rv64uzba_sc_tests))
+rv64uzba_ps_tests = $(addprefix rv64uzba-ps-, $(rv64uzba_sc_tests))
+
+spike_tests += $(rv64uzba_p_tests) $(rv64uzba_v_tests)
