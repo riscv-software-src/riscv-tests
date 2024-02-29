@@ -1679,6 +1679,10 @@ class TranslateTest(GdbSingleHartTest):
         assertEqual(0xdeadbeef, self.gdb.p("virtual[0]"))
         assertEqual(0x55667788, self.gdb.p("virtual[1]"))
 
+        # disable mmu
+        self.gdb.p("$mstatus=$mstatus & ~0x20000")
+        self.gdb.p("$satp=0")
+
 SATP_MODE_OFF = 0
 SATP_MODE_SV32 = 1
 SATP_MODE_SV39 = 8
