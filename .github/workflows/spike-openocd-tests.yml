@@ -7,7 +7,7 @@ env:
   SPIKE_REV: master
   RISCV_TESTS_REPO: https://github.com/riscv-software-src/riscv-tests.git
   RISCV_TESTS_REV: master
-  OPENOCD_REPO: https://github.com/riscv/riscv-openocd.git
+  OPENOCD_REPO: https://github.com/riscv-collab/riscv-openocd.git
   OPENOCD_REV: riscv
   TOOLCHAIN_URL: https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v12.2.0-1/xpack-riscv-none-elf-gcc-12.2.0-1-linux-x64.tar.gz
 
@@ -48,7 +48,7 @@ jobs:
       - name: Get revisions of dependencies
         run: |
           SPIKE_COMMIT=$( git ls-remote "$SPIKE_REPO" $SPIKE_REV | awk '{ print $1; }' )
-          OPENOCD_COMMIT=$( git ls-remote "$OPENOCD_REPO" $OPENOCD_REV | awk '{ print $1; }' )
+          OPENOCD_COMMIT=$( git ls-remote -h "$OPENOCD_REPO" $OPENOCD_REV | awk '{ print $1; }' )
           echo "Revison of Spike: $SPIKE_COMMIT"
           echo "Revision of OpenOCD: $OPENOCD_COMMIT"
           # Save for later use
