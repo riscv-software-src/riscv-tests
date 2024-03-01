@@ -613,11 +613,10 @@ class Hwbp1(DebugTest):
         return self.hart.instruction_hardware_breakpoint_count > 0
 
     def test(self):
-        if not self.hart.honors_tdata1_hmode:
-            # Run to main before setting the breakpoint, because startup code
-            # will otherwise clear the trigger that we set.
-            self.gdb.b("main")
-            self.gdb.c()
+        # Run to main before setting the breakpoint, because startup code
+        # will otherwise clear the trigger that we set.
+        self.gdb.b("main")
+        self.gdb.c()
 
         self.gdb.command("delete")
         self.gdb.hbreak("rot13")
@@ -631,7 +630,7 @@ class Hwbp1(DebugTest):
         self.exit()
 
 def MCONTROL_TYPE(xlen):
-    return 0xf<<((xlen)-4)
+    return 0x2<<((xlen)-4)
 def MCONTROL_DMODE(xlen):
     return 1<<((xlen)-5)
 def MCONTROL_MASKMAX(xlen):
@@ -677,15 +676,18 @@ class HwbpManual(DebugTest):
             self.hart.instruction_hardware_breakpoint_count >= 1
 
     def test(self):
-        if not self.hart.honors_tdata1_hmode:
-            # Run to main before setting the breakpoint, because startup code
-            # will otherwise clear the trigger that we set.
-            self.gdb.b("main")
-            self.gdb.c()
+        # Run to main before setting the breakpoint, because startup code
+        # will otherwise clear the trigger that we set.
+        self.gdb.b("main")
+        self.gdb.c()
 
         self.gdb.command("delete")
         #self.gdb.hbreak("rot13")
-        tdata1 = MCONTROL_DMODE(self.hart.xlen)
+        xlen = self.hart.xlen
+        tdata1_type_exclude_mask = 0xFFFFFFF if xlen == 32 \
+            else 0xFFFFFFFFFFFFFFF
+        tdata1 = MCONTROL_TYPE(xlen)
+        tdata1 |= MCONTROL_DMODE(xlen)
         tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
         tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
         tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
@@ -697,8 +699,11 @@ class HwbpManual(DebugTest):
             if value != tselect:
                 raise TestNotApplicable
             self.gdb.p(f"$tdata1=0x{tdata1:x}")
-            value = self.gdb.p("$tselect")
-            if value == tdata1:
+            value = self.gdb.p("$tdata1")
+            if value == tdata1 or \
+                    (value >> (xlen-4) == 0x6 and \
+                            value & tdata1_type_exclude_mask == \
+                                    tdata1 & tdata1_type_exclude_mask):
                 break
             self.gdb.p("$tdata1=0")
             tselect += 1
@@ -710,6 +715,7 @@ class HwbpManual(DebugTest):
             self.gdb.p("$pc")
             assertRegex(output, r"[bB]reakpoint")
             assertIn("rot13 ", output)
+            self.gdb.stepi()
         self.gdb.p("$tdata2=&crc32a")
         self.gdb.c()
         before = self.gdb.p("$pc")
@@ -1396,8 +1402,7 @@ class TriggerStoreAddressInstant(TriggerTest):
 
 class TriggerDmode(TriggerTest):
     def early_applicable(self):
-        return self.hart.honors_tdata1_hmode and \
-                self.hart.instruction_hardware_breakpoint_count > 0
+        return self.hart.instruction_hardware_breakpoint_count > 0
 
     def check_triggers(self, tdata1_lsbs, tdata2):
         dmode = 1 << (self.hart.xlen-5)
