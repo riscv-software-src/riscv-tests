@@ -20,6 +20,7 @@ RVTEST_CODE_BEGIN
 
   # indicate it's a load test
   li s1, CAUSE_MISALIGNED_LOAD
+  li s2, CAUSE_LOAD_ACCESS
 
 #define SEXT(x, n) ((-((x) >> ((n)-1)) << (n)) | ((x) & ((1 << (n))-1)))
 
@@ -56,6 +57,7 @@ RVTEST_CODE_BEGIN
 
   # indicate it's a store test
   li s1, CAUSE_MISALIGNED_STORE
+  li s2, CAUSE_STORE_ACCESS
 
 /* Check that a misaligned store has some effect and takes no exception,
    or takes no effect and generates an exception.  This is not very
@@ -96,7 +98,10 @@ RVTEST_CODE_BEGIN
   .global mtvec_handler
 mtvec_handler:
   csrr t0, mcause
-  bne t0, s1, fail
+  beq t0, s1, 1f
+  beq t0, s2, 1f
+  j fail
+1:
 
   csrr t0, mbadaddr
   beqz t0, 1f
