@@ -96,7 +96,9 @@ RVTEST_CODE_BEGIN
   .global mtvec_handler
 mtvec_handler:
   csrr t0, mcause
-  bne t0, s1, fail
+  li t3, CAUSE_LOAD_ACCESS
+  li t4, CAUSE_STORE_ACCESS
+  bne t0, s1, store_access_check
 
   csrr t0, mbadaddr
   beqz t0, 1f
@@ -104,6 +106,14 @@ mtvec_handler:
 
   lb t0, (t0)
   beqz t0, fail
+
+store_access_check:
+  bne t0, t4, load_access_check
+  j 1f;
+
+load_access_check:
+  bne t0, t3, fail
+
 1:
 
   csrw mepc, t2
