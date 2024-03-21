@@ -93,9 +93,11 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
+// Must be global for compatibility with Clang
+register void* thread_pointer asm("tp");
+
 static void init_tls()
 {
-  register void* thread_pointer asm("tp");
   extern char _tdata_begin, _tdata_end, _tbss_end;
   size_t tdata_size = &_tdata_end - &_tdata_begin;
   memcpy(thread_pointer, &_tdata_begin, tdata_size);
@@ -356,18 +358,18 @@ int printf(const char* fmt, ...)
   return 0; // incorrect return value, but who cares, anyway?
 }
 
+static void sprintf_putch(int ch, void** data)
+{
+  char** pstr = (char**)data;
+  **pstr = ch;
+  (*pstr)++;
+}
+
 int sprintf(char* str, const char* fmt, ...)
 {
   va_list ap;
   char* str0 = str;
   va_start(ap, fmt);
-
-  void sprintf_putch(int ch, void** data)
-  {
-    char** pstr = (char**)data;
-    **pstr = ch;
-    (*pstr)++;
-  }
 
   vprintfmt(sprintf_putch, (void**)&str, fmt, ap);
   *str = 0;
