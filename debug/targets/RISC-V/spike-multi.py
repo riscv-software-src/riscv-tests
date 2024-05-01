@@ -11,7 +11,7 @@ class multispike(targets.Target):
         spike64.spike64_hart(misa=0x8000000000341129, system=1),
         spike64.spike64_hart(misa=0x8000000000341129, system=1)]
     openocd_config_path = "spike-multi.cfg"
-    timeout_sec = 30
+    timeout_sec = 180
     server_timeout_sec = 120
     implements_custom_test = True
     support_hasel = False

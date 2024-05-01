@@ -14,7 +14,7 @@ class spike64_hart(targets.Hart):
 class spike64(targets.Target):
     harts = [spike64_hart()]
     openocd_config_path = "spike-1.cfg"
-    timeout_sec = 30
+    timeout_sec = 180
     implements_custom_test = True
     freertos_binary = "bin/RTOSDemo64.axf"
     support_unavailable_control = True

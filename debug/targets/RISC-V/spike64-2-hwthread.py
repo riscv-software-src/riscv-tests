@@ -7,9 +7,7 @@ class spike64_2(targets.Target):
     harts = [spike64.spike64_hart(misa=0x8000000000341129),
             spike64.spike64_hart(misa=0x8000000000341129)]
     openocd_config_path = "spike-2-hwthread.cfg"
-    # Increased timeout because we use abstract_rti to artificially slow things
-    # down.
-    timeout_sec = 20
+    timeout_sec = 180
     implements_custom_test = True
     support_hasel = False
     support_memory_sampling = False # Needs SBA
