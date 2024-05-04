@@ -1076,12 +1076,16 @@ class PrivateState:
 
 def load_excluded_tests(excluded_tests_file, target_name):
     result = []
-    if excluded_tests_file is None or len(excluded_tests_file) == 0:
+    if excluded_tests_file is None:
+        # No list of excluded tests was specified
         return result
 
     target_excludes = {}
     with open(excluded_tests_file, encoding="utf-8") as file:
         raw_data = yaml.safe_load(file)
+        if raw_data is None:
+            # File contains no targets
+            return result
         for (target, test_list) in raw_data.items():
             if not isinstance(test_list, list):
                 raise ValueError(
