@@ -3,5 +3,6 @@
 # when running a set of tests.
 
 ignore_test_tuple = [
-    "rv64ssvnapot-p-napot",
+    "rv64ssvnapot-p-napot",     # naport Not implemented in the Sail model
+    "rv64mzicbo-p-zero",        # cbo Not implemented in the Sail model
     ]
