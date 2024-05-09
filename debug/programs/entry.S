@@ -84,8 +84,9 @@ handle_reset:
   beq   t0, t1, 1b
 .p2align 2
 2:
-  # Restore mtvec
+  # Restore mtvec and mstatus
   csrw mtvec, t2
+  csrwi mstatus, 0
 
 #ifdef MULTICORE
   csrr  t0, CSR_MHARTID
