@@ -833,6 +833,7 @@ class MemorySampleTest(DebugTest):
                     first_timestamp = timestamp
                 else:
                     end = (timestamp, total_samples)
+                    previous_value = None
             else:
                 assertRegex(line, r"^0x[0-f]+: 0x[0-f]+$")
                 address, value = line.split(': ')
