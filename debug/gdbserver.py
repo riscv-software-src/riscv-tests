@@ -687,6 +687,8 @@ class HwbpManual(DebugTest):
         self.gdb.command("delete")
         #self.gdb.hbreak("rot13")
         tdata1 = MCONTROL_DMODE(self.hart.xlen)
+        tdata1 = set_field(tdata1, MCONTROL_TYPE(self.hart.xlen),
+                           MCONTROL_TYPE_MATCH)
         tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
         tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
         tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
@@ -697,20 +699,30 @@ class HwbpManual(DebugTest):
             value = self.gdb.p("$tselect")
             if value != tselect:
                 raise TestNotApplicable
+            # Need to disable the trigger before writing tdata2
+            self.gdb.p("$tdata1=0")
+            # Need to write a valid value to tdata2 before writing tdata1
+            self.gdb.p("$tdata2=&rot13")
             self.gdb.p(f"$tdata1=0x{tdata1:x}")
-            value = self.gdb.p("$tselect")
+            value = self.gdb.p("$tdata1")
             if value == tdata1:
                 break
+            if value & MCONTROL_TYPE(self.hart.xlen) == MCONTROL_TYPE_NONE:
+                raise TestNotApplicable
             self.gdb.p("$tdata1=0")
             tselect += 1
 
-        self.gdb.p("$tdata2=&rot13")
         # The breakpoint should be hit exactly 2 times.
         for _ in range(2):
             output = self.gdb.c(ops=2)
-            self.gdb.p("$pc")
+            assertEqual(self.gdb.p("$pc"), self.gdb.p("&rot13"))
             assertRegex(output, r"[bB]reakpoint")
             assertIn("rot13 ", output)
+
+        # Hardware breakpoint are removed by the binary in handle_reset.
+        # This changes tselect. Therefore GDB needs to restore it.
+        self.gdb.p(f"$tselect={tselect}")
+
         self.gdb.p("$tdata2=&crc32a")
         self.gdb.c()
         before = self.gdb.p("$pc")
@@ -718,6 +730,10 @@ class HwbpManual(DebugTest):
         self.gdb.stepi()
         after = self.gdb.p("$pc")
         assertNotEqual(before, after)
+
+        # Remove the manual HW breakpoint.
+        assertEqual(tselect, self.gdb.p("$tselect"))
+        self.gdb.p("$tdata1=0")
 
         self.gdb.b("_exit")
         self.exit()
