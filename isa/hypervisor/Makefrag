@@ -1,0 +1,8 @@
+#=======================================================================
+# Makefrag for hypervisor tests
+#-----------------------------------------------------------------------
+
+hypervisor_sc_tests = \
+	2-stage-translation \
+
+hypervisor_p_tests = $(addprefix hypervisor-p-, $(hypervisorsc_tests))
