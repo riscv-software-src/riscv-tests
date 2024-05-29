@@ -27,12 +27,12 @@ vs_pt_init:
   ori t0, t0, PTE_V
   sd t0, vspt_0, t1
 
-  la t0, vspt2_gpa
+  li t0, vspt2_gpa
   srl t0, t0, RISCV_PGSHIFT - PTE_PPN_SHIFT
   ori t0, t0, PTE_V
   sd t0, vspt_1, t1
 
-  la t0, GPA
+  li t0, GPA
   srl t0, t0, RISCV_PGSHIFT - PTE_PPN_SHIFT
   ori t0, t0, PTE_V | PTE_X | PTE_A | PTE_D | PTE_R | PTE_W
   sd t0, vspt_2, t1
@@ -97,9 +97,9 @@ hstatus_init:
   li a0, SSTATUS_SPP
   csrs sstatus, a0
 
-  li a0, data_page
+  la a0, data_page
   li a1, 0x12345678
-  sw a0, 0(a1)
+  sw a1, 0(a0)
 
   li t0, 0x0
   hlv.w t2, 0(t0) # should be 0x12345678
@@ -130,6 +130,8 @@ gpt_0: .dword 0
 gpt_1: .dword 0
 .align 12
 gpt_2: .dword 0
+.align 12
+gpt_3: .dword 0
 .align 12
 data_page: .dword 0
 
