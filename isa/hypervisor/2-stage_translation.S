@@ -92,10 +92,8 @@ init_hgatp:
   hfence.gvma
 
 hstatus_init:
-  li a0, (HSTATUS_SPV | HSTATUS_SPVP)
+  li a0, HSTATUS_SPVP
   csrs hstatus, a0
-  li a0, SSTATUS_SPP
-  csrs sstatus, a0
 
   la a0, data_page
   li a1, 0x12345678
