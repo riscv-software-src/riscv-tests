@@ -224,15 +224,15 @@ test_ ## testnum: \
 
 #define TEST_ST_OP( testnum, load_inst, store_inst, result, offset, base ) \
     TEST_CASE( testnum, x14, result, \
-      la  x1, base; \
-      li  x2, result; \
+      la  x2, base; \
+      li  x1, result; \
       la  x15, 7f; /* Tell the exception handler how to skip this test. */ \
-      store_inst x2, offset(x1); \
-      load_inst x14, offset(x1); \
+      store_inst x1, offset(x2); \
+      load_inst x14, offset(x2); \
       j 8f; \
 7:    \
       /* Set up the correct result for TEST_CASE(). */ \
-      mv x14, x2; \
+      mv x14, x1; \
 8:    \
     )
 
@@ -240,8 +240,8 @@ test_ ## testnum: \
 test_ ## testnum: \
     li  TESTNUM, testnum; \
     li  x4, 0; \
-1:  la  x1, base; \
-    inst x14, offset(x1); \
+1:  la  x13, base; \
+    inst x14, offset(x13); \
     TEST_INSERT_NOPS_ ## nop_cycles \
     addi  x6, x14, 0; \
     li  x7, result; \
@@ -254,9 +254,9 @@ test_ ## testnum: \
 test_ ## testnum: \
     li  TESTNUM, testnum; \
     li  x4, 0; \
-1:  la  x1, base; \
+1:  la  x13, base; \
     TEST_INSERT_NOPS_ ## nop_cycles \
-    inst x14, offset(x1); \
+    inst x14, offset(x13); \
     li  x7, result; \
     bne x14, x7, fail; \
     addi  x4, x4, 1; \
@@ -267,12 +267,12 @@ test_ ## testnum: \
 test_ ## testnum: \
     li  TESTNUM, testnum; \
     li  x4, 0; \
-1:  li  x1, result; \
+1:  li  x13, result; \
     TEST_INSERT_NOPS_ ## src1_nops \
-    la  x2, base; \
+    la  x12, base; \
     TEST_INSERT_NOPS_ ## src2_nops \
-    store_inst x1, offset(x2); \
-    load_inst x14, offset(x2); \
+    store_inst x13, offset(x12); \
+    load_inst x14, offset(x12); \
     li  x7, result; \
     bne x14, x7, fail; \
     addi  x4, x4, 1; \
