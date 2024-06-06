@@ -1,6 +1,7 @@
 import collections
 import os
 import os.path
+import random
 import re
 import shlex
 import subprocess
@@ -12,6 +13,8 @@ import traceback
 import tty
 import pexpect
 import yaml
+
+from datetime import datetime
 
 print_log_names = False
 real_stdout = sys.stdout
@@ -1159,6 +1162,14 @@ def run_all_tests(module, target, parsed):
 
     excluded_tests = load_excluded_tests(parsed.exclude_tests, target.name)
     target.skip_tests += excluded_tests
+
+    # initialize PRNG
+    selected_seed = parsed.seed
+    if parsed.seed is None:
+        selected_seed = int(datetime.now().timestamp())
+        print(f"PRNG seed for {target.name} is generated automatically")
+    print(f"PRNG seed for {target.name} is {selected_seed}")
+    random.seed(selected_seed)
 
     results, count = run_tests(parsed, target, todo)
 
