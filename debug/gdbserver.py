@@ -2217,8 +2217,10 @@ def main():
     selected_seed = parsed.seed
     if parsed.seed is None:
         selected_seed = int(datetime.now().timestamp())
-        print(f"PRNG seed for {target.name} is generated automatically")
-    print(f"PRNG seed for {target.name} is {selected_seed}")
+        if parsed.list_tests is None:
+            print(f"PRNG seed for {target.name} is generated automatically")
+    if parsed.list_tests is None:
+        print(f"PRNG seed for {target.name} is {selected_seed}")
     random.seed(selected_seed)
 
     return testlib.run_all_tests(module, target, parsed)
