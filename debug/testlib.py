@@ -10,11 +10,11 @@ import tempfile
 import time
 import traceback
 
+from datetime import datetime
+
 import tty
 import pexpect
 import yaml
-
-from datetime import datetime
 
 print_log_names = False
 real_stdout = sys.stdout
@@ -1303,7 +1303,6 @@ class BaseTest:
         if not hart is None:
             self.hart = hart
         else:
-            import random   # pylint: disable=import-outside-toplevel
             self.hart = random.choice(target.harts)
             #self.hart = target.harts[-1]
         self.server = None
