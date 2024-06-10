@@ -367,10 +367,15 @@ class Openocd:
         self.tclrpc_port = None
         self.start(cmd, logfile, extra_env)
 
-        self.openocd_cli = pexpect.spawn(f"nc localhost {self.tclrpc_port}")
+        self.openocd_cli = pexpect.spawn(f"nc localhost {self.tclrpc_port}",
+            echo=False)
         # TCL-RPC uses \x1a as a watermark for end of message. We set raw
         # pty mode to disable translation of \x1a to EOF
         tty.setraw(self.openocd_cli.child_fd)
+        hello_string = self.command(
+            "capture { echo \"Hello TCL-RPC!\" }").decode()
+        if not "Hello TCL-RPC!" in hello_string:
+            raise RuntimeError(f"TCL-RPC - unexpected reply:\n{hello_string}")
 
     def start(self, cmd, logfile, extra_env):
         combined_env = {**os.environ, **extra_env}
