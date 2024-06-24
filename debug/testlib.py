@@ -134,6 +134,9 @@ class Spike:
         else:
             isa = f"RV{self.harts[0].xlen}G"
 
+        if 'V' in isa[2:]:
+            isa += f"_Zvl{self.vlen}b_Zve{self.elen}d"
+
         cmd += ["--isa", isa]
         cmd += ["--dm-auth"]
 
@@ -159,8 +162,6 @@ class Spike:
         if not self.support_haltgroups:
             cmd.append("--dm-no-halt-groups")
 
-        if 'V' in isa[2:]:
-            cmd.append(f"--varch=vlen:{self.vlen},elen:{self.elen}")
 
         assert len(set(t.ram for t in self.harts)) == 1, \
                 "All spike harts must have the same RAM layout"
