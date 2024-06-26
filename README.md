@@ -20,6 +20,12 @@ install path, and that the riscv-gnu-toolchain package is installed.
     $ make
     $ make install
 
+If you are on an ARM machine, e.g., Raspberry Pi 4 with Fedora Spin 33
+XFCE AArch64, you may use the similar configure arguments as below to
+cross-compile riscv-tests:
+./configure --prefix=$RISCV/target --build=aarch64-redhat-linux --host=riscv64-unknown-elf --target=riscv64-unknown-elf
+The above target triplets depends on your host system and the toolchain prefix according to $RISCV.
+
 The rest of this document describes the format of test programs for the RISC-V
 architecture.
 
