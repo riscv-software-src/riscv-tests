@@ -1,6 +1,7 @@
 import collections
 import os
 import os.path
+import random
 import re
 import shlex
 import subprocess
@@ -8,6 +9,8 @@ import sys
 import tempfile
 import time
 import traceback
+
+from datetime import datetime
 
 import tty
 import pexpect
@@ -1161,6 +1164,14 @@ def run_all_tests(module, target, parsed):
     excluded_tests = load_excluded_tests(parsed.exclude_tests, target.name)
     target.skip_tests += excluded_tests
 
+    # initialize PRNG
+    selected_seed = parsed.seed
+    if parsed.seed is None:
+        selected_seed = int(datetime.now().timestamp())
+        print(f"PRNG seed for {target.name} is generated automatically")
+    print(f"PRNG seed for {target.name} is {selected_seed}")
+    random.seed(selected_seed)
+
     results, count = run_tests(parsed, target, todo)
 
     header(f"ran {count} tests in {time.time() - overall_start:.0f}s", dash=':')
@@ -1293,7 +1304,6 @@ class BaseTest:
         if not hart is None:
             self.hart = hart
         else:
-            import random   # pylint: disable=import-outside-toplevel
             self.hart = random.choice(target.harts)
             #self.hart = target.harts[-1]
         self.server = None
