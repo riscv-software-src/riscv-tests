@@ -1,10 +1,10 @@
 // See LICENSE for license details.
 
 //**************************************************************************
-// Quicksort benchmark
+// Radix Sort benchmark
 //--------------------------------------------------------------------------
 //
-// This benchmark uses quicksort to sort an array of integers. The
+// This benchmark uses radix sort to sort an array of integers. The
 // implementation is largely adapted from Numerical Recipes for C. The
 // input data (and reference data) should be generated using the
 // qsort_gendata.pl perl script and dumped to a file named
