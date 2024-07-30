@@ -5,14 +5,17 @@ SECTIONS
   /* Leave some space for pk's data structures, which includes tohost/fromhost
    * which are special addresses we ought to leave alone.  */
   . = 0x10110000;
-  .text : 
+  .text :
   {
     *(.text.entry)
     *(.text)
+    *(.text.*)
   }
 
   /* data segment */
-  .data : { *(.data) }
+  .rodata : { *(.rodata .rodata.*) }
+
+  .data : { *(.data .data.*) }
 
   .sdata : {
     __global_pointer$ = . + 0x800;
@@ -27,7 +30,7 @@ SECTIONS
     *(.sbss .sbss.* .gnu.linkonce.sb.*)
     *(.scommon)
   }
-  .bss : { *(.bss) }
+  .bss : { *(.bss .bss.*) }
   __bss_end = .;
 
   __malloc_start = .;
