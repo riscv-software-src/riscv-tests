@@ -124,7 +124,7 @@ vspt_2: .dword 0
 
 .align 14
 gpt_0: .dword 0
-.align 12
+.align 14
 gpt_1: .dword 0
 .align 12
 gpt_2: .dword 0
