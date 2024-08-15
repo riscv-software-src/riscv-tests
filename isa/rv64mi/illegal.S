@@ -72,19 +72,19 @@ msip:
   beqz t2, bare_s_1
   csrc sstatus, t0
 
-  # Make sure SFENCE.VMA and sptbr don't trap when TVM=0.
+  # Make sure SFENCE.VMA and satp don't trap when TVM=0.
   sfence.vma
-  csrr t0, sptbr
+  csrr t0, satp
 bad5:
   .word 0
   j fail
 
 bad6:
-  # Make sure SFENCE.VMA and sptbr do trap when TVM=1.
+  # Make sure SFENCE.VMA and satp do trap when TVM=1.
   sfence.vma
   j fail
 bad7:
-  csrr t0, sptbr
+  csrr t0, satp
   j fail
 
 test_tsr:
@@ -120,7 +120,7 @@ bare_s_2:
   j fail
 
   # And access to satp should not trap
-  csrr t0, sptbr
+  csrr t0, satp
 bare_s_3:
   .word 0
   j fail
@@ -156,7 +156,7 @@ synchronous_exception:
   csrr t0, mepc
 
   # Make sure mtval contains either 0 or the instruction word.
-  csrr t2, mbadaddr
+  csrr t2, mtval
   beqz t2, 1f
   lhu t1, 0(t0)
   xor t2, t2, t1

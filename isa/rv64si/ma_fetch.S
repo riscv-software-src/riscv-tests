@@ -17,7 +17,7 @@ RVTEST_CODE_BEGIN
   #define sscratch mscratch
   #define sstatus mstatus
   #define scause mcause
-  #define sbadaddr mbadaddr
+  #define stval mtval
   #define sepc mepc
   #define sret mret
   #define stvec_handler mtvec_handler
@@ -205,8 +205,8 @@ stvec_handler:
   addi a1, a1, 4
   bne t0, a1, fail
 
-  # verify that badaddr == 0 or badaddr == t0+2.
-  csrr a0, sbadaddr
+  # verify that tval == 0 or tval == t0+2.
+  csrr a0, stval
   beqz a0, 1f
   addi a0, a0, -2
   bne a0, t0, fail

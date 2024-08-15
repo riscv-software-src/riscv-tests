@@ -103,7 +103,7 @@ mtvec_handler:
   j fail
 1:
 
-  csrr t0, mbadaddr
+  csrr t0, mtval
   beqz t0, 1f
   bne t0, t1, fail
 

@@ -22,7 +22,7 @@ RVTEST_CODE_BEGIN
   la a1, page_table_1
   srl a1, a1, RISCV_PGSHIFT
   or a1, a1, a0
-  csrw sptbr, a1
+  csrw satp, a1
   sfence.vma
 
   # Set up MPRV with MPP=S, so loads and stores use S-mode
