@@ -2125,8 +2125,10 @@ class EtriggerTest(DebugTest):
     def test(self):
         # Set trigger on Load access fault
         self.gdb.command("monitor riscv etrigger set m 0x20")
-        # Set fox to a null pointer so we'll get a load access exception later.
-        self.gdb.p("fox=(char*)0")
+        # Set fox to a bad pointer so we'll get a load access exception later.
+        # Use NULL if a known-bad address is not provided.
+        bad_address = self.hart.bad_address or 0
+        self.gdb.p(f"fox=(char*)0x{bad_address:08x}")
         output = self.gdb.c()
         # We should not be at handle_trap
         assertNotIn("handle_trap", output)
