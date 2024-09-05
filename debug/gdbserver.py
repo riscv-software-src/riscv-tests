@@ -711,7 +711,7 @@ class HwbpManual(DebugTest):
             self.gdb.p("$tdata1=0")
             tselect += 1
 
-        self.gdb.command(f"monitor riscv reserve_trigger {tselect}")
+        self.gdb.command(f"monitor riscv reserve_trigger {tselect} on")
 
         # The breakpoint should be hit exactly 2 times.
         for _ in range(2):
