@@ -264,6 +264,8 @@ class MemTest64(SimpleMemoryTest):
 class MemTestReadInvalid(SimpleMemoryTest):
     def test(self):
         bad_address = self.hart.bad_address
+        if self.target.support_set_pmp_deny:
+            self.set_pmp_deny(bad_address)
         good_address = self.hart.ram + 0x80
 
         self.write_nop_program(2)
@@ -279,6 +281,8 @@ class MemTestReadInvalid(SimpleMemoryTest):
         self.gdb.stepi()    # Don't let gdb cache register read
         assertEqual(self.gdb.p(f"*((int*)0x{good_address:x})"), 0xabcdef)
         assertEqual(self.gdb.p("$s0"), 0x12345678)
+        if self.target.support_set_pmp_deny:
+            self.reset_pmp_deny()
 
 #class MemTestWriteInvalid(SimpleMemoryTest):
 #    def test(self):
@@ -2163,6 +2167,8 @@ class EtriggerTest(DebugTest):
         self.gdb.b("handle_trap")
 
     def test(self):
+        if self.target.support_set_pmp_deny:
+            self.set_pmp_deny(0)
         # Set trigger on Load access fault
         self.gdb.command("monitor riscv etrigger set m 0x20")
         # Set fox to a bad pointer so we'll get a load access exception later.
@@ -2176,6 +2182,8 @@ class EtriggerTest(DebugTest):
         # actual exception handler.
         assertIn("breakpoint", output)
         assertIn("trap_entry", self.gdb.where())
+        if self.target.support_set_pmp_deny:
+            self.reset_pmp_deny()
 
 class IcountTest(DebugTest):
     compile_args = ("programs/infinite_loop.S", )
