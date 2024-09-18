@@ -1628,14 +1628,16 @@ class PrivTest(GdbSingleHartTest):
         # pylint: disable=attribute-defined-outside-init
         self.gdb.load()
 
-        misa = self.hart.misa
+        # It may be affected by reset halt
+        misa = self.gdb.p(f"$misa=0x{self.hart.misa:x}")
         self.supported = set()
         if misa & (1<<20):
             self.supported.add(0)
         if misa & (1<<18):
             self.supported.add(1)
         if misa & (1<<7):
-            self.supported.add(2)
+            self.supported.add(4)
+            self.supported.add(5)
         self.supported.add(3)
 
         self.disable_pmp()
@@ -1651,14 +1653,17 @@ class PrivTest(GdbSingleHartTest):
 class PrivRw(PrivTest):
     """Test reading/writing priv."""
     def test(self):
-        self.write_nop_program(4)
-        for privilege in range(4):
+        privilege_limit=len(self.supported)+1
+        self.write_nop_program(privilege_limit)
+        for privilege in range(privilege_limit):
             self.gdb.p(f"$priv={privilege}")
             self.gdb.stepi()
             actual = self.gdb.p("$priv")
             assertIn(actual, self.supported)
             if privilege in self.supported:
                 assertEqual(actual, privilege)
+            # Restore to machine mode
+            self.gdb.p("$priv=3")
 
 class PrivChange(PrivTest):
     """Test that the core's privilege level actually changes when the debugger
