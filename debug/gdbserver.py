@@ -66,6 +66,20 @@ def srec_parse(line):
     if typ == b'S0':
         # header
         return 0, 0, 0
+    elif typ == b'S1':
+        # data with 16-bit address
+        address = int(line[4:8], 16)
+        for i in range(4, count+1):
+            data += f"{int(line[2 * i:2 * i + 2], 16):c}"
+        # Ignore the checksum.
+        return 1, address, data
+    elif typ == b'S2':
+        # data with 24-bit address
+        address = int(line[4:10], 16)
+        for i in range(5, count+1):
+            data += f"{int(line[2 * i:2 * i + 2], 16):c}"
+        # Ignore the checksum.
+        return 2, address, data
     elif typ == b'S3':
         # data with 32-bit address
         # Any higher bits were chopped off.
@@ -74,9 +88,9 @@ def srec_parse(line):
             data += f"{int(line[2 * i:2 * i + 2], 16):c}"
         # Ignore the checksum.
         return 3, address, data
-    elif typ == b'S7':
+    elif typ in (b'S7', b'S8', b'S9'):
         # ignore execution start field
-        return 7, 0, 0
+        return int(typ[-1]), 0, 0
     else:
         raise TestFailed(f"Unsupported SREC type {typ!r}.")
 
@@ -389,7 +403,7 @@ class MemTestBlock(GdbTest):
             highest_seen = 0
             for line in b:
                 record_type, address, line_data = srec_parse(line)
-                if record_type == 3:
+                if record_type in (1, 2, 3):
                     offset = address - (self.hart.ram & 0xffffffff)
                     written_data = data[offset:offset+len(line_data)]
                     highest_seen += len(line_data)
