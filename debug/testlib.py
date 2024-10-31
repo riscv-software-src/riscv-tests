@@ -65,6 +65,7 @@ def compile(args): # pylint: disable=redefined-builtin
 class Spike:
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-locals
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, target, halted=False, timeout=None, with_jtag_gdb=True,
             isa=None, progbufsize=None, dmi_rti=None, abstract_rti=None,
             support_hasel=True, support_abstract_csr=True,
@@ -300,6 +301,8 @@ class VcsSim:
 class Openocd:
     # pylint: disable=too-many-instance-attributes
     # pylint: disable-next=consider-using-with
+    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=consider-using-with
     logfile = tempfile.NamedTemporaryFile(prefix='openocd', suffix='.log')
     logname = logfile.name
 
@@ -717,6 +720,7 @@ class Gdb:
             11, 149, 107, 163, 73, 47, 43, 173, 7, 109, 101, 103, 191, 2, 139,
             97, 193, 157, 3, 29, 79, 113, 5, 89, 19, 37, 71, 179, 59, 137, 53)
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, target, ports, cmd=None, timeout=60, binaries=None,
                  logremote=False):
         assert ports
