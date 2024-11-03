@@ -110,18 +110,18 @@ test_4:
 
     # Set ra, s0, s1 to known 64-bit values
     li x1, 0x1111111111111111  # ra (x1)
-    li x5, 0x8888888888888888  # s0 (x8)
-    li x6, 0x9999999999999999  # s1 (x9)
-    li x7, 0xAAAAAAAAAAAAAAA0  # s2 (x10)
-    li x10, 0xBBBBBBBBBBBBBBB0  # s3 (x11)
-    li x11, 0xCCCCCCCCCCCCCCC0  # s4 (x12)
-    li x12, 0xDDDDDDDDDDDDDDD0  # s5 (x13)
-    li x13, 0xEEEEEEEEEEEEEEE0  # s6 (x14)
-    li x14, 0xFFFFFFFFFFFFFFF0  # s7 (x15)
-    li x15, 0x0000000000000000  # s8 (x16)
-    li x16, 0x1111111111111110  # s9 (x17)
-    li x17, 0x2222222222222220  # s10 (x18)
-    li x28, 0x3333333333333330  # s11 (x19)
+    li x8, 0x8888888888888888  # s0 (x8)
+    li x9, 0x9999999999999999  # s1 (x9)
+    li x18, 0xAAAAAAAAAAAAAAA0  # s2 (x10)
+    li x19, 0xBBBBBBBBBBBBBBB0  # s3 (x11)
+    li x20, 0xCCCCCCCCCCCCCCC0  # s4 (x12)
+    li x21, 0xDDDDDDDDDDDDDDD0  # s5 (x13)
+    li x22, 0xEEEEEEEEEEEEEEE0  # s6 (x14)
+    li x23, 0xFFFFFFFFFFFFFFF0  # s7 (x15)
+    li x24, 0x0000000000000000  # s8 (x16)
+    li x25, 0x1111111111111110  # s9 (x17)
+    li x26, 0x2222222222222220  # s10 (x18)
+    li x27, 0x3333333333333330  # s11 (x19)
 
     # Record initial sp
     mv x5, sp
@@ -136,39 +136,42 @@ test_4:
     bne sp, x7, fail
 
     ld x11, 120(sp)
-    bne x11, x28, fail
+    bne x11, x27, fail
 
     ld x11, 112(sp)
-    bne x11, x17, fail
+    bne x11, x26, fail
 
     ld x11, 104(sp)
-    bne x11, x16, fail
+    bne x11, x25, fail
 
     ld x11, 96(sp)
-    bne x11, x15, fail
+    bne x11, x24, fail
 
     ld x11, 88(sp)
-    bne x11, x14, fail
+    bne x11, x23, fail
 
     ld x11, 80(sp)
-    bne x11, x13, fail
+    bne x11, x22, fail
 
     ld x11, 72(sp)
-    bne x11, x12, fail
+    bne x11, x21, fail
 
     ld x11, 64(sp)
-    bne x11, x11, fail
+    bne x11, x20, fail
 
     ld x11, 56(sp)
-    bne x11, x10, fail
+    bne x11, x19, fail
 
     ld x11, 48(sp)
-    bne x11, x9, fail
+    bne x11, x18, fail
 
     ld x11, 40(sp)
-    bne x11, x8, fail
+    bne x11, x9, fail
 
     ld x11, 32(sp)
+    bne x11, x8, fail
+
+    ld x11, 24(sp)
     bne x11, x1, fail
 
     # All tests passed
