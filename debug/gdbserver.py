@@ -1110,9 +1110,9 @@ class InterruptTest(GdbSingleHartTest):
                 self.disable_timer()
                 return
 
-        self.disable_timer()
         assertGreater(interrupt_count, 1000)
         assertGreater(local, 1000)
+        self.disable_timer()
 
     def postMortem(self):
         GdbSingleHartTest.postMortem(self)
