@@ -141,6 +141,10 @@ class Target:
     # Instruction count limit
     icount_limit = 4
 
+    # Implements page-based virtual memory. So when PMP changes execute an
+    # SFENCE.VMA
+    implements_page_virtual_memory = True
+
     # Internal variables:
     directory = None
     temporary_files = []
