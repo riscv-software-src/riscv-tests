@@ -141,6 +141,9 @@ class Target:
     # Instruction count limit
     icount_limit = 4
 
+    # Support set_pmp_deny to create invalid addresses.
+    support_set_pmp_deny = False
+
     # Internal variables:
     directory = None
     temporary_files = []
