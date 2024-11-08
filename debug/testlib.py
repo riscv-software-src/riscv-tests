@@ -1508,6 +1508,9 @@ class GdbTest(BaseTest):
             if interrupt:
                 self.gdb.interrupt()
             self.gdb.p("$mie=$mie & ~0x80")
+            self.gdb.p("$mstatus=$mstatus & ~0x8")
+            self.gdb.p(f"*((long long*) 0x{self.target.clint_addr + 0x4000:x})\
+                    =0x" + "f" * (self.hart.xlen // 4))
 
     def exit(self, expected_result=10):
         self.gdb.command("delete")
