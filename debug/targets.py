@@ -141,6 +141,10 @@ class Target:
     # Instruction count limit
     icount_limit = 4
 
+    # Implements page-based virtual memory. So when PMP changes execute an
+    # SFENCE.VMA
+    implements_page_virtual_memory = True
+
     # Support set_pmp_deny to create invalid addresses.
     support_set_pmp_deny = False
 
