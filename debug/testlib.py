@@ -1514,6 +1514,9 @@ class GdbTest(BaseTest):
                 # pmcfg0 readback matches write, so TOR is supported.
                 self.gdb.p("$pmpaddr0="
                            f"0x{(self.hart.ram + self.hart.ram_size) >> 2:x}")
+            if self.target.implements_page_virtual_memory:
+                # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
+                self.gdb.command("monitor riscv exec_progbuf 0x12000073")
         except CouldNotFetch:
             # PMP registers are optional
             pass
