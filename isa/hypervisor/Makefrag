@@ -3,6 +3,6 @@
 #-----------------------------------------------------------------------
 
 hypervisor_sc_tests = \
-	2-stage-translation \
+	2-stage_translation \
 
 hypervisor_p_tests = $(addprefix hypervisor-p-, $(hypervisor_sc_tests))
