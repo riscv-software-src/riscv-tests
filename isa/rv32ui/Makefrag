@@ -10,11 +10,11 @@ rv32ui_sc_tests = \
 	beq bge bgeu blt bltu bne \
 	fence_i \
 	jal jalr \
-	lb lbu lh lhu lw \
+	lb lbu lh lhu lw ld_st \
 	lui \
 	ma_data \
 	or ori \
-	sb sh sw \
+	sb sh sw st_ld \
 	sll slli \
 	slt slti sltiu sltu \
 	sra srai \
