@@ -295,7 +295,29 @@ test_ ## testnum: \
     li  x5, 2; \
     bne x4, x5, 1b \
 
-#define TEST_BR2_OP_TAKEN( testnum, inst, val1, val2 ) \
+#define TEST_LD_ST_BYPASS(testnum, load_inst, store_inst, result, offset, base) \
+test_ ## testnum: \
+    li  TESTNUM, testnum; \
+    la  x2, base;        \
+    li x1, result; \
+    store_inst x1, offset(x2); \
+    load_inst x14, offset(x2);  \
+    store_inst x14, offset(x2); \
+    load_inst x2, offset(x2);  \
+    li  x7, result; \
+    bne x2, x7, fail;  \
+
+#define TEST_ST_LD_BYPASS(testnum, load_inst, store_inst, result, offset, base) \
+test_ ## testnum: \
+    li  TESTNUM, testnum;            \
+    la  x2, base;                    \
+    li  x1, result;                  \
+    store_inst x1, offset(x2);       \
+    load_inst x14, offset(x2);       \
+    li  x7, result;                  \
+    bne x14, x7, fail;               \
+
+#define TEST_BR2_OP_TAKEN(testnum, inst, val1, val2 ) \
 test_ ## testnum: \
     li  TESTNUM, testnum; \
     li  x1, val1; \
