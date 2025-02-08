@@ -32,6 +32,13 @@ test_ ## testnum: \
 #define TEST_INSERT_NOPS_9  nop; TEST_INSERT_NOPS_8
 #define TEST_INSERT_NOPS_10 nop; TEST_INSERT_NOPS_9
 
+#if __riscv_xlen == 64
+#define LOAD_PTR ld
+#define STORE_PTR sd
+#else
+#define LOAD_PTR lw
+#define STORE_PTR sw
+#endif
 
 #-----------------------------------------------------------------------
 # RV64UI MACROS
@@ -306,6 +313,13 @@ test_ ## testnum: \
     load_inst x2, offset(x2);  \
     li  x7, result; \
     bne x2, x7, fail;  \
+    la  x2, base;        \
+    STORE_PTR x2,8(x2); \
+    LOAD_PTR x4,8(x2); \
+    store_inst x1, offset(x4); \
+    bne x4, x2, fail;  \
+    load_inst x14, offset(x4);  \
+    bne x14, x7, fail;  \
 
 #define TEST_ST_LD_BYPASS(testnum, load_inst, store_inst, result, offset, base) \
 test_ ## testnum: \
