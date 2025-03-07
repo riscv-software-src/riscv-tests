@@ -4,4 +4,4 @@
 #undef RVTEST_RV64UF
 #define RVTEST_RV64UF RVTEST_RV32UF
 
-#include "../rv64uf/recoding.S"
+#include "../rv64ud/recoding.S"
