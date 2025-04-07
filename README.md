@@ -16,6 +16,7 @@ https://github.com/riscv-collab/riscv-gnu-toolchain) package is installed.
     $ git clone https://github.com/riscv/riscv-tests
     $ cd riscv-tests
     $ git submodule update --init --recursive
+    $ autoupdate
     $ autoconf
     $ ./configure --prefix=$RISCV/target
     $ make
