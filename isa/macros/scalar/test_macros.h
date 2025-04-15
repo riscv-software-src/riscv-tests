@@ -417,10 +417,6 @@ test_ ## testnum: \
 # Tests floating-point instructions
 #-----------------------------------------------------------------------
 
-#define sNaNh 0h:7c01
-#define sNaNf 0f:7f800001
-#define sNaN 0d:7ff0000000000001
-
 #define TEST_FP_OP_H_INTERNAL( testnum, flags, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
   li  TESTNUM, testnum; \

@@ -28,15 +28,15 @@ RVTEST_CODE_BEGIN
   # Only sNaN should signal invalid for feq.
   TEST_FP_CMP_OP_S( 8, feq.s, 0x00, 0, NaN, 0)
   TEST_FP_CMP_OP_S( 9, feq.s, 0x00, 0, NaN, NaN)
-  TEST_FP_CMP_OP_S(10, feq.s, 0x10, 0, sNaNf, 0)
+  TEST_FP_CMP_OP_S(10, feq.s, 0x10, 0, SNaN, 0)
 
   # qNaN should signal invalid for fle/flt.
   TEST_FP_CMP_OP_S(11, flt.s, 0x10, 0, NaN, 0)
   TEST_FP_CMP_OP_S(12, flt.s, 0x10, 0, NaN, NaN)
-  TEST_FP_CMP_OP_S(13, flt.s, 0x10, 0, sNaNf, 0)
+  TEST_FP_CMP_OP_S(13, flt.s, 0x10, 0, SNaN, 0)
   TEST_FP_CMP_OP_S(14, fle.s, 0x10, 0, NaN, 0)
   TEST_FP_CMP_OP_S(15, fle.s, 0x10, 0, NaN, NaN)
-  TEST_FP_CMP_OP_S(16, fle.s, 0x10, 0, sNaNf, 0)
+  TEST_FP_CMP_OP_S(16, fle.s, 0x10, 0, SNaN, 0)
 
   TEST_PASSFAIL
 
