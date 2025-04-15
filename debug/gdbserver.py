@@ -1791,6 +1791,42 @@ class Sv48Test(TranslateTest):
         self.gdb.p("vms=&sv48")
         self.test_translation()
 
+class HWTranslateTest(TranslateTest):
+    def test_hw_translation(self):
+        output = self.gdb.command("monitor riscv virt2phys_mode hw")
+        self.gdb.p(output)
+        self.test_translation()
+
+class Sv32HWTest(HWTranslateTest):
+    def early_applicable(self):
+        return TranslateTest.early_applicable(self) and \
+            self.hart.progbufsize and self.hart.xlen == 32
+
+    def test(self):
+        self.check_satp(SATP_MODE_SV32)
+        self.gdb.p("vms=&sv32")
+        self.test_hw_translation()
+
+class Sv39HWTest(HWTranslateTest):
+    def early_applicable(self):
+        return TranslateTest.early_applicable(self) and \
+            self.hart.progbufsize and self.hart.xlen > 32
+
+    def test(self):
+        self.check_satp(SATP_MODE_SV39)
+        self.gdb.p("vms=&sv39")
+        self.test_hw_translation()
+
+class Sv48HWTest(HWTranslateTest):
+    def early_applicable(self):
+        return TranslateTest.early_applicable(self) and \
+            self.hart.progbufsize and self.hart.xlen > 32
+
+    def test(self):
+        self.check_satp(SATP_MODE_SV48)
+        self.gdb.p("vms=&sv48")
+        self.test_hw_translation()
+
 class VectorTest(GdbSingleHartTest):
     compile_args = ("programs/vectors.S", )
 
