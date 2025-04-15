@@ -17,6 +17,8 @@ RVTEST_CODE_BEGIN
     # Replace the function with the 32-bit variant defined in test_macros.h
     #undef TEST_FP_OP2_D
     #define TEST_FP_OP2_D TEST_FP_OP2_D32
+    #undef TEST_FP_OP2_D_CNAN
+    #define TEST_FP_OP2_D_CNAN TEST_FP_OP2_D32_CNAN
 #endif
 
   #-------------------------------------------------------------
@@ -38,9 +40,9 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_D(17,  fmax.d, 0,       -1.0,       -1.0,       -2.0 );
 
   # FMAX(sNaN, x) = x
-  TEST_FP_OP2_D(20,  fmax.d, 0x10, 1.0, sNaN, 1.0);
+  TEST_FP_OP2_D(20,  fmax.d, 0x10, 1.0, SNaN, 1.0);
   # FMAX(qNaN, qNaN) = canonical NaN
-  TEST_FP_OP2_D(21,  fmax.d, 0x00, qNaN, NaN, NaN);
+  TEST_FP_OP2_D_CNAN(21,  fmax.d, 0x00, NaN, NaN);
 
   # -0.0 < +0.0
   TEST_FP_OP2_D(30,  fmin.d, 0,       -0.0,       -0.0,        0.0 );
