@@ -17,6 +17,8 @@ RVTEST_CODE_BEGIN
     # Replace the function with the 32-bit variant defined in test_macros.h
     #undef TEST_FP_OP2_D
     #define TEST_FP_OP2_D TEST_FP_OP2_D32
+    #undef TEST_FP_OP2_D_CNAN
+    #define TEST_FP_OP2_D_CNAN TEST_FP_OP2_D32_CNAN
 #endif
 
   #-------------------------------------------------------------
@@ -36,7 +38,7 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_D(10,  fmul.d, 1,      3.14159265e-8, 3.14159265, 0.00000001 );
 
   # Is the canonical NaN generated for Inf - Inf?
-  TEST_FP_OP2_D(11,  fsub.d, 0x10, qNaN, Inf, Inf);
+  TEST_FP_OP2_D_CNAN(11,  fsub.d, 0x10, Inf, Inf);
 
   TEST_PASSFAIL
 

@@ -34,7 +34,7 @@ RVTEST_CODE_BEGIN
   # FMIN(hNaN, x) = x
   TEST_FP_OP2_H(20,  fmax.h, 0x10, 1.0, sNaNh, 1.0);
   # FMIN(hNaN, hNaN) = canonical NaN
-  TEST_FP_OP2_H(21,  fmax.h, 0x00, qNaNh, NaN, NaN);
+  TEST_FP_OP2_H_CNAN(21,  fmax.h, 0x00, NaN, NaN);
 
   # -0.0 < +0.0
   TEST_FP_OP2_H(30,  fmin.h, 0,       -0.0,       -0.0,        0.0 );

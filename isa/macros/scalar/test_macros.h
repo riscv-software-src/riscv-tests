@@ -417,11 +417,8 @@ test_ ## testnum: \
 # Tests floating-point instructions
 #-----------------------------------------------------------------------
 
-#define qNaNh 0h:7e00
 #define sNaNh 0h:7c01
-#define qNaNf 0f:7fc00000
 #define sNaNf 0f:7f800001
-#define qNaN 0d:7ff8000000000000
 #define sNaN 0d:7ff0000000000001
 
 #define TEST_FP_OP_H_INTERNAL( testnum, flags, result, val1, val2, val3, code... ) \
@@ -574,8 +571,16 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, float result, val1, val2, 0.0, \
                     inst f13, f10, f11; fmv.x.s a0, f13)
 
+#define TEST_FP_OP2_S_CNAN( testnum, inst, flags, val1, val2 ) \
+  TEST_FP_OP_S_INTERNAL( testnum, flags, word 0x7fc00000, val1, val2, 0.0, \
+                    inst f13, f10, f11; fmv.x.s a0, f13)
+
 #define TEST_FP_OP2_H( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_H_INTERNAL( testnum, flags, float16 result, val1, val2, 0.0, \
+                    inst f13, f10, f11; fmv.x.h a0, f13)
+
+#define TEST_FP_OP2_H_CNAN( testnum, inst, flags, val1, val2 ) \
+  TEST_FP_OP_H_INTERNAL( testnum, flags, half 0x7e00, val1, val2, 0.0, \
                     inst f13, f10, f11; fmv.x.h a0, f13)
 
 #define TEST_FP_OP2_D32( testnum, inst, flags, result, val1, val2 ) \
@@ -583,8 +588,16 @@ test_ ## testnum: \
                     inst f13, f10, f11; fsd f13, 0(a0); lw t2, 4(a0); lw a0, 0(a0))
 // ^: store computation result in address from a0, load high-word into t2
 
+#define TEST_FP_OP2_D32_CNAN( testnum, inst, flags, val1, val2 ) \
+  TEST_FP_OP_D32_INTERNAL( testnum, flags, dword 0x7ff8000000000000, val1, val2, 0.0, \
+                    inst f13, f10, f11; fsd f13, 0(a0); lw t2, 4(a0); lw a0, 0(a0))
+
 #define TEST_FP_OP2_D( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, double result, val1, val2, 0.0, \
+                    inst f13, f10, f11; fmv.x.d a0, f13)
+
+#define TEST_FP_OP2_D_CNAN( testnum, inst, flags, val1, val2 ) \
+  TEST_FP_OP_D_INTERNAL( testnum, flags, dword 0x7ff8000000000000, val1, val2, 0.0, \
                     inst f13, f10, f11; fmv.x.d a0, f13)
 
 #define TEST_FP_OP3_S( testnum, inst, flags, result, val1, val2, val3 ) \
