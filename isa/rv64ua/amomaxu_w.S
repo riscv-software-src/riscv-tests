@@ -31,6 +31,9 @@ RVTEST_CODE_BEGIN
 
   TEST_CASE(5, a5, 0xffffffffffffffff, lw a5, 0(a3))
 
+  # The following two cases check that the upper 32 bits are ignored on rv64
+  # implementations. Only enable them for rv64.
+  #if __riscv_xlen == 64
   TEST_CASE(6, a4, 1, \
     li a0, 0x0000000000000001; \
     li a1, 0x8000000000000000; \
@@ -40,6 +43,7 @@ RVTEST_CODE_BEGIN
   )
 
   TEST_CASE(7, a5, 1, lw a5, 0(a3))
+  #endif
 
   TEST_PASSFAIL
 
