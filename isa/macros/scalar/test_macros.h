@@ -633,16 +633,32 @@ test_ ## testnum: \
   TEST_FP_OP_S_INTERNAL( testnum, flags, word result, float val1, float val2, float 0, \
                     inst a0, f10, f11)
 
+#define TEST_FP_CMP_OP_S_HEX( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_S_INTERNAL( testnum, flags, word result, word val1, word val2, float 0, \
+                    inst a0, f10, f11)
+
 #define TEST_FP_CMP_OP_H( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_H_INTERNAL( testnum, flags, hword result, float16 val1, float16 val2, float16 0, \
+                    inst a0, f10, f11)
+
+#define TEST_FP_CMP_OP_H_HEX( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_H_INTERNAL( testnum, flags, hword result, half val1, half val2, float16 0, \
                     inst a0, f10, f11)
 
 #define TEST_FP_CMP_OP_D32( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_D32_INTERNAL( testnum, flags, dword result, double val1, double val2, double 0, \
                     inst a0, f10, f11; li t2, 0)
 
+#define TEST_FP_CMP_OP_D32_HEX( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_D32_INTERNAL( testnum, flags, dword result, dword val1, dword val2, double 0, \
+                    inst a0, f10, f11; li t2, 0)
+
 #define TEST_FP_CMP_OP_D( testnum, inst, flags, result, val1, val2 ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, double val1, double val2, double 0, \
+                    inst a0, f10, f11)
+
+#define TEST_FP_CMP_OP_D_HEX( testnum, inst, flags, result, val1, val2 ) \
+  TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, dword val1, dword val2, double 0, \
                     inst a0, f10, f11)
 
 #define TEST_FCLASS_S(testnum, correct, input) \
