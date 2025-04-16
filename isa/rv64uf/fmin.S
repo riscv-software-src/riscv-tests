@@ -32,9 +32,9 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_S(17,  fmax.s, 0,       -1.0,       -1.0,       -2.0 );
 
   # FMAX(sNaN, x) = x
-  TEST_FP_OP2_S(20,  fmax.s, 0x10, 1.0, SNaN, 1.0);
+  TEST_FP_OP2_S_HEX(20,  fmax.s, 0x10, 0x3f800000, 0x7f800001, 0x3f800000);
   # FMAX(qNaN, qNaN) = canonical NaN
-  TEST_FP_OP2_S_CNAN(21,  fmax.s, 0x00, NaN, NaN);
+  TEST_FP_OP2_S_HEX(21,  fmax.s, 0x00, 0x7fc00000, 0x7fffffff, 0x7fffffff);
 
   # -0.0 < +0.0
   TEST_FP_OP2_S(30,  fmin.s, 0,       -0.0,       -0.0,        0.0 );
