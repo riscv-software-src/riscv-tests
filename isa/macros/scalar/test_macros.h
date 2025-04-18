@@ -623,7 +623,7 @@ test_ ## testnum: \
 
 #define TEST_FP_INT_OP_D32( testnum, inst, flags, result, val1, rm ) \
   TEST_FP_OP_D32_INTERNAL( testnum, flags, dword result, double val1, double 0, double 0, \
-                    inst a0, f10, f11; li t2, 0)
+                    inst a0, f10, rm; li t2, ((result) << 32 >> 63) * -1)
 
 #define TEST_FP_INT_OP_D( testnum, inst, flags, result, val1, rm ) \
   TEST_FP_OP_D_INTERNAL( testnum, flags, dword result, double val1, double 0, double 0, \
