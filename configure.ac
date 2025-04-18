@@ -1,4 +1,4 @@
-AC_INIT(riscv-tests, 1.0)
+AC_INIT([riscv-tests],[1.0])
 
 cross_compiling=yes
 AC_PROG_CC
@@ -11,6 +11,6 @@ AC_ARG_WITH(xlen,
         )
 
 
-AC_OUTPUT(
-    Makefile
-)
+AC_CONFIG_FILES([Makefile
+])
+AC_OUTPUT
