@@ -148,6 +148,15 @@ class Target:
     # Support set_pmp_deny to create invalid addresses.
     support_set_pmp_deny = False
 
+    # Supports Instruction count trigger
+    support_icount = True
+
+    # Supports interrupt trigger
+    support_itrigger = True
+
+    # Supports exception trigger
+    support_etrigger = True
+
     # Internal variables:
     directory = None
     temporary_files = []
