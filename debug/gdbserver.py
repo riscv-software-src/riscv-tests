@@ -2197,6 +2197,11 @@ class StepThread2Test(GdbTest):
         assertEqual(before, after)
 
 class EtriggerTest(DebugTest):
+    # TODO: There should be a check that a exception trigger is really not
+    # supported if it is marked as unsupported.
+    def early_applicable(self):
+        return self.target.support_etrigger
+
     def setup(self):
         DebugTest.setup(self)
         self.gdb.b("main:start")
@@ -2227,6 +2232,11 @@ class EtriggerTest(DebugTest):
 
 class IcountTest(DebugTest):
     compile_args = ("programs/infinite_loop.S", )
+
+    # TODO: There should be a check that an instruction count trigger is
+    # really not supported if it is marked as unsupported.
+    def early_applicable(self):
+        return self.target.support_icount
 
     def setup(self):
         DebugTest.setup(self)
@@ -2259,8 +2269,10 @@ class IcountTest(DebugTest):
 class ItriggerTest(GdbSingleHartTest):
     compile_args = ("programs/interrupt.c",)
 
+    # TODO: There should be a check that a interrupt trigger is really not
+    # supported if it is marked as unsupported.
     def early_applicable(self):
-        return self.target.supports_clint_mtime
+        return self.target.supports_clint_mtime and self.target.support_itrigger
 
     def setup(self):
         self.gdb.load()

@@ -154,6 +154,15 @@ class Target:
     # Supports an address/data match trigger of type 6
     support_mcontrol6 = True
 
+    # Supports Instruction count trigger
+    support_icount = True
+
+    # Supports interrupt trigger
+    support_itrigger = True
+
+    # Supports exception trigger
+    support_etrigger = True
+
     # Internal variables:
     directory = None
     temporary_files = []
