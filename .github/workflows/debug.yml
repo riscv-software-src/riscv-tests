@@ -7,7 +7,7 @@ name: Check Debug Code Style (pylint)
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
