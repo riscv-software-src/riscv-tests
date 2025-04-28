@@ -34,16 +34,16 @@ on:
 jobs:
   test:
     name: Test debug (Ubuntu)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y device-tree-compiler build-essential
+          sudo apt-get install -y device-tree-compiler build-essential libjim-dev
 
       - name: Get revisions of dependencies
         run: |
@@ -57,7 +57,7 @@ jobs:
 
       - name: Get the toolchain from cache (if available)
         id: cache-restore-toolchain
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: /opt/riscv/toolchain
           key: "toolchain-${{env.TOOLCHAIN_URL}}"
@@ -74,14 +74,14 @@ jobs:
 
       - name: Save the toolchain to the cache (if necessary)
         id: cache-save-toolchain
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: /opt/riscv/toolchain
           key: "toolchain-${{env.TOOLCHAIN_URL}}"
 
       - name: Get OpenOCD from cache (if available)
         id: cache-restore-openocd
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: /opt/riscv/openocd
           key: "openocd-${{env.OPENOCD_COMMIT}}"
@@ -106,14 +106,14 @@ jobs:
       - if: ${{ steps.cache-restore-openocd.outputs.cache-hit != 'true' }}
         name: Save OpenOCD to cache (if built)
         id: cache-save-openocd
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: /opt/riscv/openocd
           key: "openocd-${{env.OPENOCD_COMMIT}}"
 
       - name: Get spike from cache (if available)
         id: cache-restore-spike
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: /opt/riscv/spike
           key: "spike-${{env.SPIKE_COMMIT}}"
@@ -138,7 +138,7 @@ jobs:
       - if: ${{ steps.cache-restore-spike.outputs.cache-hit != 'true' }}
         name: Save spike to cache (if built)
         id: cache-save-spike
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: /opt/riscv/spike
           key: "spike-${{env.SPIKE_COMMIT}}"
@@ -166,7 +166,7 @@ jobs:
       - name: Archive test logs
         # Proceed even if there was a failed test
         if: ${{ success() || failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-logs
           path: riscv-tests/debug/logs
