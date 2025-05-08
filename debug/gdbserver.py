@@ -1504,7 +1504,7 @@ class TriggerDmode(TriggerTest):
 
         return triggers
 
-    def test(self):
+    def test_trigger(self):
         # If we want this test to run from flash, we can't have any software
         # breakpoints set.
 
@@ -1520,6 +1520,21 @@ class TriggerDmode(TriggerTest):
         self.check_triggers((1<<6) | (1<<0), 0xfeedac00)
         self.gdb.command("delete")
         self.exit()
+
+class McontrolTest(TriggerDmode):
+    def early_applicable(self):
+        return self.target.support_mcontrol
+
+    def test(self):
+        self.test_trigger()
+
+class Mcontrol6Test(TriggerDmode):
+    compile_args = ("-DTRIGGER_TYPE=6", "programs/trigger.S", )
+    def early_applicable(self):
+        return self.target.support_mcontrol6
+
+    def test(self):
+        self.test_trigger()
 
 class RegsTest(GdbSingleHartTest):
     compile_args = ("programs/regs.S", )
