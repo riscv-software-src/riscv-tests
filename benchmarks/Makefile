@@ -46,6 +46,11 @@ vec_bmarks = \
 	vec-sgemm \
 	vec-strcmp \
 
+ENABLE_VECTOR_BMARKS ?= 1
+ifeq ($(ENABLE_VECTOR_BMARKS),0)
+vec_bmarks :=
+endif
+
 bmarks = $(base_bmarks) $(vec_bmarks)
 
 #--------------------------------------------------------------------
@@ -54,9 +59,10 @@ bmarks = $(base_bmarks) $(vec_bmarks)
 
 RISCV_PREFIX ?= riscv$(XLEN)-unknown-elf-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
-RISCV_GCC_OPTS ?= -U_FORTIFY_SOURCE -DPREALLOCATE=1 -mcmodel=medany -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -Wno-implicit-int -Wno-implicit-function-declaration -mabi=$(ABI)
+RISCV_GCC_OPTS ?= -U_FORTIFY_SOURCE -DPREALLOCATE=1 -mcmodel=medany -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -Wno-implicit-int -Wno-implicit-function-declaration -mabi=$(ABI) $(CFLAGS)
+
 RISCV_LINK ?= $(RISCV_GCC) -T $(src_dir)/common/test.ld $(incs)
-RISCV_LINK_OPTS ?= -static -nostdlib -nostartfiles -lm -lgcc -T $(src_dir)/common/test.ld
+RISCV_LINK_OPTS ?= -static -nostdlib -nostartfiles -lm -lgcc -T $(src_dir)/common/test.ld $(LDFLAGS)
 RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data
 RISCV_MARCH ?= rv$(XLEN)gc
 RISCV_VMARCH ?= rv$(XLEN)gcv
