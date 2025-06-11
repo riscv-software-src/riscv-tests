@@ -17,7 +17,7 @@ RVTEST_CODE_BEGIN
   # Arithmetic tests
   #-------------------------------------------------------------
 
-  TEST_FCLASS_S( 2, 1 << 0, 0xff800000 )
+  TEST_FCLASS_S( 2, 1 << 0, nInff )
   TEST_FCLASS_S( 3, 1 << 1, 0xbf800000 )
   TEST_FCLASS_S( 4, 1 << 2, 0x807fffff )
   TEST_FCLASS_S( 5, 1 << 3, 0x80000000 )
