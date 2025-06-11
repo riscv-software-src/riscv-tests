@@ -21,7 +21,7 @@ RVTEST_CODE_BEGIN
     TEST_CASE(testnum, a0, correct, li a0, input; fmv.h.x fa0, a0; \
                                     fclass.h a0, fa0)
 
-  TEST_FCLASS_H( 2, 1 << 0, 0xfc00 )
+  TEST_FCLASS_H( 2, 1 << 0, nInfh )
   TEST_FCLASS_H( 3, 1 << 1, 0xbc00 )
   TEST_FCLASS_H( 4, 1 << 2, 0x83ff )
   TEST_FCLASS_H( 5, 1 << 3, 0x8000 )
