@@ -42,7 +42,7 @@ RVTEST_CODE_BEGIN
   # FMAX(sNaN, x) = x
   TEST_FP_OP2_D_HEX(20,  fmax.d, 0x10, 0x3ff0000000000000, sNaNd, 0x3ff0000000000000);
   # FMAX(qNaN, qNaN) = canonical NaN
-  TEST_FP_OP2_D_HEX(21,  fmax.d, 0x00, 0x7ff8000000000000, 0x7fffffffffffffff, 0x7fffffffffffffff);
+  TEST_FP_OP2_D_HEX(21,  fmax.d, 0x00, qNaNd, 0x7fffffffffffffff, 0x7fffffffffffffff);
 
   # -0.0 < +0.0
   TEST_FP_OP2_D(30,  fmin.d, 0,       -0.0,       -0.0,        0.0 );
