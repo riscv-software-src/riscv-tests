@@ -99,7 +99,7 @@ tdat:
 tdat_d:
 .dword 0xffffffffffffffff
 .dword 0x7fffffffffffffff
-.dword 0xfff0000000000000
+.dword nInfd
 .dword Infd
 
 RVTEST_DATA_END
