@@ -29,7 +29,7 @@ RVTEST_CODE_BEGIN
   TEST_FCLASS_H( 7, 1 << 5, 0x03ff )
   TEST_FCLASS_H( 8, 1 << 6, 0x3c00 )
   TEST_FCLASS_H( 9, 1 << 7, 0x7c00 )
-  TEST_FCLASS_H(10, 1 << 8, 0x7c01 )
+  TEST_FCLASS_H(10, 1 << 8, sNaNh )
   TEST_FCLASS_H(11, 1 << 9, 0x7e00 )
 
   TEST_PASSFAIL
