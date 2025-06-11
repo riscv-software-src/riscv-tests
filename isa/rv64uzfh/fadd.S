@@ -30,7 +30,7 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP2_H(10,  fmul.h, 1,                 1.1,      11.0,        0.1 );
 
   # Is the canonical NaN generated for Inf - Inf?
-  TEST_FP_OP2_H_HEX(11,  fsub.h, 0x10, 0x7e00, 0x7c00, 0x7c00);
+  TEST_FP_OP2_H_HEX(11,  fsub.h, 0x10, 0x7e00, Infh, Infh);
 
   TEST_PASSFAIL
 
