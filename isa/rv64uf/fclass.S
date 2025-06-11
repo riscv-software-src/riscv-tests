@@ -24,7 +24,7 @@ RVTEST_CODE_BEGIN
   TEST_FCLASS_S( 6, 1 << 4, 0x00000000 )
   TEST_FCLASS_S( 7, 1 << 5, 0x007fffff )
   TEST_FCLASS_S( 8, 1 << 6, 0x3f800000 )
-  TEST_FCLASS_S( 9, 1 << 7, 0x7f800000 )
+  TEST_FCLASS_S( 9, 1 << 7, Inff )
   TEST_FCLASS_S(10, 1 << 8, sNaNf )
   TEST_FCLASS_S(11, 1 << 9, qNaNf )
 
