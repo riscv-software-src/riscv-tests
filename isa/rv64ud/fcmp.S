@@ -36,15 +36,15 @@ RVTEST_CODE_BEGIN
   # Only sNaN should signal invalid for feq.
   TEST_FP_CMP_OP_D( 8, feq.d, 0x00, 0, NaN, 0)
   TEST_FP_CMP_OP_D( 9, feq.d, 0x00, 0, NaN, NaN)
-  TEST_FP_CMP_OP_D_HEX(10, feq.d, 0x10, 0, 0x7ff0000000000001, 0)
+  TEST_FP_CMP_OP_D_HEX(10, feq.d, 0x10, 0, sNaNd, 0)
 
   # qNaN should signal invalid for fle/flt.
   TEST_FP_CMP_OP_D(11, flt.d, 0x10, 0, NaN, 0)
   TEST_FP_CMP_OP_D(12, flt.d, 0x10, 0, NaN, NaN)
-  TEST_FP_CMP_OP_D_HEX(13, flt.d, 0x10, 0, 0x7ff0000000000001, 0)
+  TEST_FP_CMP_OP_D_HEX(13, flt.d, 0x10, 0, sNaNd, 0)
   TEST_FP_CMP_OP_D(14, fle.d, 0x10, 0, NaN, 0)
   TEST_FP_CMP_OP_D(15, fle.d, 0x10, 0, NaN, NaN)
-  TEST_FP_CMP_OP_D_HEX(16, fle.d, 0x10, 0, 0x7ff0000000000001, 0)
+  TEST_FP_CMP_OP_D_HEX(16, fle.d, 0x10, 0, sNaNd, 0)
 
   TEST_PASSFAIL
 
