@@ -417,6 +417,24 @@ test_ ## testnum: \
 # Tests floating-point instructions
 #-----------------------------------------------------------------------
 
+# 16-bit half precision (float16)
+#define qNaNh     0x7e00
+#define sNaNh     0x7c01
+#define Infh      0x7c00
+#define nInfh     0xfc00
+
+# 32-bit single precision (float)
+#define qNaNf     0x7fc00000
+#define sNaNf     0x7f800001
+#define Inff      0x7f800000
+#define nInff     0xff800000
+
+# 64-bit double precision (double)
+#define qNaNd     0x7ff8000000000000
+#define sNaNd     0x7ff0000000000001
+#define Infd      0x7ff0000000000000
+#define nInfd     0xfff0000000000000
+
 #define TEST_FP_OP_H_INTERNAL( testnum, flags, result, val1, val2, val3, code... ) \
 test_ ## testnum: \
   li  TESTNUM, testnum; \

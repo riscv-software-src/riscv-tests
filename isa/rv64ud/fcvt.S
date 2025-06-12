@@ -44,7 +44,7 @@ RVTEST_CODE_BEGIN
   TEST_FCVT_D_S(11, -1.5, -1.5)
 
 #if __riscv_xlen >= 64
-  TEST_CASE(12, a0, 0x7ff8000000000000,
+  TEST_CASE(12, a0, qNaNd,
     la a1, test_data_22;
     ld a2, 0(a1);
     fmv.d.x f2, a2;
@@ -53,7 +53,7 @@ RVTEST_CODE_BEGIN
     fmv.x.d a0, f2;
   )
 #else
-  TEST_CASE_D32(12, a0, a1, 0x7ff8000000000000,
+  TEST_CASE_D32(12, a0, a1, qNaNd,
     la a1, test_data_22;
     fld f2, 0(a1);
     fcvt.s.d f2, f2;

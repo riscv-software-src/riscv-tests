@@ -93,13 +93,13 @@ RVTEST_DATA_BEGIN
 tdat:
 .word 0xffffffff
 .word 0x7fffffff
-.word 0xff800000
-.word 0x7f800000
+.word nInff
+.word Inff
 
 tdat_d:
 .dword 0xffffffffffffffff
 .dword 0x7fffffffffffffff
-.dword 0xfff0000000000000
-.dword 0x7ff0000000000000
+.dword nInfd
+.dword Infd
 
 RVTEST_DATA_END
