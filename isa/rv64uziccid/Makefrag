@@ -1,0 +1,9 @@
+#=======================================================================
+# Makefrag for rv64uziccid tests
+#-----------------------------------------------------------------------
+
+rv64uziccid_sc_tests = \
+	ziccid \
+
+rv64uziccid_p_tests = $(addprefix rv64uziccid-p-, $(rv64uziccid_sc_tests))
+rv64uziccid_v_tests = $(addprefix rv64uziccid-v-, $(rv64uziccid_sc_tests))
