@@ -1,0 +1,12 @@
+#=======================================================================
+# Makefrag for rv64uzcmp tests
+#-----------------------------------------------------------------------
+
+rv64uzcmp_sc_tests = \
+	cm_push \
+
+rv64uzcmp_p_tests = $(addprefix rv64uzcmp-p-, $(rv64uzcmp_sc_tests))
+rv64uzcmp_v_tests = $(addprefix rv64uzcmp-v-, $(rv64uzcmp_sc_tests))
+rv64uzcmp_ps_tests = $(addprefix rv64uzcmp-ps-, $(rv64uzcmp_sc_tests))
+
+spike_tests += $(rv64uzcmp_p_tests) $(rv64uzcmp_v_tests)
