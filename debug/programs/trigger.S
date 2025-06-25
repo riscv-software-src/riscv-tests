@@ -10,6 +10,10 @@
 # define REGBYTES 4
 #endif
 
+#ifndef TRIGGER_TYPE
+# define TRIGGER_TYPE 2
+#endif
+
         .global         main
 
         .section        .text
@@ -40,15 +44,15 @@ write_loop:
         j       main_exit
 
 write_store_trigger:
-        /* 2<<60 is for RV64. 2<<28 is for RV32. That's safe because on RV64 bits 28 and 29 are 0. */
-        li      a0, (2<<60) | (2<<28) | (1<<6) | (1<<1)
+        /* TRIGGER_TYPE<<60 is for RV64. TRIGGER_TYPE<<28 is for RV32. That's safe because on RV64 bits 28 and 29 are 0. */
+        li      a0, (TRIGGER_TYPE<<60) | (TRIGGER_TYPE<<28) | (1<<6) | (1<<1)
         li      a1, 0xdeadbee0
         jal     write_triggers
         la      a0, data
         jal     read_triggers
 
 write_load_trigger:
-        li      a0, (2<<60) | (2<<28) | (1<<6) | (1<<0)
+        li      a0, (TRIGGER_TYPE<<60) | (TRIGGER_TYPE<<28) | (1<<6) | (1<<0)
         li      a1, 0xfeedac00
         jal     write_triggers
         la      a0, data
