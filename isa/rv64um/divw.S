@@ -29,6 +29,8 @@ RVTEST_CODE_BEGIN
   TEST_RR_OP( 9, divw, -1,      1, 0 );
   TEST_RR_OP(10, divw, -1,      0, 0 );
 
+  TEST_RR_OP(11, divw, -1<<30, -1<<31,  2 );
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
