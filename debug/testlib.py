@@ -1495,14 +1495,16 @@ class GdbTest(BaseTest):
         self.gdb.p("$pmpcfg0=0x98") # L, NAPOT, !R, !W, !X
         self.gdb.p("$pmpaddr0="
                        f"0x{((address >> 2) | ((size - 1) >> 3)):x}")
-        # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
-        self.gdb.command("monitor riscv exec_progbuf 0x12000073")
+        if self.target.implements_page_virtual_memory:
+            # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
+            self.gdb.command("monitor riscv exec_progbuf 0x12000073")
 
     def reset_pmp_deny(self):
         self.gdb.p("$pmpcfg0=0")
         self.gdb.p("$pmpaddr0=0")
-        # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
-        self.gdb.command("monitor riscv exec_progbuf 0x12000073")
+        if self.target.implements_page_virtual_memory:
+            # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
+            self.gdb.command("monitor riscv exec_progbuf 0x12000073")
 
     def disable_pmp(self):
         # Disable physical memory protection by allowing U mode access to all
