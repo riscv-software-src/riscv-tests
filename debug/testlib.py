@@ -1136,12 +1136,7 @@ def run_all_tests(module, target, parsed):
             print(name)
         return 0
 
-    try:
-        os.makedirs(parsed.logs)
-    except OSError:
-        # There's a race where multiple instances of the test program might
-        # decide to create the logs directory at the same time.
-        pass
+    os.makedirs(parsed.logs, exist_ok=True)
 
     overall_start = time.time()
 
