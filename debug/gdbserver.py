@@ -1736,7 +1736,8 @@ class TranslateTest(GdbSingleHartTest):
     compile_args = ("programs/translate.c", )
 
     def early_applicable(self):
-        return self.hart.ram_size >= 32 * 1024
+        return self.hart.ram_size >= 32 * 1024 and \
+            self.hart.extensionSupported("S")
 
     def setup(self):
         self.disable_pmp()
