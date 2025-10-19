@@ -321,11 +321,11 @@ class Openocd:
         # line, since they are executed in order.
         cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
-            "--command", "gdb_port 0",
+            "--command", "gdb port 0",
             # We create a socket for OpenOCD command line (TCL-RPC)
-            "--command", "tcl_port 0",
+            "--command", "tcl port 0",
             # don't use telnet
-            "--command", "telnet_port disabled",
+            "--command", "telnet port disabled",
         ]
 
         if config:
