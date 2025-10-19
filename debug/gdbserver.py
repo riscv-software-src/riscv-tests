@@ -634,7 +634,7 @@ class Hwbp1(DebugTest):
         return self.hart.instruction_hardware_breakpoint_count > 0
 
     def test(self):
-        if not self.hart.honors_tdata1_hmode:
+        if not self.hart.honors_tdata1_dmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
             self.gdb.b("main")
@@ -739,7 +739,7 @@ class HwbpManual(DebugTest):
         assert False
 
     def test(self):
-        if not self.hart.honors_tdata1_hmode:
+        if not self.hart.honors_tdata1_dmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
             self.gdb.b("main")
@@ -1474,7 +1474,7 @@ class TriggerStoreAddressInstant(TriggerTest):
 
 class TriggerDmode(TriggerTest):
     def early_applicable(self):
-        return self.hart.honors_tdata1_hmode and \
+        return self.hart.honors_tdata1_dmode and \
                 self.hart.instruction_hardware_breakpoint_count > 0
 
     def check_triggers(self, tdata1_lsbs, tdata2):
