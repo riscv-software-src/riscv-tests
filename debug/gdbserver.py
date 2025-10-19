@@ -758,7 +758,11 @@ class HwbpManual(DebugTest):
                            MCONTROL_TYPE_MATCH)
         tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
         tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
-        tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
+        tdata1 |= MCONTROL_M | MCONTROL_EXECUTE
+        if self.hart.extensionSupported("S"):
+            tdata1 |= MCONTROL_S
+        if self.hart.extensionSupported("U"):
+            tdata1 |= MCONTROL_U
 
         tdata2 = self.gdb.p("&rot13")
 
