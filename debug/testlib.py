@@ -247,7 +247,8 @@ class VcsSim:
     logname = logfile.name
     lognames = [logname]
 
-    def __init__(self, sim_cmd=None, debug=False, timeout=300):
+    def __init__(self, sim_cmd=None, debug=False, timeout=300,
+                 server_started=r"^Listening on port (\d+)$"):
         if sim_cmd:
             cmd = shlex.split(sim_cmd)
         else:
@@ -281,7 +282,7 @@ class VcsSim:
                 line = listenfile.readline()
                 if not line:
                     time.sleep(1)
-                match = re.match(r"^Listening on port (\d+)$", line)
+                match = re.match(server_started, line)
                 if match:
                     done = True
                     self.port = int(match.group(1))
