@@ -247,7 +247,8 @@ class VcsSim:
     logname = logfile.name
     lognames = [logname]
 
-    def __init__(self, sim_cmd=None, debug=False, timeout=300):
+    def __init__(self, sim_cmd=None, debug=False, timeout=300,
+                 server_started=r"^Listening on port (\d+)$"):
         if sim_cmd:
             cmd = shlex.split(sim_cmd)
         else:
@@ -281,7 +282,7 @@ class VcsSim:
                 line = listenfile.readline()
                 if not line:
                     time.sleep(1)
-                match = re.match(r"^Listening on port (\d+)$", line)
+                match = re.match(server_started, line)
                 if match:
                     done = True
                     self.port = int(match.group(1))
@@ -321,11 +322,11 @@ class Openocd:
         # line, since they are executed in order.
         cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
-            "--command", "gdb_port 0",
+            "--command", "gdb port 0",
             # We create a socket for OpenOCD command line (TCL-RPC)
-            "--command", "tcl_port 0",
+            "--command", "tcl port 0",
             # don't use telnet
-            "--command", "telnet_port disabled",
+            "--command", "telnet port disabled",
         ]
 
         if config:
@@ -1137,7 +1138,7 @@ def run_all_tests(module, target, parsed):
         return 0
 
     try:
-        os.makedirs(parsed.logs)
+        os.makedirs(parsed.logs, exist_ok=True)
     except OSError:
         # There's a race where multiple instances of the test program might
         # decide to create the logs directory at the same time.
@@ -1492,14 +1493,16 @@ class GdbTest(BaseTest):
         self.gdb.p("$pmpcfg0=0x98") # L, NAPOT, !R, !W, !X
         self.gdb.p("$pmpaddr0="
                        f"0x{((address >> 2) | ((size - 1) >> 3)):x}")
-        # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
-        self.gdb.command("monitor riscv exec_progbuf 0x12000073")
+        if self.target.implements_page_virtual_memory:
+            # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
+            self.gdb.command("monitor riscv exec_progbuf 0x12000073")
 
     def reset_pmp_deny(self):
         self.gdb.p("$pmpcfg0=0")
         self.gdb.p("$pmpaddr0=0")
-        # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
-        self.gdb.command("monitor riscv exec_progbuf 0x12000073")
+        if self.target.implements_page_virtual_memory:
+            # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
+            self.gdb.command("monitor riscv exec_progbuf 0x12000073")
 
     def disable_pmp(self):
         # Disable physical memory protection by allowing U mode access to all
