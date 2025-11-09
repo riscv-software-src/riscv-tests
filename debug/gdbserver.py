@@ -279,7 +279,7 @@ class MemTestReadInvalid(SimpleMemoryTest):
     def test(self):
         bad_address = self.hart.bad_address
         if self.target.support_set_pmp_deny:
-            self.set_pmp_deny(bad_address)
+            self.set_pmp_deny(bad_address, 4)
             self.gdb.command("monitor riscv set_mem_access progbuf abstract")
         good_address = self.hart.ram + 0x80
 
@@ -2205,7 +2205,7 @@ class EtriggerTest(DebugTest):
         # Use NULL if a known-bad address is not provided.
         bad_address = self.hart.bad_address or 0
         if self.target.support_set_pmp_deny:
-            self.set_pmp_deny(bad_address)
+            self.set_pmp_deny(bad_address, 1)
             self.gdb.command("monitor riscv set_mem_access progbuf abstract")
         self.gdb.p(f"fox=(char*)0x{bad_address:08x}")
         output = self.gdb.c()
