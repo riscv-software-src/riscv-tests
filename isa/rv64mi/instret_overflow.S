@@ -13,6 +13,15 @@
 RVTEST_RV64M
 RVTEST_CODE_BEGIN
 
+  # Clear mcountinhibit.ir to ensure the counter runs (reset value is unspecified).
+  # Note: mcountinhibit is optional, independently of minstret, so catch any potential trap.
+  la t0, 1f
+  csrrw t0, mtvec, t0
+  csrci mcountinhibit, 0x4
+.balign 4
+1:
+  csrw mtvec, t0
+
   # The value written to instret will be the value read by the following
   # instruction (i.e. the increment is suppressed)
   TEST_CASE(2, a0, 0, csrwi minstret, 0; csrr a0, minstret);
