@@ -651,12 +651,16 @@ class Hwbp1(DebugTest):
         self.gdb.b("_exit")
         self.exit()
 
-def MCONTROL_TYPE(xlen):
+def TDATA1_TYPE(xlen):
     return 0xf<<((xlen)-4)
-def MCONTROL_DMODE(xlen):
+def TDATA1_DMODE(xlen):
     return 1<<((xlen)-5)
 def MCONTROL_MASKMAX(xlen):
-    return 0x3<<((xlen)-11)
+    return 0x3f<<((xlen)-11)
+
+TDATA1_TYPE_NONE = 0
+TDATA1_TYPE_MATCH = 2
+TDATA1_TYPE_MATCH6 = 6
 
 MCONTROL_SELECT = 1<<19
 MCONTROL_TIMING = 1<<18
@@ -671,8 +675,23 @@ MCONTROL_EXECUTE = 1<<2
 MCONTROL_STORE = 1<<1
 MCONTROL_LOAD = 1<<0
 
-MCONTROL_TYPE_NONE = 0
-MCONTROL_TYPE_MATCH = 2
+MCONTROL6_UNCERTAIN = 1<<26
+MCONTROL6_HIT1 = 1<<25
+MCONTROL6_VS = 1<<24
+MCONTROL6_VU = 1<<23
+MCONTROL6_HIT0 = 1<<22
+MCONTROL6_SELECT = 1<<21
+MCONTROL6_SIZE = 0x7<<16
+MCONTROL6_ACTION = 0xf<<12
+MCONTROL6_CHAIN = 1<<11
+MCONTROL6_MATCH = 0xf<<7
+MCONTROL6_M = 1<<6
+MCONTROL6_UNCERTAINEN = 1<<5
+MCONTROL6_S = 1<<4
+MCONTROL6_U = 1<<3
+MCONTROL6_EXECUTE = 1<<2
+MCONTROL6_STORE = 1<<1
+MCONTROL6_LOAD = 1<<0
 
 MCONTROL_ACTION_DEBUG_EXCEPTION = 0
 MCONTROL_ACTION_DEBUG_MODE = 1
@@ -724,21 +743,27 @@ class HwbpManual(DebugTest):
 
             tdata2_rb = self.gdb.p("$tdata2")
             tdata1_rb = self.gdb.p("$tdata1")
+
+            type_rb = tdata1_rb & TDATA1_TYPE(self.hart.xlen)
+            type_match = set_field(0, TDATA1_TYPE(self.hart.xlen),
+                                   TDATA1_TYPE_MATCH)
+            type_none = set_field(0, TDATA1_TYPE(self.hart.xlen),
+                                  TDATA1_TYPE_NONE)
+            if type_rb == type_match:
+                maskmax_rb = tdata1_rb & MCONTROL_MASKMAX(self.hart.xlen)
+                tdata1 = tdata1 | maskmax_rb
+            elif type_rb == type_none:
+                raise TestNotApplicable
+
             if tdata1_rb == tdata1 and tdata2_rb == tdata2:
                 return tselect
-
-            type_rb = tdata1_rb & MCONTROL_TYPE(self.hart.xlen)
-            type_none = set_field(0, MCONTROL_TYPE(self.hart.xlen),
-                                  MCONTROL_TYPE_NONE)
-            if type_rb == type_none:
-                raise TestNotApplicable
 
             self.gdb.p("$tdata1=0")
             self.gdb.command(
                     f"monitor riscv reserve_trigger {tselect} off")
         assert False
 
-    def test(self):
+    def access_test(self, tdata1):
         if not self.hart.honors_tdata1_hmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
@@ -753,12 +778,6 @@ class HwbpManual(DebugTest):
         self.check_reserve_trigger_support()
 
         #self.gdb.hbreak("rot13")
-        tdata1 = MCONTROL_DMODE(self.hart.xlen)
-        tdata1 = set_field(tdata1, MCONTROL_TYPE(self.hart.xlen),
-                           MCONTROL_TYPE_MATCH)
-        tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
-        tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
-        tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
 
         tdata2 = self.gdb.p("&rot13")
 
@@ -798,6 +817,25 @@ class HwbpManual(DebugTest):
         self.gdb.b("_exit")
         self.exit()
 
+class MatchTrigger2(HwbpManual):
+    def test(self):
+        tdata1 = TDATA1_DMODE(self.hart.xlen)
+        tdata1 = set_field(tdata1, TDATA1_TYPE(self.hart.xlen),
+                           TDATA1_TYPE_MATCH)
+        tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
+        tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
+        tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
+        self.access_test(tdata1)
+
+class MatchTrigger6(HwbpManual):
+    def test(self):
+        tdata1 = TDATA1_DMODE(self.hart.xlen)
+        tdata1 = set_field(tdata1, TDATA1_TYPE(self.hart.xlen),
+                           TDATA1_TYPE_MATCH6)
+        tdata1 = set_field(tdata1, MCONTROL6_ACTION, MCONTROL_ACTION_DEBUG_MODE)
+        tdata1 = set_field(tdata1, MCONTROL6_MATCH, MCONTROL_MATCH_EQUAL)
+        tdata1 |= MCONTROL6_M | MCONTROL6_S | MCONTROL6_U | MCONTROL6_EXECUTE
+        self.access_test(tdata1)
 
 class Hwbp2(DebugTest):
     def early_applicable(self):
