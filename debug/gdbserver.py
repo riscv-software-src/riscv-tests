@@ -634,7 +634,7 @@ class Hwbp1(DebugTest):
         return self.hart.instruction_hardware_breakpoint_count > 0
 
     def test(self):
-        if not self.hart.honors_tdata1_hmode:
+        if not self.hart.honors_tdata1_dmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
             self.gdb.b("main")
@@ -739,7 +739,7 @@ class HwbpManual(DebugTest):
         assert False
 
     def test(self):
-        if not self.hart.honors_tdata1_hmode:
+        if not self.hart.honors_tdata1_dmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
             self.gdb.b("main")
@@ -758,7 +758,11 @@ class HwbpManual(DebugTest):
                            MCONTROL_TYPE_MATCH)
         tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
         tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
-        tdata1 |= MCONTROL_M | MCONTROL_S | MCONTROL_U | MCONTROL_EXECUTE
+        tdata1 |= MCONTROL_M | MCONTROL_EXECUTE
+        if self.hart.extensionSupported("S"):
+            tdata1 |= MCONTROL_S
+        if self.hart.extensionSupported("U"):
+            tdata1 |= MCONTROL_U
 
         tdata2 = self.gdb.p("&rot13")
 
@@ -1470,7 +1474,7 @@ class TriggerStoreAddressInstant(TriggerTest):
 
 class TriggerDmode(TriggerTest):
     def early_applicable(self):
-        return self.hart.honors_tdata1_hmode and \
+        return self.hart.honors_tdata1_dmode and \
                 self.hart.instruction_hardware_breakpoint_count > 0
 
     def check_triggers(self, tdata1_lsbs, tdata2):
@@ -1732,7 +1736,8 @@ class TranslateTest(GdbSingleHartTest):
     compile_args = ("programs/translate.c", )
 
     def early_applicable(self):
-        return self.hart.ram_size >= 32 * 1024
+        return self.hart.ram_size >= 32 * 1024 and \
+            self.hart.extensionSupported("S")
 
     def setup(self):
         self.disable_pmp()

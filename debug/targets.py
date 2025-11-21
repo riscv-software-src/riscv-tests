@@ -23,7 +23,7 @@ class Hart:
     # this value set to False are not compliant with the spec (but still usable
     # as long as running code doesn't try to mess with triggers set by an
     # external debugger).
-    honors_tdata1_hmode = True
+    honors_tdata1_dmode = True
 
     # Address where a r/w/x block of RAM starts, together with its size.
     ram = None
