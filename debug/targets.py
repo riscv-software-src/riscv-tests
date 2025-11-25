@@ -148,6 +148,9 @@ class Target:
     # Support set_pmp_deny to create invalid addresses.
     support_set_pmp_deny = False
 
+    # Minimum PMP granularity supported by the target, in bytes.
+    minimum_pmp_granularity = 4
+
     # Supports an address/data match trigger of type 2
     support_mcontrol = True
 
