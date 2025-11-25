@@ -250,7 +250,8 @@ class VcsSim:
     logname = logfile.name
     lognames = [logname]
 
-    def __init__(self, sim_cmd=None, debug=False, timeout=300):
+    def __init__(self, sim_cmd=None, debug=False, timeout=300,
+                 server_started=r"^Listening on port (\d+)$"):
         if sim_cmd:
             cmd = shlex.split(sim_cmd)
         else:
@@ -284,7 +285,7 @@ class VcsSim:
                 line = listenfile.readline()
                 if not line:
                     time.sleep(1)
-                match = re.match(r"^Listening on port (\d+)$", line)
+                match = re.match(server_started, line)
                 if match:
                     done = True
                     self.port = int(match.group(1))
@@ -324,11 +325,11 @@ class Openocd:
         # line, since they are executed in order.
         cmd += [
             # Tell OpenOCD to bind gdb to an unused, ephemeral port.
-            "--command", "gdb_port 0",
+            "--command", "gdb port 0",
             # We create a socket for OpenOCD command line (TCL-RPC)
-            "--command", "tcl_port 0",
+            "--command", "tcl port 0",
             # don't use telnet
-            "--command", "telnet_port disabled",
+            "--command", "telnet port disabled",
         ]
 
         if config:
@@ -1139,12 +1140,7 @@ def run_all_tests(module, target, parsed):
             print(name)
         return 0
 
-    try:
-        os.makedirs(parsed.logs)
-    except OSError:
-        # There's a race where multiple instances of the test program might
-        # decide to create the logs directory at the same time.
-        pass
+    os.makedirs(parsed.logs, exist_ok=True)
 
     overall_start = time.time()
 

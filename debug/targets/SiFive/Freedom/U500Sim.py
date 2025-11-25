@@ -13,5 +13,5 @@ class U500Sim(targets.Target):
     openocd_config_path = "Freedom.cfg"
     harts = [U500Hart()]
 
-    def target(self):
+    def create(self):
         return testlib.VcsSim(sim_cmd=self.sim_cmd, debug=False)
