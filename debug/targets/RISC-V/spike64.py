@@ -9,7 +9,7 @@ class spike64_hart(targets.Hart):
     instruction_hardware_breakpoint_count = 4
     reset_vectors = [0x1000]
     link_script_path = "spike64.lds"
-    misa = 0x8000000000141125
+    misa = 0x80000000001411a5
 
 class spike64(targets.Target):
     harts = [spike64_hart()]
@@ -21,6 +21,6 @@ class spike64(targets.Target):
 
     def create(self):
         # 32-bit FPRs only
-        return testlib.Spike(self, isa="RV64IMAFC", progbufsize=0,
+        return testlib.Spike(self, isa="RV64IMAFCH", progbufsize=0,
                 abstract_rti=30, support_abstract_csr=True,
                 support_abstract_fpr=True)
