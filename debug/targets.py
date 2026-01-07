@@ -56,13 +56,16 @@ class Hart:
     # Supports the cease instruction, which causes a hart to become unavailable.
     support_cease = False
 
-    def __init__(self, misa=None, system=None, link_script_path=None):
+    progbufsize = None
+
+    def __init__(self, misa=None, system=None, link_script_path=None, progbufsize=None):
         if misa:
             self.misa = misa
         if system:
             self.system = system
         if link_script_path:
             self.link_script_path = link_script_path
+        self.progbufsize = progbufsize
 
     def extensionSupported(self, letter):
         # target.misa is set by testlib.ExamineTarget
