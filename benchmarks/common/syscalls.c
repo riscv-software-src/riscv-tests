@@ -12,8 +12,8 @@
 
 #undef strcmp
 
-extern volatile uint64_t tohost;
-extern volatile uint64_t fromhost;
+volatile uint64_t tohost __attribute__ ((section (".tohost")));
+volatile uint64_t fromhost __attribute__ ((section (".tohost")));
 
 static uintptr_t syscall(uintptr_t which, uint64_t arg0, uint64_t arg1, uint64_t arg2)
 {
