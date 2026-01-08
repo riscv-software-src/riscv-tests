@@ -24,7 +24,7 @@ include $(src_dir)/rv64ssvnapot/Makefrag
 include $(src_dir)/rv64mi/Makefrag
 include $(src_dir)/rv64mzicbo/Makefrag
 include $(src_dir)/hypervisor/Makefrag
-endif
+else
 include $(src_dir)/rv32ui/Makefrag
 include $(src_dir)/rv32uc/Makefrag
 include $(src_dir)/rv32um/Makefrag
@@ -38,6 +38,7 @@ include $(src_dir)/rv32uzbc/Makefrag
 include $(src_dir)/rv32uzbs/Makefrag
 include $(src_dir)/rv32si/Makefrag
 include $(src_dir)/rv32mi/Makefrag
+endif
 
 default: all
 
@@ -89,6 +90,25 @@ endif
 
 endef
 
+ifeq ($(XLEN),64)
+$(eval $(call compile_template,rv64ui,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64uc,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64um,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64ua,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64uf,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64ud,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64uziccid,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64uzfh,-march=rv64g_zfh -mabi=lp64d))
+$(eval $(call compile_template,rv64uzba,-march=rv64g_zba -mabi=lp64d))
+$(eval $(call compile_template,rv64uzbb,-march=rv64g_zbb -mabi=lp64d))
+$(eval $(call compile_template,rv64uzbc,-march=rv64g_zbc -mabi=lp64d))
+$(eval $(call compile_template,rv64uzbs,-march=rv64g_zbs -mabi=lp64d))
+$(eval $(call compile_template,rv64mzicbo,-march=rv64g_zicboz -mabi=lp64d))
+$(eval $(call compile_template,rv64si,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64ssvnapot,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,rv64mi,-march=rv64g -mabi=lp64d))
+$(eval $(call compile_template,hypervisor,-march=rv64gh -mabi=lp64d))
+else
 $(eval $(call compile_template,rv32ui,-march=rv32g -mabi=ilp32))
 $(eval $(call compile_template,rv32uc,-march=rv32g -mabi=ilp32))
 $(eval $(call compile_template,rv32um,-march=rv32g -mabi=ilp32))
@@ -102,24 +122,6 @@ $(eval $(call compile_template,rv32uzbc,-march=rv32g_zbc -mabi=ilp32))
 $(eval $(call compile_template,rv32uzbs,-march=rv32g_zbs -mabi=ilp32))
 $(eval $(call compile_template,rv32si,-march=rv32g -mabi=ilp32))
 $(eval $(call compile_template,rv32mi,-march=rv32g -mabi=ilp32))
-ifeq ($(XLEN),64)
-$(eval $(call compile_template,rv64ui,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64uc,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64um,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64ua,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64uf,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64ud,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64uziccid,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64uzfh,-march=rv64g_zfh -mabi=lp64))
-$(eval $(call compile_template,rv64uzba,-march=rv64g_zba -mabi=lp64))
-$(eval $(call compile_template,rv64uzbb,-march=rv64g_zbb -mabi=lp64))
-$(eval $(call compile_template,rv64uzbc,-march=rv64g_zbc -mabi=lp64))
-$(eval $(call compile_template,rv64uzbs,-march=rv64g_zbs -mabi=lp64))
-$(eval $(call compile_template,rv64mzicbo,-march=rv64g_zicboz -mabi=lp64))
-$(eval $(call compile_template,rv64si,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64ssvnapot,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64mi,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,hypervisor,-march=rv64gh -mabi=lp64))
 endif
 
 tests_dump = $(addsuffix .dump, $(tests))
