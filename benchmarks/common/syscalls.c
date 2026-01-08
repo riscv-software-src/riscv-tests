@@ -9,11 +9,13 @@
 #include "util.h"
 
 #define SYS_write 64
+#define HTIF_DEV_CONSOLE 1
+#define HTIF_CONSOLE_CMD_PUTC 1
 
 #undef strcmp
 
-extern volatile uint64_t tohost;
-extern volatile uint64_t fromhost;
+volatile uint64_t tohost __attribute__ ((section (".tohost")));
+volatile uint64_t fromhost __attribute__ ((section (".tohost")));
 
 static uintptr_t syscall(uintptr_t which, uint64_t arg0, uint64_t arg1, uint64_t arg2)
 {
@@ -76,7 +78,9 @@ void abort()
 
 void printstr(const char* s)
 {
-  syscall(SYS_write, 1, (uintptr_t)s, strlen(s));
+  while (*s) {
+    syscall(SYS_write, HTIF_DEV_CONSOLE, (uintptr_t)s++, HTIF_CONSOLE_CMD_PUTC);
+  }
 }
 
 void __attribute__((weak)) thread_entry(int cid, int nc)
@@ -125,16 +129,9 @@ void _init(int cid, int nc)
 #undef putchar
 int putchar(int ch)
 {
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  char c = ch;
 
-  buf[buflen++] = ch;
-
-  if (ch == '\n' || buflen == sizeof(buf))
-  {
-    syscall(SYS_write, 1, (uintptr_t)buf, buflen);
-    buflen = 0;
-  }
+  syscall(SYS_write, HTIF_DEV_CONSOLE, (uintptr_t)&c, HTIF_CONSOLE_CMD_PUTC);
 
   return 0;
 }
