@@ -34,7 +34,8 @@ bad2:
 test_vectored_interrupts:
   csrwi mip, MIP_SSIP
   csrwi mie, MIP_SSIP
-  la t0, mtvec_handler + 1
+  la t0, mtvec_handler
+  addi t0, t0, 1
   csrrw s0, mtvec, t0
   csrr t0, mtvec
   andi t0, t0, 1
