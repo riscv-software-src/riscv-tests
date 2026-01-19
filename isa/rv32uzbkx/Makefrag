@@ -1,0 +1,3 @@
+rv32uzbkx_sc_tests = \
+	xperm8 \
+	xperm4

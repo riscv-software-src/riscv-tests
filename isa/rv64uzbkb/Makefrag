@@ -1,0 +1,15 @@
+rv64uzbkb_sc_tests = \
+	andn \
+	brev8 \
+	orn \
+	pack \
+	packh \
+	packw \
+	rev8 \
+	rol \
+	rolw \
+	ror \
+	rori \
+	roriw \
+	rorw \
+	xnor 

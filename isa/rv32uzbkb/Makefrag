@@ -1,0 +1,13 @@
+rv32uzbkb_sc_tests = \
+	andn \
+	brev8 \
+	orn \
+	pack \
+	packh \
+	rev8 \
+	rol \
+	ror \
+	rori \
+	unzip \
+	xnor \
+	zip 
