@@ -111,6 +111,49 @@ RVTEST_CODE_BEGIN
   bnez a2, fail
 
 2:
+  # Test that address breakpoints have higher priority than unaligned loads.
+  li TESTNUM, 12
+  li a0, (2 << (__riscv_xlen - 4)) | MCONTROL_M | MCONTROL_LOAD | MCONTROL_STORE
+  csrw tdata1, a0
+  # Skip if breakpoint type is unsupported.
+  csrr a1, tdata1
+  bne a0, a1, 2f
+  la a2, data1 + 1
+  la a3, data3
+  csrw tdata2, a2
+
+  # Slow path because CSR was *just* written. (This is spike-specific.)
+  lw a2, (a2)
+  beqz a2, fail
+
+  # Normal aligned load, so that the next time we'll hit the fast path.
+  li TESTNUM, 13
+  lw a0, (a3)
+
+  # Fast path
+  li TESTNUM, 14
+  lw a2, (a2)
+  beqz a2, fail
+
+  # Test that address breakpoints have higher priority than unaligned stores.
+  li TESTNUM, 16
+
+  la a2, data1 + 1
+  csrw tdata2, a2
+
+  # Slow path because CSR was *just* written. (This is spike-specific.)
+  sw x0, (a2)
+
+  # Normal aligned store, so that the next time we'll hit the fast path.
+  li TESTNUM, 17
+  sw x0, (a3)
+
+  # Fast path
+  li TESTNUM, 18
+  sw x0, (a2)
+
+
+2:
   TEST_PASSFAIL
 
   .align 2
@@ -138,5 +181,6 @@ RVTEST_DATA_BEGIN
 
 data1: .word 0
 data2: .word 0
+data3: .word 0
 
 RVTEST_DATA_END
