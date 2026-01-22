@@ -1,0 +1,11 @@
+rv64uzbkb_sc_tests = \
+	brev8 \
+	pack \
+	packh \
+	packw \
+
+rv64uzbkb_p_tests = $(addprefix rv64uzbkb-p-, $(rv64uzbkb_sc_tests))
+rv64uzbkb_v_tests = $(addprefix rv64uzbkb-v-, $(rv64uzbkb_sc_tests))
+rv64uzbkb_ps_tests = $(addprefix rv64uzbkb-ps-, $(rv64uzbkb_sc_tests))
+
+spike_tests += $(rv64uzbkb_p_tests) $(rv64uzbkb_v_tests)

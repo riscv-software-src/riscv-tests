@@ -1,0 +1,9 @@
+rv32uzbkx_sc_tests = \
+	xperm8 \
+	xperm4
+
+rv32uzbkx_p_tests = $(addprefix rv32uzbkx-p-, $(rv32uzbkx_sc_tests))
+rv32uzbkx_v_tests = $(addprefix rv32uzbkx-v-, $(rv32uzbkx_sc_tests))
+rv32uzbkx_ps_tests = $(addprefix rv32uzbkx-ps-, $(rv32uzbkx_sc_tests))
+
+spike_tests += $(rv32uzbkx_p_tests) $(rv32uzbkx_v_tests)

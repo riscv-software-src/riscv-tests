@@ -1,0 +1,9 @@
+rv64uzbkx_sc_tests = \
+	xperm8 \
+	xperm4
+
+rv64uzbkx_p_tests = $(addprefix rv64uzbkx-p-, $(rv64uzbkx_sc_tests))
+rv64uzbkx_v_tests = $(addprefix rv64uzbkx-v-, $(rv64uzbkx_sc_tests))
+rv64uzbkx_ps_tests = $(addprefix rv64uzbkx-ps-, $(rv64uzbkx_sc_tests))
+
+spike_tests += $(rv64uzbkx_p_tests) $(rv64uzbkx_v_tests)

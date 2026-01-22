@@ -1,0 +1,12 @@
+rv32uzbkb_sc_tests = \
+	brev8 \
+	pack \
+	packh \
+	unzip \
+	zip 
+
+rv32uzbkb_p_tests = $(addprefix rv32uzbkb-p-, $(rv32uzbkb_sc_tests))
+rv32uzbkb_v_tests = $(addprefix rv32uzbkb-v-, $(rv32uzbkb_sc_tests))
+rv32uzbkb_ps_tests = $(addprefix rv32uzbkb-ps-, $(rv32uzbkb_sc_tests))
+
+spike_tests += $(rv32uzbkb_p_tests) $(rv32uzbkb_v_tests)
