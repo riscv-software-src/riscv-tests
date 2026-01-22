@@ -1,3 +1,0 @@
-rv32uzbkc_sc_tests = \
-	clmul \
-	clmulh

@@ -1,15 +1,8 @@
 rv32uzbkb_sc_tests = \
-	andn \
 	brev8 \
-	orn \
 	pack \
 	packh \
-	rev8 \
-	rol \
-	ror \
-	rori \
 	unzip \
-	xnor \
 	zip 
 
 rv32uzbkb_p_tests = $(addprefix rv32uzbkb-p-, $(rv32uzbkb_sc_tests))

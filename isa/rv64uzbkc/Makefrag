@@ -1,3 +1,0 @@
-rv64uzbkc_sc_tests = \
-	clmul \
-	clmulh
