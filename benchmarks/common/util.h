@@ -57,6 +57,22 @@ static int verifyFloat(int n, const volatile float* test, const float* verify)
   return 0;
 }
 
+static int verifyChar(int n, const volatile char* test, const char* verify)
+{
+    int i;
+    // Unrolled for faster verification
+    for (i = 0; i < n / 2 * 2; i += 2)
+    {
+        char t0 = test[i], t1 = test[i + 1];
+        char v0 = verify[i], v1 = verify[i + 1];
+        if (t0 != v0) return i + 1;
+        if (t1 != v1) return i + 2;
+    }
+    if (n % 2 != 0 && test[n - 1] != verify[n - 1])
+        return n;
+    return 0;
+}
+
 static void __attribute__((noinline)) barrier(int ncores)
 {
   static volatile int sense;
