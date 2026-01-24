@@ -39,7 +39,6 @@ base_bmarks = \
 	mt-matmul \
 	mt-memcpy \
 	pmp \
-	spmp \
 
 vec_bmarks = \
 	vec-memcpy \
