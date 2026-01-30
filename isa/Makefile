@@ -70,16 +70,9 @@ vpath %.S $(src_dir)
 	$(RISCV_OBJDUMP) $< > $@
 
 %.out: %
-	$(RISCV_SIM) --isa=rv64gch_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbc_zbs_zicclsm $< 2> $@
-
-%.out32: %
-	$(RISCV_SIM) --isa=rv32gc_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbc_zbs_zicclsm $< 2> $@
-
-# SPMP tests need spmp extension
-rv64si-p-spmpaddr.out rv64si-p-spmpcfg.out: %.out: %
 	$(RISCV_SIM) --isa=rv64gch_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbc_zbs_zicclsm_sspmp $< 2> $@
 
-rv32si-p-spmpaddr.out32 rv32si-p-spmpcfg.out32: %.out32: %
+%.out32: %
 	$(RISCV_SIM) --isa=rv32gc_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbc_zbs_zicclsm_sspmp $< 2> $@
 
 define compile_template
