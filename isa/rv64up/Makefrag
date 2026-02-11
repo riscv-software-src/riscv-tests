@@ -30,6 +30,7 @@ rv64up_sc_tests = \
 	pm2sadd_h pm2sadd_hx pm2sub_h pm2sub_hx pm2suba_h pm2suba_hx \
 	pm4add_b pm4adda_b pm4addasu_b pm4addau_b pm4addsu_b pm4addu_b \
 	pmq2add_h pmq2adda_h pmqr2add_h pmqr2adda_h \
+	psati_w psext_w_b psext_w_h pusati_w \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
