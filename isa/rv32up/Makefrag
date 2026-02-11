@@ -41,6 +41,7 @@ rv32up_sc_tests = \
 	pm2sadd_h pm2sadd_hx pm2sub_h pm2sub_hx pm2suba_h pm2suba_hx \
 	pm4add_b pm4adda_b pm4addasu_b pm4addau_b pm4addsu_b pm4addu_b \
 	pmq2add_h pmq2adda_h pmqr2add_h pmqr2adda_h \
+	pli_db pli_dh plui_dh \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
