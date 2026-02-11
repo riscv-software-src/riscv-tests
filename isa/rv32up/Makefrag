@@ -27,6 +27,11 @@ rv32up_sc_tests = \
 	mseq mslt msltu \
 	pack ppaire_b ppaireo_b ppaireo_h ppairo_b ppairo_h ppairoe_b ppairoe_h \
 	abs cls merge mvm mvmn slx srx \
+	pmul_h_b00 pmul_h_b01 pmul_h_b11 pmulh_h_b0 pmulh_h_b1 pmulh_h \
+	pmulhr_h pmulhrsu_h pmulhru_h pmulhsu_h_b0 pmulhsu_h_b1 pmulhsu_h pmulhu_h \
+	pmulq_h pmulqr_h pmulsu_h_b00 pmulsu_h_b11 pmulu_h_b00 pmulu_h_b01 pmulu_h_b11 \
+	mul_h00 mul_h01 mul_h11 mulh_h0 mulh_h1 mulhr mulhrsu mulhru \
+	mulhsu_h0 mulhsu_h1 mulq mulqr mulsu_h00 mulsu_h11 mulu_h00 mulu_h01 mulu_h11 \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
