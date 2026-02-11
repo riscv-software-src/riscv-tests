@@ -63,6 +63,10 @@ rv32up_sc_tests = \
 		psra_dbs psra_dhs psra_dws psrl_dbs psrl_dhs psrl_dws \
 		pssha_dhs pssha_dws psshar_dhs psshar_dws psslai_dh psslai_dw \
 		wslai wslli \
+		pmax_db pmax_dh pmax_dw pmaxu_db pmaxu_dh pmaxu_dw \
+		pmin_db pmin_dh pmin_dw pminu_db pminu_dh pminu_dw \
+		pmseq_db pmseq_dh pmseq_dw pmslt_db pmslt_dh pmslt_dw \
+		pmsltu_db pmsltu_dh pmsltu_dw \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
