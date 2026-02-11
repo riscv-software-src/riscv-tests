@@ -26,6 +26,7 @@ rv32up_sc_tests = \
 	pmseq_b pmseq_h pmslt_b pmslt_h pmsltu_b pmsltu_h \
 	mseq mslt msltu \
 	pack ppaire_b ppaireo_b ppaireo_h ppairo_b ppairo_h ppairoe_b ppairoe_h \
+	abs cls merge mvm mvmn slx srx \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
