@@ -56,6 +56,7 @@ rv32up_sc_tests = \
 	psext_dh_b psext_dw_b psext_dw_h \
 	pwsla_bs pwsla_hs pwslai_b pwslai_h pwsll_bs pwsll_hs pwslli_b pwslli_h \
 	wsla wsll \
+	pwmul_b pwmul_h pwmulsu_b pwmulsu_h pwmulu_b pwmulu_h wmul wmulsu wmulu \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
