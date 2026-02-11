@@ -1,0 +1,10 @@
+#=======================================================================
+# Makefrag for rv64up tests
+#-----------------------------------------------------------------------
+
+rv64up_sc_tests = \
+	padd_b \
+
+rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
+rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
+
