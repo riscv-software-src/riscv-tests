@@ -1,0 +1,10 @@
+#=======================================================================
+# Makefrag for rv32up tests
+#-----------------------------------------------------------------------
+
+rv32up_sc_tests = \
+	padd_b \
+
+rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
+rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
+
