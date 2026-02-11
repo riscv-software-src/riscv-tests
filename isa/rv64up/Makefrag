@@ -18,6 +18,8 @@ rv64up_sc_tests = \
 	psati_h psext_h_b pusati_h \
 	psll_bs psll_hs pslli_b pslli_h psra_bs psra_hs psrai_b psrai_h \
 	psrari_h psrl_bs psrl_hs psrli_b psrli_h pssha_hs psshar_hs psslai_h \
+	pmax_b pmax_h pmaxu_b pmaxu_h pmin_b pmin_h pminu_b pminu_h \
+	pmseq_b pmseq_h pmslt_b pmslt_h pmsltu_b pmsltu_h \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
