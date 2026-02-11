@@ -56,6 +56,27 @@ test_ ## testnum: \
       inst x14, x13, SEXT_IMM(imm); \
     )
 
+#define TEST_IMM_OP_VXSAT( testnum, inst, result, val1, imm, expected_vxsat ) \
+    TEST_CASE( testnum, x14, result, \
+      TEST_VXSAT_CLEAR; \
+      li  x13, MASK_XLEN(val1); \
+      inst x14, x13, SEXT_IMM(imm); \
+    ) \
+    TEST_VXSAT_CHECK( expected_vxsat )
+
+# RV32 P-extension register-pair immediate-op tests.
+# rs1 pair = {x13, x12} (even base), rd pair = {x15, x14}.
+# Both halves of result are checked; on mismatch we jump to the same fail
+# label as TEST_CASE, so the reported testnum matches.
+#define TEST_IMM_OP_PAIR( testnum, inst, result, val1, imm ) \
+    TEST_CASE( testnum, x14, ((result) & 0xFFFFFFFF), \
+      li  x12, ((val1) & 0xFFFFFFFF); \
+      li  x13, (((val1) >> 32) & 0xFFFFFFFF); \
+      inst x14, x12, SEXT_IMM(imm); \
+    ) \
+    li  x7, (((result) >> 32) & 0xFFFFFFFF); \
+    bne x15, x7, fail;
+
 #define TEST_IMM_SRC1_EQ_DEST( testnum, inst, result, val1, imm ) \
     TEST_CASE( testnum, x11, result, \
       li  x11, MASK_XLEN(val1); \
@@ -106,6 +127,26 @@ test_ ## testnum: \
       inst x14, x1; \
     )
 
+# P-extension vxsat helpers.
+# vxsat is a sticky CSR (0x009): set to 1 whenever an instruction saturates,
+# never auto-cleared. To verify it deterministically per test we clear it
+# before the instruction and check the expected post-value after.
+# Using the literal CSR address keeps these macros toolchain-independent.
+#define VXSAT_CSR 0x009
+#define TEST_VXSAT_CLEAR  csrwi VXSAT_CSR, 0
+#define TEST_VXSAT_CHECK( expected_vxsat ) \
+      csrr x6, VXSAT_CSR; \
+      li   x7, (expected_vxsat); \
+      bne  x6, x7, fail;
+
+#define TEST_R_OP_VXSAT( testnum, inst, result, val1, expected_vxsat ) \
+    TEST_CASE( testnum, x14, result, \
+      TEST_VXSAT_CLEAR; \
+      li  x1, val1; \
+      inst x14, x1; \
+    ) \
+    TEST_VXSAT_CHECK( expected_vxsat )
+
 #define TEST_R_SRC1_EQ_DEST( testnum, inst, result, val1 ) \
     TEST_CASE( testnum, x1, result, \
       li  x1, val1; \
@@ -134,6 +175,15 @@ test_ ## testnum: \
       li  x12, MASK_XLEN(val2); \
       inst x14, x11, x12; \
     )
+
+#define TEST_RR_OP_VXSAT( testnum, inst, result, val1, val2, expected_vxsat ) \
+    TEST_CASE( testnum, x14, result, \
+      TEST_VXSAT_CLEAR; \
+      li  x11, MASK_XLEN(val1); \
+      li  x12, MASK_XLEN(val2); \
+      inst x14, x11, x12; \
+    ) \
+    TEST_VXSAT_CHECK( expected_vxsat )
 
 #define TEST_RR_SRC1_EQ_DEST( testnum, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x11, result, \

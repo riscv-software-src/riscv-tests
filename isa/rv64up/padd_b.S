@@ -35,6 +35,12 @@ RVTEST_CODE_BEGIN
   # Test case 4: Mixed values
   TEST_RR_OP( 5, padd.b, 0x8080808080808080, 0x4040404040404040, 0x4040404040404040 );
 
+  # Test case 5: Signed overflow — 127 + 1 = 128 = 0x80 (-128 in signed, 128 unsigned)
+  TEST_RR_OP( 6, padd.b, 0x8080808080808080, 0x7f7f7f7f7f7f7f7f, 0x0101010101010101 );
+
+  # Test case 6: Negative + negative wrap — (-128) + (-128) = -256 mod 256 = 0
+  TEST_RR_OP( 7, padd.b, 0x0000000000000000, 0x8080808080808080, 0x8080808080808080 );
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
