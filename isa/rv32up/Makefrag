@@ -4,6 +4,7 @@
 
 rv32up_sc_tests = \
 	padd_b \
+	pli_b pli_h plui_h \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
