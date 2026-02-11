@@ -12,6 +12,7 @@ rv64up_sc_tests = \
 	psadd_b psadd_h psaddu_b psaddu_h \
 	pssub_b pssub_h pssubu_b pssubu_h \
 	psh1add_h pssh1sadd_h \
+	paas_hx pas_hx pasa_hx psa_hx psas_hx pssa_hx \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))

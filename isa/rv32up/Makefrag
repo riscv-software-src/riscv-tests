@@ -15,6 +15,7 @@ rv32up_sc_tests = \
 	aadd aaddu asub asubu \
 	sadd saddu ssub ssubu \
 	ssh1sadd \
+	paas_hx pas_hx pasa_hx psa_hx psas_hx pssa_hx \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
