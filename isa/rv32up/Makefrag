@@ -72,6 +72,8 @@ rv32up_sc_tests = \
 
 	psati_dh psati_dw pusati_dh pusati_dw \
 
+	psrai_db psrai_dh psrai_dw psrari_dh psrari_dw psrli_db psrli_dh psrli_dw \
+
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
 
