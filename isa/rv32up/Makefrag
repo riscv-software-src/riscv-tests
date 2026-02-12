@@ -54,6 +54,8 @@ rv32up_sc_tests = \
 	predsum_dbs predsum_dhs predsumu_dbs predsumu_dhs \
 	pabd_db pabd_dh pabdu_db pabdu_dh psabs_db psabs_dh \
 	psext_dh_b psext_dw_b psext_dw_h \
+	pwsla_bs pwsla_hs pwslai_b pwslai_h pwsll_bs pwsll_hs pwslli_b pwslli_h \
+	wsla wsll \
 
 rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
 rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
