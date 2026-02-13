@@ -51,6 +51,8 @@ rv64up_sc_tests = \
 	pmul_w_h00 pmul_w_h01 pmul_w_h11 pmulh_w pmulh_w_h0 pmulh_w_h1 \
 	pmulhr_w pmulhru_w pmulhrsu_w pmulhsu_w pmulhsu_w_h0 pmulhsu_w_h1 pmulhu_w \
 	pmulq_w pmulqr_w pmulsu_w_h00 pmulsu_w_h11 pmulu_w_h00 pmulu_w_h01 pmulu_w_h11 \
+	ppaire_h ppaireo_w ppairoe_w ppairo_w \
+	predsum_ws predsumu_ws \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
