@@ -34,7 +34,10 @@ RVTEST_CODE_BEGIN
   TEST_RR_OP( 4, ppairoe.b, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff );
 
   # Test case 4: Alternating pattern
-  TEST_RR_OP( 5, ppairoe.b, 0x00ff00ff00ff00ff, 0x00ff00ff00ff00ff, 0xff00ff00ff00ff00 );
+  # rs1 halfwords all 0x00ff, rs1.h[15:8]=0x00 each
+  # rs2 halfwords all 0xff00, rs2.h[7:0]=0x00 each
+  # per lane d_h = rs2.h[7:0] @ rs1.h[15:8] = 0x0000 each -> rd = 0
+  TEST_RR_OP( 5, ppairoe.b, 0x0000000000000000, 0x00ff00ff00ff00ff, 0xff00ff00ff00ff00 );
 
   TEST_PASSFAIL
 

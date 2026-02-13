@@ -28,8 +28,8 @@ RVTEST_CODE_BEGIN
   # Test case 3: Large values to get non-zero high result
   TEST_RR_OP( 4, pmulh.h, 0x3fff3fff3fff3fff, 0x7fff7fff7fff7fff, 0x7fff7fff7fff7fff );
 
-  # Test case 4: Negative × positive — (-32768) * 32767 = -1,073,709,056 = 0xC0010000; >>16 = 0xC001
-  TEST_RR_OP( 5, pmulh.h, 0xc001c001c001c001, 0x8000800080008000, 0x7fff7fff7fff7fff );
+  # Test case 4: Negative × positive — (-32768) * 32767 = -1,073,709,056 = 0xC0000000; >>16 = 0xC000
+  TEST_RR_OP( 5, pmulh.h, 0xc000c000c000c000, 0x8000800080008000, 0x7fff7fff7fff7fff );
 
   # Test case 5: Negative × negative — (-32768) * (-32768) = 0x40000000; >>16 = 0x4000
   TEST_RR_OP( 6, pmulh.h, 0x4000400040004000, 0x8000800080008000, 0x8000800080008000 );
