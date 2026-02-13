@@ -69,6 +69,8 @@ rv32up_sc_tests = \
 		pmsltu_db pmsltu_dh pmsltu_dw \
 		ppaire_db ppaire_dh ppaireo_db ppaireo_dh \
 		ppairo_db ppairo_dh ppairoe_db ppairoe_dh \
+		pnsra_bs pnsra_hs pnsrai_b pnsrai_h pnsrar_bs pnsrar_hs \
+		pnsrari_b pnsrari_h pnsrl_bs pnsrl_hs pnsrli_b pnsrli_h \
 
 	psati_dh psati_dw pusati_dh pusati_dw \
 
