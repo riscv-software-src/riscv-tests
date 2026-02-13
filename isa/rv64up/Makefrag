@@ -55,6 +55,7 @@ rv64up_sc_tests = \
 	predsum_ws predsumu_ws \
 	psadd_w psaddu_w pssub_w pssubu_w \
 	psll_ws pslli_w psra_ws psrai_w psrari_w psrl_ws psrli_w pssha_ws psshar_ws psslai_w \
+	psh1add_w pssh1sadd_w \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
