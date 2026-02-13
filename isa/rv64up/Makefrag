@@ -39,6 +39,9 @@ rv64up_sc_tests = \
 	padd_w padd_ws \
 	paas_wx pas_wx pasa_wx psa_wx psas_wx pssa_wx \
 	pli_w plui_w psub_w \
+	pm2add_w pm2add_wx pm2addu_w pm2addsu_w pm2adda_w pm2adda_wx pm2addau_w pm2addasu_w \
+	pm2sub_w pm2sub_wx pm2suba_w pm2suba_wx \
+	pm4add_h pm4adda_h pm4addu_h pm4addau_h pm4addsu_h pm4addasu_h \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
