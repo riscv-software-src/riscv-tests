@@ -48,6 +48,9 @@ rv64up_sc_tests = \
 	pmqacc_w_h00 pmqacc_w_h01 pmqacc_w_h11 pmqracc_w_h00 pmqracc_w_h01 pmqracc_w_h11 \
 	pmax_w pmaxu_w pmin_w pminu_w pmseq_w pmslt_w pmsltu_w \
 	pmq2add_w pmq2adda_w pmqr2add_w pmqr2adda_w \
+	pmul_w_h00 pmul_w_h01 pmul_w_h11 pmulh_w pmulh_w_h0 pmulh_w_h1 \
+	pmulhr_w pmulhru_w pmulhrsu_w pmulhsu_w pmulhsu_w_h0 pmulhsu_w_h1 pmulhu_w \
+	pmulq_w pmulqr_w pmulsu_w_h00 pmulsu_w_h11 pmulu_w_h00 pmulu_w_h01 pmulu_w_h11 \
 
 rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
 rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
