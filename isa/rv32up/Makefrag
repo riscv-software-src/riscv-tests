@@ -71,6 +71,9 @@ rv32up_sc_tests = \
 		ppairo_db ppairo_dh ppairoe_db ppairoe_dh \
 		pnsra_bs pnsra_hs pnsrai_b pnsrai_h pnsrar_bs pnsrar_hs \
 		pnsrari_b pnsrari_h pnsrl_bs pnsrl_hs pnsrli_b pnsrli_h \
+		pnclip_bs pnclip_hs pnclipi_b pnclipi_h pnclipiu_b pnclipiu_h \
+		pnclipr_bs pnclipr_hs pnclipri_b pnclipri_h pnclipriu_b pnclipriu_h \
+		pnclipru_bs pnclipru_hs pnclipu_bs pnclipu_hs \
 
 	psati_dh psati_dw pusati_dh pusati_dw \
 
