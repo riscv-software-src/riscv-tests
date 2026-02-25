@@ -79,6 +79,7 @@ rv32up_sc_tests = \
 		nsrai nsrli nsrari nclipi nclipiu nclipri nclipriu \
 		nclip nclipu nclipr nclipru \
 		nsra nsrl nsrar \
+		wzip8p wzip16p \
 
 	psati_dh psati_dw pusati_dh pusati_dw \
 
