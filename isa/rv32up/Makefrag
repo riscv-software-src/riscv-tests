@@ -58,7 +58,7 @@ rv32up_sc_tests = \
 	wsla wsll \
 	pwmul_b pwmul_h pwmulsu_b pwmulsu_h pwmulu_b pwmulu_h wmul wmulsu wmulu \
 	pwmacc_h pwmaccsu_h pwmaccu_h wmacc wmaccsu wmaccu \
-	mqwacc mqwacc_h mqrwacc mqrwacc_h \
+	mqwacc pmqwacc_h mqrwacc pmqrwacc_h \
 		psll_dbs psll_dhs psll_dws pslli_db pslli_dh pslli_dw \
 		psra_dbs psra_dhs psra_dws psrl_dbs psrl_dhs psrl_dws \
 		pssha_dhs pssha_dws psshar_dhs psshar_dws psslai_dh psslai_dw \
@@ -76,6 +76,7 @@ rv32up_sc_tests = \
 		pnclipru_bs pnclipru_hs pnclipu_bs pnclipu_hs \
 		pm2wadd_h pm2wadd_hx pm2wadda_h pm2wadda_hx pm2waddu_h pm2waddsu_h \
 		pm2waddau_h pm2waddasu_h pm2wsub_h pm2wsub_hx pm2wsuba_h pm2wsuba_hx \
+		nsrai nsrli nsrari nclipi nclipiu nclipri nclipriu \
 
 	psati_dh psati_dw pusati_dh pusati_dw \
 
