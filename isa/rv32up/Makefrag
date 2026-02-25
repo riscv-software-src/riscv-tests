@@ -77,6 +77,7 @@ rv32up_sc_tests = \
 		pm2wadd_h pm2wadd_hx pm2wadda_h pm2wadda_hx pm2waddu_h pm2waddsu_h \
 		pm2waddau_h pm2waddasu_h pm2wsub_h pm2wsub_hx pm2wsuba_h pm2wsuba_hx \
 		nsrai nsrli nsrari nclipi nclipiu nclipri nclipriu \
+		nclip nclipu nclipr nclipru \
 
 	psati_dh psati_dw pusati_dh pusati_dw \
 
