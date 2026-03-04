@@ -32,6 +32,7 @@ rv64up_sc_tests = \
 	pmq2add_h pmq2adda_h pmqr2add_h pmqr2adda_h \
 	psati_w psext_w_b psext_w_h pusati_w \
 	abs absw cls clsw \
+	rev rev16 mvm mvmn merge slx srx \
 	mul_w00 mul_w01 mul_w11 mulu_w00 mulu_w01 mulu_w11 mulsu_w00 mulsu_w11 \
 	macc_w00 macc_w01 macc_w11 maccu_w00 maccu_w01 maccu_w11 maccsu_w00 maccsu_w11 \
 	mqacc_w00 mqacc_w01 mqacc_w11 mqracc_w00 mqracc_w01 mqracc_w11 \
