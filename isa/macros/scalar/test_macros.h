@@ -185,6 +185,20 @@ test_ ## testnum: \
     ) \
     TEST_VXSAT_CHECK( expected_vxsat )
 
+# RV32 P-extension register-pair register-register tests.
+# rs1 pair = {x13, x12} (even base), rd pair = {x15, x14}, rs2 = x11.
+# Both halves of result are checked; on mismatch we jump to the same fail
+# label as TEST_CASE, so the reported testnum matches.
+#define TEST_RR_OP_PAIR( testnum, inst, result, val1, val2 ) \
+    TEST_CASE( testnum, x14, ((result) & 0xFFFFFFFF), \
+      li  x12, ((val1) & 0xFFFFFFFF); \
+      li  x13, (((val1) >> 32) & 0xFFFFFFFF); \
+      li  x11, MASK_XLEN(val2); \
+      inst x14, x12, x11; \
+    ) \
+    li  x7, (((result) >> 32) & 0xFFFFFFFF); \
+    bne x15, x7, fail;
+
 #define TEST_RR_SRC1_EQ_DEST( testnum, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x11, result, \
       li  x11, MASK_XLEN(val1); \
