@@ -21,6 +21,7 @@ include $(src_dir)/rv64uzbc/Makefrag
 include $(src_dir)/rv64uzbkb/Makefrag
 include $(src_dir)/rv64uzbkx/Makefrag
 include $(src_dir)/rv64uzbs/Makefrag
+include $(src_dir)/rv64uzicond/Makefrag
 include $(src_dir)/rv64si/Makefrag
 include $(src_dir)/rv64ssvnapot/Makefrag
 include $(src_dir)/rv64mi/Makefrag
@@ -41,6 +42,7 @@ include $(src_dir)/rv32uzbc/Makefrag
 include $(src_dir)/rv32uzbkb/Makefrag
 include $(src_dir)/rv32uzbkx/Makefrag
 include $(src_dir)/rv32uzbs/Makefrag
+include $(src_dir)/rv32uzicond/Makefrag
 include $(src_dir)/rv32si/Makefrag
 include $(src_dir)/rv32mi/Makefrag
 endif
@@ -75,10 +77,10 @@ vpath %.S $(src_dir)
 	$(RISCV_OBJDUMP) $< > $@
 
 %.out: %
-	$(RISCV_SIM) --isa=rv64gch_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbkb_zbkx_zbc_zbs_zicclsm $< 2> $@
+	$(RISCV_SIM) --isa=rv64gch_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbkb_zbkx_zbc_zbs_zicond_zicclsm $< 2> $@
 
 %.out32: %
-	$(RISCV_SIM) --isa=rv32gc_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbkb_zbkx_zbc_zbs_zicclsm $< 2> $@
+	$(RISCV_SIM) --isa=rv32gc_ziccid_zfh_zicboz_svnapot_zicntr_zba_zbb_zbkb_zbkx_zbc_zbs_zicond_zicclsm $< 2> $@
 
 define compile_template
 
@@ -119,6 +121,7 @@ $(eval $(call compile_template,rv64uzbc,-march=rv64g_zbc -mabi=lp64d))
 $(eval $(call compile_template,rv64uzbkb,-march=rv64g_zbkb -mabi=lp64))
 $(eval $(call compile_template,rv64uzbkx,-march=rv64g_zbkx -mabi=lp64))
 $(eval $(call compile_template,rv64uzbs,-march=rv64g_zbs -mabi=lp64d))
+$(eval $(call compile_template,rv64uzicond,-march=rv64g_zicond -mabi=lp64))
 $(eval $(call compile_template,rv64mzicbo,-march=rv64g_zicboz -mabi=lp64d))
 $(eval $(call compile_template,rv64si,-march=rv64g -mabi=lp64d))
 $(eval $(call compile_template,rv64ssvnapot,-march=rv64g -mabi=lp64d))
@@ -139,6 +142,7 @@ $(eval $(call compile_template,rv32uzbc,-march=rv32g_zbc -mabi=ilp32))
 $(eval $(call compile_template,rv32uzbkb,-march=rv32g_zbkb -mabi=ilp32))
 $(eval $(call compile_template,rv32uzbkx,-march=rv32g_zbkx -mabi=ilp32))
 $(eval $(call compile_template,rv32uzbs,-march=rv32g_zbs -mabi=ilp32))
+$(eval $(call compile_template,rv32uzicond,-march=rv32g_zicond -mabi=ilp32))
 $(eval $(call compile_template,rv32si,-march=rv32g -mabi=ilp32))
 $(eval $(call compile_template,rv32mi,-march=rv32g -mabi=ilp32))
 endif

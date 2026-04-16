@@ -1,0 +1,10 @@
+#=======================================================================
+# Makefrag for rv64uzicond tests
+#-----------------------------------------------------------------------
+
+rv64uzicond_sc_tests = \
+	czero_eqz \
+	czero_nez \
+
+rv64uzicond_p_tests = $(addprefix rv64uzicond-p-, $(rv64uzicond_sc_tests))
+rv64uzicond_v_tests = $(addprefix rv64uzicond-v-, $(rv64uzicond_sc_tests))
