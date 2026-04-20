@@ -1,0 +1,9 @@
+#=======================================================================
+# Makefrag for hypervisor-svadu tests
+#-----------------------------------------------------------------------
+
+hypervisor-svadu_sc_tests = \
+	2-stage_translation_implicit_store_error \
+	2-stage_translation_implicit_store_error_hs \
+
+hypervisor-svadu_p_tests = $(addprefix hypervisor-svadu-p-, $(hypervisor-svadu_sc_tests))
