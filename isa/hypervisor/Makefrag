@@ -4,5 +4,7 @@
 
 hypervisor_sc_tests = \
 	2-stage_translation \
+	2-stage_translation_implicit_load_error \
+	2-stage_translation_implicit_load_error_hs \
 
 hypervisor_p_tests = $(addprefix hypervisor-p-, $(hypervisor_sc_tests))
