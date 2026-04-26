@@ -1,0 +1,90 @@
+#=======================================================================
+# Makefrag for rv32up tests
+#-----------------------------------------------------------------------
+
+rv32up_sc_tests = \
+	padd_b \
+	pli_b pli_h plui_h \
+	padd_bs padd_h padd_hs \
+	psub_b psub_h \
+	paadd_b paadd_h paaddu_b paaddu_h \
+	pasub_b pasub_h pasubu_b pasubu_h \
+	psadd_b psadd_h psaddu_b psaddu_h \
+	pssub_b pssub_h pssubu_b pssubu_h \
+	psh1add_h pssh1sadd_h \
+	aadd aaddu asub asubu \
+	sadd saddu ssub ssubu \
+	ssh1sadd \
+	paas_hx pas_hx pasa_hx psa_hx psas_hx pssa_hx \
+	pabd_b pabd_h pabdu_b pabdu_h psabs_b psabs_h \
+	pabdsumau_b pabdsumu_b predsum_bs predsum_hs predsumu_bs predsumu_hs \
+	psati_h psext_h_b pusati_h sati usati \
+	psll_bs psll_hs pslli_b pslli_h psra_bs psra_hs psrai_b psrai_h \
+	psrari_h psrl_bs psrl_hs psrli_b psrli_h pssha_hs psshar_hs psslai_h \
+	srari ssha sshar sslai \
+	pmax_b pmax_h pmaxu_b pmaxu_h pmin_b pmin_h pminu_b pminu_h \
+	pmseq_b pmseq_h pmslt_b pmslt_h pmsltu_b pmsltu_h \
+	mseq mslt msltu \
+	pack ppaire_b ppaireo_b ppaireo_h ppairo_b ppairo_h ppairoe_b ppairoe_h \
+	abs cls merge mvm mvmn slx srx rev \
+	pmul_h_b00 pmul_h_b01 pmul_h_b11 pmulh_h_b0 pmulh_h_b1 pmulh_h \
+	pmulhr_h pmulhrsu_h pmulhru_h pmulhsu_h_b0 pmulhsu_h_b1 pmulhsu_h pmulhu_h \
+	pmulq_h pmulqr_h pmulsu_h_b00 pmulsu_h_b11 pmulu_h_b00 pmulu_h_b01 pmulu_h_b11 \
+	mul_h00 mul_h01 mul_h11 mulh_h0 mulh_h1 mulhr mulhrsu mulhru \
+	mulhsu_h0 mulhsu_h1 mulq mulqr mulsu_h00 mulsu_h11 mulu_h00 mulu_h01 mulu_h11 \
+	pmhacc_h pmhacc_h_b0 pmhacc_h_b1 pmhaccsu_h pmhaccsu_h_b0 pmhaccsu_h_b1 \
+	pmhaccu_h pmhracc_h pmhraccsu_h pmhraccu_h \
+	macc_h00 macc_h01 macc_h11 maccsu_h00 maccsu_h11 maccu_h00 maccu_h01 maccu_h11 \
+	mhacc mhacc_h0 mhacc_h1 mhaccsu mhaccsu_h0 mhaccsu_h1 mhaccu \
+	mhracc mhraccsu mhraccu mqacc_h00 mqacc_h01 mqacc_h11 mqracc_h00 mqracc_h01 mqracc_h11 \
+	pm2add_h pm2add_hx pm2adda_h pm2adda_hx pm2addasu_h pm2addau_h pm2addsu_h pm2addu_h \
+	pm2sadd_h pm2sadd_hx pm2sub_h pm2sub_hx pm2suba_h pm2suba_hx \
+	pm4add_b pm4adda_b pm4addasu_b pm4addau_b pm4addsu_b pm4addu_b \
+	pmq2add_h pmq2adda_h pmqr2add_h pmqr2adda_h \
+	pli_db pli_dh plui_dh \
+	addd subd padd_db padd_dbs padd_dh padd_dhs padd_dw padd_dws \
+	psub_db psub_dh psub_dw paadd_db paadd_dh paadd_dw paaddu_db paaddu_dh paaddu_dw \
+	pasub_db pasub_dh pasub_dw pasubu_db pasubu_dh pasubu_dw psadd_db psadd_dh psadd_dw \
+	psaddu_db psaddu_dh psaddu_dw pssub_db pssub_dh pssub_dw pssubu_db pssubu_dh pssubu_dw \
+	psh1add_dh psh1add_dw pssh1sadd_dh pssh1sadd_dw \
+	pwadd_b pwadd_h pwaddu_b pwaddu_h pwadda_b pwadda_h pwaddau_b pwaddau_h \
+	pwsub_b pwsub_h pwsubu_b pwsubu_h pwsuba_b pwsuba_h pwsubau_b pwsubau_h \
+	wadd waddu wadda waddau wsub wsubu wsuba wsubau \
+	paas_dhx pas_dhx pasa_dhx psa_dhx psas_dhx pssa_dhx \
+	predsum_dbs predsum_dhs predsumu_dbs predsumu_dhs \
+	pabd_db pabd_dh pabdu_db pabdu_dh psabs_db psabs_dh \
+	psext_dh_b psext_dw_b psext_dw_h \
+	pwsla_bs pwsla_hs pwslai_b pwslai_h pwsll_bs pwsll_hs pwslli_b pwslli_h \
+	wsla wsll \
+	pwmul_b pwmul_h pwmulsu_b pwmulsu_h pwmulu_b pwmulu_h wmul wmulsu wmulu \
+	pwmacc_h pwmaccsu_h pwmaccu_h wmacc wmaccsu wmaccu \
+	mqwacc pmqwacc_h mqrwacc pmqrwacc_h \
+		psll_dbs psll_dhs psll_dws pslli_db pslli_dh pslli_dw \
+		psra_dbs psra_dhs psra_dws psrl_dbs psrl_dhs psrl_dws \
+		pssha_dhs pssha_dws psshar_dhs psshar_dws psslai_dh psslai_dw \
+		wslai wslli \
+		pmax_db pmax_dh pmax_dw pmaxu_db pmaxu_dh pmaxu_dw \
+		pmin_db pmin_dh pmin_dw pminu_db pminu_dh pminu_dw \
+		pmseq_db pmseq_dh pmseq_dw pmslt_db pmslt_dh pmslt_dw \
+		pmsltu_db pmsltu_dh pmsltu_dw \
+		ppaire_db ppaire_dh ppaireo_db ppaireo_dh \
+		ppairo_db ppairo_dh ppairoe_db ppairoe_dh \
+		pnsra_bs pnsra_hs pnsrai_b pnsrai_h pnsrar_bs pnsrar_hs \
+		pnsrari_b pnsrari_h pnsrl_bs pnsrl_hs pnsrli_b pnsrli_h \
+		pnclip_bs pnclip_hs pnclipi_b pnclipi_h pnclipiu_b pnclipiu_h \
+		pnclipr_bs pnclipr_hs pnclipri_b pnclipri_h pnclipriu_b pnclipriu_h \
+		pnclipru_bs pnclipru_hs pnclipu_bs pnclipu_hs \
+		pm2wadd_h pm2wadd_hx pm2wadda_h pm2wadda_hx pm2waddu_h pm2waddsu_h \
+		pm2waddau_h pm2waddasu_h pm2wsub_h pm2wsub_hx pm2wsuba_h pm2wsuba_hx \
+		nsrai nsrli nsrari nclipi nclipiu nclipri nclipriu \
+		nclip nclipu nclipr nclipru \
+		nsra nsrl nsrar \
+		wzip8p wzip16p \
+
+	psati_dh psati_dw pusati_dh pusati_dw \
+
+	psrai_db psrai_dh psrai_dw psrari_dh psrari_dw psrli_db psrli_dh psrli_dw \
+
+rv32up_p_tests = $(addprefix rv32up-p-, $(rv32up_sc_tests))
+rv32up_v_tests = $(addprefix rv32up-v-, $(rv32up_sc_tests))
+

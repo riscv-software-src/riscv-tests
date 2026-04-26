@@ -1,0 +1,66 @@
+#=======================================================================
+# Makefrag for rv64up tests
+#-----------------------------------------------------------------------
+
+rv64up_sc_tests = \
+	padd_b \
+	pli_b pli_h plui_h \
+	padd_bs padd_h padd_hs \
+	psub_b psub_h \
+	paadd_b paadd_h paaddu_b paaddu_h \
+	pasub_b pasub_h pasubu_b pasubu_h \
+	psadd_b psadd_h psaddu_b psaddu_h \
+	pssub_b pssub_h pssubu_b pssubu_h \
+	psh1add_h pssh1sadd_h \
+	paas_hx pas_hx pasa_hx psa_hx psas_hx pssa_hx \
+	pabd_b pabd_h pabdu_b pabdu_h psabs_b psabs_h \
+	pabdsumau_b pabdsumu_b predsum_bs predsum_hs predsumu_bs predsumu_hs \
+	psati_h psext_h_b pusati_h \
+	psll_bs psll_hs pslli_b pslli_h psra_bs psra_hs psrai_b psrai_h \
+	psrari_h psrl_bs psrl_hs psrli_b psrli_h pssha_hs psshar_hs psslai_h \
+	pmax_b pmax_h pmaxu_b pmaxu_h pmin_b pmin_h pminu_b pminu_h \
+	pmseq_b pmseq_h pmslt_b pmslt_h pmsltu_b pmsltu_h \
+	pack ppaire_b ppaireo_b ppaireo_h ppairo_b ppairo_h ppairoe_b ppairoe_h \
+	pmul_h_b00 pmul_h_b01 pmul_h_b11 pmulh_h_b0 pmulh_h_b1 pmulh_h \
+	pmulhr_h pmulhrsu_h pmulhru_h pmulhsu_h_b0 pmulhsu_h_b1 pmulhsu_h pmulhu_h \
+	pmulq_h pmulqr_h pmulsu_h_b00 pmulsu_h_b11 pmulu_h_b00 pmulu_h_b01 pmulu_h_b11 \
+	pmhacc_h pmhacc_h_b0 pmhacc_h_b1 pmhaccsu_h pmhaccsu_h_b0 pmhaccsu_h_b1 \
+	pmhaccu_h pmhracc_h pmhraccsu_h pmhraccu_h \
+	pm2add_h pm2add_hx pm2adda_h pm2adda_hx pm2addasu_h pm2addau_h pm2addsu_h pm2addu_h \
+	pm2sadd_h pm2sadd_hx pm2sub_h pm2sub_hx pm2suba_h pm2suba_hx \
+	pm4add_b pm4adda_b pm4addasu_b pm4addau_b pm4addsu_b pm4addu_b \
+	pmq2add_h pmq2adda_h pmqr2add_h pmqr2adda_h \
+	psati_w psext_w_b psext_w_h pusati_w \
+	abs absw cls clsw \
+	rev rev16 mvm mvmn merge slx srx \
+	mul_w00 mul_w01 mul_w11 mulu_w00 mulu_w01 mulu_w11 mulsu_w00 mulsu_w11 \
+	macc_w00 macc_w01 macc_w11 maccu_w00 maccu_w01 maccu_w11 maccsu_w00 maccsu_w11 \
+	mqacc_w00 mqacc_w01 mqacc_w11 mqracc_w00 mqracc_w01 mqracc_w11 \
+	paadd_w paaddu_w pasub_w pasubu_w \
+	padd_w padd_ws \
+	paas_wx pas_wx pasa_wx psa_wx psas_wx pssa_wx \
+	pli_w plui_w psub_w \
+	pm2add_w pm2add_wx pm2addu_w pm2addsu_w pm2adda_w pm2adda_wx pm2addau_w pm2addasu_w \
+	pm2sub_w pm2sub_wx pm2suba_w pm2suba_wx \
+	pm4add_h pm4adda_h pm4addu_h pm4addau_h pm4addsu_h pm4addasu_h \
+	pmacc_w_h00 pmacc_w_h01 pmacc_w_h11 pmaccu_w_h00 pmaccu_w_h01 pmaccu_w_h11 pmaccsu_w_h00 pmaccsu_w_h11 \
+	pmhacc_w pmhacc_w_h0 pmhacc_w_h1 pmhaccu_w pmhaccsu_w pmhaccsu_w_h0 pmhaccsu_w_h1 \
+	pmhracc_w pmhraccu_w pmhraccsu_w \
+	pmqacc_w_h00 pmqacc_w_h01 pmqacc_w_h11 pmqracc_w_h00 pmqracc_w_h01 pmqracc_w_h11 \
+	pmax_w pmaxu_w pmin_w pminu_w pmseq_w pmslt_w pmsltu_w \
+	pmq2add_w pmq2adda_w pmqr2add_w pmqr2adda_w \
+	pmul_w_h00 pmul_w_h01 pmul_w_h11 pmulh_w pmulh_w_h0 pmulh_w_h1 \
+	pmulhr_w pmulhru_w pmulhrsu_w pmulhsu_w pmulhsu_w_h0 pmulhsu_w_h1 pmulhu_w \
+	pmulq_w pmulqr_w pmulsu_w_h00 pmulsu_w_h11 pmulu_w_h00 pmulu_w_h01 pmulu_w_h11 \
+	ppaire_h ppaireo_w ppairoe_w ppairo_w \
+	predsum_ws predsumu_ws \
+	psadd_w psaddu_w pssub_w pssubu_w \
+	psll_ws pslli_w psra_ws psrai_w psrari_w psrl_ws psrli_w pssha_ws psshar_ws psslai_w \
+	psh1add_w pssh1sadd_w \
+	sha shar \
+	sati usati srari \
+	zip8p zip16p zip8hp zip16hp unzip8p unzip16p unzip8hp unzip16hp \
+
+rv64up_p_tests = $(addprefix rv64up-p-, $(rv64up_sc_tests))
+rv64up_v_tests = $(addprefix rv64up-v-, $(rv64up_sc_tests))
+
