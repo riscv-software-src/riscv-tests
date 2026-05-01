@@ -32,6 +32,7 @@
 
 #include "util.h"
 
+static barrier_global_data_t bar;
    
 //--------------------------------------------------------------------------
 // matmul function
@@ -48,8 +49,9 @@ extern void matmul(const size_t coreid, const size_t ncores, const size_t lda,  
 void thread_entry(int cid, int nc)
 {
    static data_t results_data[ARRAY_SIZE];
+   barrier_local_data_t lbar = {nc};
 
-   stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE);
+   stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(&bar, &lbar), DIM_SIZE/DIM_SIZE/DIM_SIZE);
  
    int res = verify(ARRAY_SIZE, results_data, verify_data);
 

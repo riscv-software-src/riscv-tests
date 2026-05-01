@@ -21,7 +21,7 @@ typedef double data_t;
 //--------------------------------------------------------------------------
 // Main
 
-void vec_daxpy(size_t n, const double a, const double *x, const double *y, double* z);
+void vec_daxpy(size_t n, const double* a, const double *x, const double *y, double* z);
 
 
 int main( int argc, char* argv[] )
@@ -30,12 +30,12 @@ int main( int argc, char* argv[] )
 
 #if PREALLOCATE
   // If needed we preallocate everything in the caches
-  vec_daxpy(DATA_SIZE, input0, input1_data, input2_data, results_data);
+  vec_daxpy(DATA_SIZE, &input0, input1_data, input2_data, results_data);
 #endif
 
   // Do the daxpy
   setStats(1);
-  vec_daxpy(DATA_SIZE, input0, input1_data, input2_data, results_data);
+  vec_daxpy(DATA_SIZE, &input0, input1_data, input2_data, results_data);
   setStats(0);
 
   // Check the results

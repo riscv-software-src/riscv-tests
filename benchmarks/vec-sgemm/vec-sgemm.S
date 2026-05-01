@@ -47,12 +47,20 @@
 # This version holds a 16*VLMAX block of C matrix in vector registers
 # in inner loop, but otherwise does not cache or TLB tiling.
 
+#if __riscv_xlen == 32
+# define REG_L lw
+# define REG_S sw
+#else
+# define REG_L ld
+# define REG_S sd
+#endif
+
 vec_sgemm_nn:
-    ld cstride, 0(sp)   # Get arg from stack frame	
+    REG_L cstride, 0(sp)   # Get arg from stack frame
     addi sp, sp, -FRAMESIZE
-    sd s0, 0(sp)
-    sd s1, 8(sp)
-    sd s2, 16(sp)
+    REG_S s0, 0(sp)
+    REG_S s1, 8(sp)
+    REG_S s2, 16(sp)
 
     # Check for zero size matrices        
     beqz n, exit
@@ -216,8 +224,8 @@ end_rows:
     # Not done.
 
 exit:
-    ld s0, 0(sp)
-    ld s1, 8(sp)
-    ld s2, 16(sp)
+    REG_L s0, 0(sp)
+    REG_L s1, 8(sp)
+    REG_L s2, 16(sp)
     addi sp, sp, FRAMESIZE
     ret

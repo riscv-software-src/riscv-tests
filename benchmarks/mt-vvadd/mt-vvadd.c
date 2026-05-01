@@ -30,7 +30,8 @@
 // Basic Utilities and Multi-thread Support
 
 #include "util.h"
-   
+
+static barrier_global_data_t bar;
  
 //--------------------------------------------------------------------------
 // vvadd function
@@ -48,10 +49,11 @@ void thread_entry(int cid, int nc)
 {
    // static allocates data in the binary, which is visible to both threads
    static data_t results_data[DATA_SIZE];
+   barrier_local_data_t lbar = {nc};
    
    // First do out-of-place vvadd
-   barrier(nc);
-   stats(vvadd(cid, nc, DATA_SIZE, input1_data, input2_data, results_data); barrier(nc), DATA_SIZE);
+   barrier(&bar, &lbar);
+   stats(vvadd(cid, nc, DATA_SIZE, input1_data, input2_data, results_data); barrier(&bar, &lbar), DATA_SIZE);
  
    if(cid == 0) {
      int res = verifyDouble(DATA_SIZE, results_data, verify_data);
@@ -65,14 +67,14 @@ void thread_entry(int cid, int nc)
      for (i = 0; i < DATA_SIZE; i++)
            results_data[i] = input1_data[i];
    }
-   barrier(nc);
-   stats(vvadd(cid, nc, DATA_SIZE, results_data, input2_data, results_data); barrier(nc), DATA_SIZE);
+   barrier(&bar, &lbar);
+   stats(vvadd(cid, nc, DATA_SIZE, results_data, input2_data, results_data); barrier(&bar, &lbar), DATA_SIZE);
  
    if(cid == 0) {
      int res = verifyDouble(DATA_SIZE, results_data, verify_data);
      if(res) exit(res);
    }
    
-   barrier(nc);
+   barrier(&bar, &lbar);
    exit(0);
 }
