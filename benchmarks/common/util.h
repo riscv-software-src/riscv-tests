@@ -6,6 +6,7 @@
 extern void setStats(int enable);
 
 #include <stdint.h>
+#include <stdatomic.h>
 
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
@@ -57,24 +58,26 @@ static int verifyFloat(int n, const volatile float* test, const float* verify)
   return 0;
 }
 
-static void __attribute__((noinline)) barrier(int ncores)
+typedef struct {
+  volatile int sense;
+  volatile int count;
+} barrier_global_data_t;
+
+typedef struct {
+  int ncores;
+  int threadsense;
+} barrier_local_data_t;
+
+static void __attribute__((noinline)) barrier(barrier_global_data_t* global, barrier_local_data_t* local)
 {
-  static volatile int sense;
-  static volatile int count;
-  static __thread int threadsense;
+  int threadsense = !local->threadsense;
+  local->threadsense = threadsense;
 
-  __sync_synchronize();
-
-  threadsense = !threadsense;
-  if (__sync_fetch_and_add(&count, 1) == ncores-1)
-  {
-    count = 0;
-    sense = threadsense;
-  }
-  else while(sense != threadsense)
+  if (atomic_fetch_add_explicit(&global->count, 1, memory_order_acq_rel) == local->ncores - 1) {
+    atomic_store_explicit(&global->count, 0, memory_order_relaxed);
+    atomic_store_explicit(&global->sense, threadsense, memory_order_release);
+  } else while (atomic_load_explicit(&global->sense, memory_order_acquire) != threadsense)
     ;
-
-  __sync_synchronize();
 }
 
 static uint64_t lfsr(uint64_t x)

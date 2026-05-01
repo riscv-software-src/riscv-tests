@@ -32,7 +32,7 @@
 
 #include "util.h"
 
-
+static barrier_global_data_t bar;
 
 //--------------------------------------------------------------------------
 // Main
@@ -44,6 +44,7 @@ void thread_entry(int cid, int nc)
 {
    // static allocates data in the binary, which is visible to both threads
    static long results_data[DATA_SIZE];
+   barrier_local_data_t lbar = {nc};
 
    size_t block = (DATA_SIZE / nc) + 1;
    size_t n = (nc == cid + 1) ? DATA_SIZE - cid * block : block;
@@ -51,18 +52,18 @@ void thread_entry(int cid, int nc)
 
    // First do out-of-place memcpy
 #if PREALLOCATE
-   barrier(nc);
+   barrier(&bar, &lbar);
    memcpy(results_data + block * cid, input_data + block * cid, sizeof(long) * n);
 #endif
 
-   barrier(nc);
-   stats(memcpy(results_data + block * cid, input_data + block * cid, sizeof(long) * n); barrier(nc), DATA_SIZE);
-   barrier(nc);
+   barrier(&bar, &lbar);
+   stats(memcpy(results_data + block * cid, input_data + block * cid, sizeof(long) * n); barrier(&bar, &lbar), DATA_SIZE);
+   barrier(&bar, &lbar);
 
    if (cid == 0) {
      int res = verify(DATA_SIZE * sizeof(long) / sizeof(int), (int*) results_data, (int*) input_data);
      if (res) exit(res);
    }
-   barrier(nc);
+   barrier(&bar, &lbar);
    exit(0);
 }

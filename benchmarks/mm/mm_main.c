@@ -8,11 +8,14 @@
 
 #pragma GCC optimize ("unroll-loops")
 
+static barrier_global_data_t bar;
+
 void thread_entry(int cid, int nc)
 {
   const int R = 8;
   int m, n, p;
   uint64_t s = 0xdeadbeefU;
+  barrier_local_data_t lbar = {nc};
   
   m = CBM;
   n = CBN;
@@ -67,6 +70,6 @@ void thread_entry(int cid, int nc)
   }
 #endif
 
-  barrier(nc);
+  barrier(&bar, &lbar);
   exit(0);
 }
