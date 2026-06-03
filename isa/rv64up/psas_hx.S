@@ -1,0 +1,50 @@
+# See LICENSE for license details.
+
+#*****************************************************************************
+# psas_hx.S
+#-----------------------------------------------------------------------------
+#
+# Test psas.hx instruction (packed cross saturating add-sub halfword).
+#
+
+#include "riscv_test.h"
+#include "test_macros.h"
+
+RVTEST_RV64U
+RVTEST_CODE_BEGIN
+
+  #-------------------------------------------------------------
+  # Arithmetic tests
+  #-------------------------------------------------------------
+
+  # psas.hx rd, rs1, rs2 (per P-ext spec)
+  # rd[even] = sat16(rs1[even] - rs2[odd])
+  # rd[odd]  = sat16(rs1[odd]  + rs2[even])
+
+  # Test case 1: Simple cross saturating add-sub (no saturation)
+  # rs1 = 0x0004000800040008, rs2 = 0x0002000400020004
+  # even: sat(0x0008 - 0x0002) = 0x0006
+  # odd:  sat(0x0004 + 0x0004) = 0x0008
+  # Expected per lane: 0x00080006
+  TEST_RR_OP_VXSAT( 2, psas.hx, 0x0008000600080006, 0x0004000800040008, 0x0002000400020004, 0  );
+
+  # Test case 2: Zero / Zero = Zero
+  TEST_RR_OP_VXSAT( 3, psas.hx, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0  );
+
+  # Test case 3: Same values in rs1 and rs2 (no saturation)
+  # rs1 = 0x0004000400040004, rs2 = 0x0002000200020002
+  # even: sat(0x0004 - 0x0002) = 0x0002
+  # odd:  sat(0x0004 + 0x0002) = 0x0006
+  # Expected per lane: 0x00060002
+  TEST_RR_OP_VXSAT( 4, psas.hx, 0x0006000200060002, 0x0004000400040004, 0x0002000200020002, 0  );
+
+  TEST_PASSFAIL
+
+RVTEST_CODE_END
+
+  .data
+RVTEST_DATA_BEGIN
+
+  TEST_DATA
+
+RVTEST_DATA_END

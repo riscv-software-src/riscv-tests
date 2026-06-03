@@ -1,0 +1,48 @@
+# See LICENSE for license details.
+
+#*****************************************************************************
+# psra_hs.S
+#-----------------------------------------------------------------------------
+#
+# Test psra.hs instruction (packed shift right arithmetic halfword).
+#
+
+#include "riscv_test.h"
+#include "test_macros.h"
+
+RVTEST_RV64U
+RVTEST_CODE_BEGIN
+
+  #-------------------------------------------------------------
+  # Arithmetic tests
+  #-------------------------------------------------------------
+
+  # psra.hs rd, rs1, rs2
+  # Performs packed halfword shift right arithmetic by rs2
+
+  # Test case 1: Simple shift right by 1 (positive values)
+  TEST_RR_OP( 2, psra.hs, 0x0000000100010002, 0x0001000200030004, 0x0001000100010001 );
+
+  # Test case 2: Shift by 0 (no change)
+  TEST_RR_OP( 3, psra.hs, 0x8000800080008000, 0x8000800080008000, 0x0000000000000000 );
+
+  # Test case 3: Shift right with sign extension (0x8000 >> 1 = 0xC000)
+  TEST_RR_OP( 4, psra.hs, 0xc000c000c000c000, 0x8000800080008000, 0x0001000100010001 );
+
+  # Test case 4: Scalar shift — all halfwords use only rs2[15:0]=1 as shift amount,
+  # not their own halfword (rs2 upper halfwords = 2, but result must equal shift-by-1)
+  # If scalar: 0x8000>>1=0xC000 for all; if element-wise: 0x8000>>2=0xE000 for upper 3.
+  TEST_RR_OP( 5, psra.hs, 0xc000c000c000c000, 0x8000800080008000, 0x0002000200020001 );
+
+  TEST_PASSFAIL
+
+RVTEST_CODE_END
+
+  .data
+RVTEST_DATA_BEGIN
+
+  TEST_DATA
+
+RVTEST_DATA_END
+
+
