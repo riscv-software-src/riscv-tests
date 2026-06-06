@@ -276,11 +276,13 @@ class MemTest64(SimpleMemoryTest):
         self.access_test(8, 'long long')
 
 class MemTestReadInvalid(SimpleMemoryTest):
+    def early_applicable(self):
+        return self.target.support_set_pmp_deny
+
     def test(self):
         bad_address = self.hart.bad_address
-        if self.target.support_set_pmp_deny:
-            self.set_pmp_deny(bad_address)
-            self.gdb.command("monitor riscv set_mem_access progbuf abstract")
+        self.set_pmp_deny(bad_address, 4)
+        self.gdb.command("monitor riscv set_mem_access progbuf abstract")
         good_address = self.hart.ram + 0x80
 
         self.write_nop_program(2)
@@ -296,10 +298,9 @@ class MemTestReadInvalid(SimpleMemoryTest):
         self.gdb.stepi()    # Don't let gdb cache register read
         assertEqual(self.gdb.p(f"*((int*)0x{good_address:x})"), 0xabcdef)
         assertEqual(self.gdb.p("$s0"), 0x12345678)
-        if self.target.support_set_pmp_deny:
-            self.reset_pmp_deny()
-            self.gdb.command("monitor riscv set_mem_access progbuf sysbus "
-                             "abstract")
+        self.reset_pmp_deny()
+        self.gdb.command("monitor riscv set_mem_access progbuf sysbus "
+                         "abstract")
 
 #class MemTestWriteInvalid(SimpleMemoryTest):
 #    def test(self):
@@ -2200,7 +2201,7 @@ class EtriggerTest(DebugTest):
     # TODO: There should be a check that a exception trigger is really not
     # supported if it is marked as unsupported.
     def early_applicable(self):
-        return self.target.support_etrigger
+        return self.target.support_etrigger and self.target.support_set_pmp_deny
 
     def setup(self):
         DebugTest.setup(self)
@@ -2214,9 +2215,8 @@ class EtriggerTest(DebugTest):
         # Set fox to a bad pointer so we'll get a load access exception later.
         # Use NULL if a known-bad address is not provided.
         bad_address = self.hart.bad_address or 0
-        if self.target.support_set_pmp_deny:
-            self.set_pmp_deny(bad_address)
-            self.gdb.command("monitor riscv set_mem_access progbuf abstract")
+        self.set_pmp_deny(bad_address, 1)
+        self.gdb.command("monitor riscv set_mem_access progbuf abstract")
         self.gdb.p(f"fox=(char*)0x{bad_address:08x}")
         output = self.gdb.c()
         # We should not be at handle_trap
@@ -2225,10 +2225,9 @@ class EtriggerTest(DebugTest):
         # actual exception handler.
         assertIn("breakpoint", output)
         assertIn("trap_entry", self.gdb.where())
-        if self.target.support_set_pmp_deny:
-            self.reset_pmp_deny()
-            self.gdb.command("monitor riscv set_mem_access progbuf sysbus "
-                             "abstract")
+        self.reset_pmp_deny()
+        self.gdb.command("monitor riscv set_mem_access progbuf sysbus "
+                         "abstract")
 
 class IcountTest(DebugTest):
     compile_args = ("programs/infinite_loop.S", )

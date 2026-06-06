@@ -1453,6 +1453,13 @@ class GdbTest(BaseTest):
         # FIXME: OpenOCD doesn't handle PRIV now
         #self.gdb.p("$priv=3")
 
+    def setup(self):
+        BaseTest.setup(self)
+        if self.target.support_set_pmp_deny:
+            assertEqual(self.target.minimum_pmp_granularity,
+                        self.get_minimum_pmp_granularity(),
+                        "minimum_pmp_granularity does not match target's.")
+
     def postMortem(self):
         if not self.gdb:
             return
@@ -1489,9 +1496,32 @@ class GdbTest(BaseTest):
             # PMP changes require an sfence.vma, 0x12000073 is sfence.vma
             self.gdb.command("monitor riscv exec_progbuf 0x12000073")
 
-    def set_pmp_deny(self, address, size=4 * 1024):
+    def ctz(self, i):
+        # count trailing zeros
+        return (i & -i).bit_length() - 1
+
+    def get_minimum_pmp_granularity(self):
+        # Determine the minimum PMP granularity supported by this hart.
+        # cf. RISC-V Privileged Architecture, 3.7.1.1. Address Matching
+        self.gdb.p("$pmpcfg0=0")    # Null region
+        self.gdb.p("$pmpaddr0=-1")  # All ones
+        readback = self.gdb.p("$pmpaddr0")
+        return 2**(self.ctz(readback) + 2)
+
+    def set_pmp_deny(self, address, size):
         # Enable physical memory protection, no permission to access specific
-        # address range (default 4KB).
+        # address range. The size must be a power of two and the address must be
+        # naturally aligned to the size.
+
+        # PMP requires size to be at least the minimum granularity.
+        # The minimum granularity for NAPOT mode is 8 bytes.
+        size = max(size, self.target.minimum_pmp_granularity, 8)
+
+        if 2**self.ctz(address) < size:
+            raise TestNotApplicable(
+                f"address 0x{address:x} should be naturally aligned to "
+                f"0x{size:x}.")
+
         self.gdb.p("$mseccfg=0x4")  # RLB
         self.gdb.p("$pmpcfg0=0x98") # L, NAPOT, !R, !W, !X
         self.gdb.p("$pmpaddr0="
