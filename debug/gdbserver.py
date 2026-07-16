@@ -651,12 +651,16 @@ class Hwbp1(DebugTest):
         self.gdb.b("_exit")
         self.exit()
 
-def MCONTROL_TYPE(xlen):
+def TDATA1_TYPE(xlen):
     return 0xf<<((xlen)-4)
-def MCONTROL_DMODE(xlen):
+def TDATA1_DMODE(xlen):
     return 1<<((xlen)-5)
 def MCONTROL_MASKMAX(xlen):
-    return 0x3<<((xlen)-11)
+    return 0x3f<<((xlen)-11)
+
+TDATA1_TYPE_NONE = 0
+TDATA1_TYPE_MATCH = 2
+TDATA1_TYPE_MATCH6 = 6
 
 MCONTROL_SELECT = 1<<19
 MCONTROL_TIMING = 1<<18
@@ -671,9 +675,6 @@ MCONTROL_EXECUTE = 1<<2
 MCONTROL_STORE = 1<<1
 MCONTROL_LOAD = 1<<0
 
-MCONTROL_TYPE_NONE = 0
-MCONTROL_TYPE_MATCH = 2
-
 MCONTROL_ACTION_DEBUG_EXCEPTION = 0
 MCONTROL_ACTION_DEBUG_MODE = 1
 MCONTROL_ACTION_TRACE_START = 2
@@ -686,6 +687,37 @@ MCONTROL_MATCH_GE = 2
 MCONTROL_MATCH_LT = 3
 MCONTROL_MATCH_MASK_LOW = 4
 MCONTROL_MATCH_MASK_HIGH = 5
+
+MCONTROL6_UNCERTAIN = 1<<26
+MCONTROL6_HIT1 = 1<<25
+MCONTROL6_VS = 1<<24
+MCONTROL6_VU = 1<<23
+MCONTROL6_HIT0 = 1<<22
+MCONTROL6_SELECT = 1<<21
+MCONTROL6_SIZE = 0x7<<16
+MCONTROL6_ACTION = 0xf<<12
+MCONTROL6_CHAIN = 1<<11
+MCONTROL6_MATCH = 0xf<<7
+MCONTROL6_M = 1<<6
+MCONTROL6_UNCERTAINEN = 1<<5
+MCONTROL6_S = 1<<4
+MCONTROL6_U = 1<<3
+MCONTROL6_EXECUTE = 1<<2
+MCONTROL6_STORE = 1<<1
+MCONTROL6_LOAD = 1<<0
+
+MCONTROL6_ACTION_DEBUG_EXCEPTION = 0
+MCONTROL6_ACTION_DEBUG_MODE = 1
+MCONTROL6_ACTION_TRACE_START = 2
+MCONTROL6_ACTION_TRACE_STOP = 3
+MCONTROL6_ACTION_TRACE_EMIT = 4
+
+MCONTROL6_MATCH_EQUAL = 0
+MCONTROL6_MATCH_NAPOT = 1
+MCONTROL6_MATCH_GE = 2
+MCONTROL6_MATCH_LT = 3
+MCONTROL6_MATCH_MASK_LOW = 4
+MCONTROL6_MATCH_MASK_HIGH = 5
 
 def set_field(reg, mask, val):
     return ((reg) & ~(mask)) | (((val) * ((mask) & ~((mask) << 1))) & (mask))
@@ -724,12 +756,20 @@ class HwbpManual(DebugTest):
 
             tdata2_rb = self.gdb.p("$tdata2")
             tdata1_rb = self.gdb.p("$tdata1")
-            if tdata1_rb == tdata1 and tdata2_rb == tdata2:
+
+            type_ = tdata1 & TDATA1_TYPE(self.hart.xlen)
+            if type_ == TDATA1_TYPE_MATCH:
+                tdata1_ignore_mask = MCONTROL_MASKMAX(self.hart.xlen)
+            else:
+                tdata1_ignore_mask = 0
+
+            if (tdata1_rb & ~tdata1_ignore_mask) \
+                    == (tdata1 & ~tdata1_ignore_mask) and tdata2_rb == tdata2:
                 return tselect
 
-            type_rb = tdata1_rb & MCONTROL_TYPE(self.hart.xlen)
-            type_none = set_field(0, MCONTROL_TYPE(self.hart.xlen),
-                                  MCONTROL_TYPE_NONE)
+            type_rb = tdata1_rb & TDATA1_TYPE(self.hart.xlen)
+            type_none = set_field(0, TDATA1_TYPE(self.hart.xlen),
+                                  TDATA1_TYPE_NONE)
             if type_rb == type_none:
                 raise TestNotApplicable
 
@@ -738,7 +778,7 @@ class HwbpManual(DebugTest):
                     f"monitor riscv reserve_trigger {tselect} off")
         assert False
 
-    def test(self):
+    def test_mcontrol(self, tdata1):
         if not self.hart.honors_tdata1_dmode:
             # Run to main before setting the breakpoint, because startup code
             # will otherwise clear the trigger that we set.
@@ -753,16 +793,6 @@ class HwbpManual(DebugTest):
         self.check_reserve_trigger_support()
 
         #self.gdb.hbreak("rot13")
-        tdata1 = MCONTROL_DMODE(self.hart.xlen)
-        tdata1 = set_field(tdata1, MCONTROL_TYPE(self.hart.xlen),
-                           MCONTROL_TYPE_MATCH)
-        tdata1 = set_field(tdata1, MCONTROL_ACTION, MCONTROL_ACTION_DEBUG_MODE)
-        tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
-        tdata1 |= MCONTROL_M | MCONTROL_EXECUTE
-        if self.hart.extensionSupported("S"):
-            tdata1 |= MCONTROL_S
-        if self.hart.extensionSupported("U"):
-            tdata1 |= MCONTROL_U
 
         tdata2 = self.gdb.p("&rot13")
 
@@ -802,6 +832,41 @@ class HwbpManual(DebugTest):
         self.gdb.b("_exit")
         self.exit()
 
+class McontrolManual(HwbpManual):
+    def test(self):
+        if not self.target.support_mcontrol:
+            raise TestNotApplicable
+
+        tdata1 = TDATA1_DMODE(self.hart.xlen)
+        tdata1 = set_field(tdata1, TDATA1_TYPE(self.hart.xlen),
+                           TDATA1_TYPE_MATCH)
+        tdata1 = set_field(tdata1, MCONTROL_ACTION,
+                           MCONTROL_ACTION_DEBUG_MODE)
+        tdata1 = set_field(tdata1, MCONTROL_MATCH, MCONTROL_MATCH_EQUAL)
+        tdata1 |= MCONTROL_M | MCONTROL_EXECUTE
+        if self.hart.extensionSupported("S"):
+            tdata1 |= MCONTROL_S
+        if self.hart.extensionSupported("U"):
+            tdata1 |= MCONTROL_U
+        self.test_mcontrol(tdata1)
+
+class Mcontrol6Manual(HwbpManual):
+    def test(self):
+        if not self.target.support_mcontrol6:
+            raise TestNotApplicable
+
+        tdata1 = TDATA1_DMODE(self.hart.xlen)
+        tdata1 = set_field(tdata1, TDATA1_TYPE(self.hart.xlen),
+                           TDATA1_TYPE_MATCH6)
+        tdata1 = set_field(tdata1, MCONTROL6_ACTION,
+                           MCONTROL6_ACTION_DEBUG_MODE)
+        tdata1 = set_field(tdata1, MCONTROL6_MATCH, MCONTROL6_MATCH_EQUAL)
+        tdata1 |= MCONTROL6_M | MCONTROL6_EXECUTE
+        if self.hart.extensionSupported("S"):
+            tdata1 |= MCONTROL6_S
+        if self.hart.extensionSupported("U"):
+            tdata1 |= MCONTROL6_U
+        self.test_mcontrol(tdata1)
 
 class Hwbp2(DebugTest):
     def early_applicable(self):
