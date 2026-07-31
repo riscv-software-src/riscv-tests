@@ -11,7 +11,7 @@ class spike32_hart(targets.Hart):
     link_script_path = "spike32.lds"
 
 class spike32(targets.Target):
-    harts = [spike32_hart(misa=0x403411ad)]
+    harts = [spike32_hart(misa=0x403411ad, progbufsize=2)]
     openocd_config_path = "spike-1.cfg"
     timeout_sec = 180
     implements_custom_test = True
@@ -24,4 +24,4 @@ class spike32(targets.Target):
         return testlib.Spike(self, isa="RV32IMAFDCVH", dmi_rti=4,
                 support_abstract_csr=True, support_haltgroups=False,
                 # elen must be at least 64 because D is supported.
-                elen=64)
+                elen=64, progbufsize=2)

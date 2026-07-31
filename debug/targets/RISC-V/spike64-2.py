@@ -4,8 +4,8 @@ import targets
 import testlib
 
 class spike64_2(targets.Target):
-    harts = [spike64.spike64_hart(misa=0x8000000000141129),
-            spike64.spike64_hart(misa=0x8000000000141129)]
+    harts = [spike64.spike64_hart(misa=0x8000000000141129, progbufsize=2),
+            spike64.spike64_hart(misa=0x8000000000141129, progbufsize=2)]
     openocd_config_path = "spike-2.cfg"
     timeout_sec = 180
     implements_custom_test = True
@@ -13,4 +13,4 @@ class spike64_2(targets.Target):
     support_unavailable_control = True
 
     def create(self):
-        return testlib.Spike(self)
+        return testlib.Spike(self, progbufsize=2)
