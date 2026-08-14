@@ -95,6 +95,9 @@ hstatus_init:
 
   j fail # Should not reach here
 
+# stvec.BASE must be 4-byte aligned. Enabling the C extension would
+# allow the label to land on a 2-byte boundary, so we align it explicitly.
+.align 2
 check_fault:
   # Check scause
   csrr t0, scause
