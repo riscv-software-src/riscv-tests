@@ -351,6 +351,7 @@
  ***************************************************************************
  */
 
+
 /* Compiler and system dependent definitions: */
 
 /* variables for time measurement: */
@@ -475,3 +476,16 @@ typedef struct record
       } Rec_Type, *Rec_Pointer;
 
 #endif
+
+
+/* Defining the function definations */
+void Proc_1(Rec_Pointer Ptr_Val_Par);
+void Proc_2(One_Fifty *Int_Par_Ref);
+void Proc_3(Rec_Pointer *Ptr_Ref_Par);
+void Proc_4(void);
+void Proc_5(void);
+void Proc_6(Enumeration Enum_Val_Par, Enumeration *Enum_Ref_Par);
+void Proc_7(One_Fifty Int_1_Par_Val, One_Fifty Int_2_Par_Val, One_Fifty *Int_Par_Ref);
+void Proc_8(Arr_1_Dim Arr_1_Par_Ref, Arr_2_Dim Arr_2_Par_Ref, int Int_1_Par_Val, int Int_2_Par_Val);
+Boolean Func_2(Str_30 Str_1_Par_Ref, Str_30 Str_2_Par_Ref);
+Boolean Func_3(Enumeration Enum_Par_Val);
