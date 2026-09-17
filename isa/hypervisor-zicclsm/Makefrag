@@ -1,0 +1,9 @@
+#=======================================================================
+# Makefrag for hypervisor-zicclsm tests
+#-----------------------------------------------------------------------
+
+hypervisor-zicclsm_sc_tests = \
+	2-stage_misaligned_load_crossing_page_boundary_gstage_fault \
+	2-stage_misaligned_load_crossing_page_boundary_vsstage_fault \
+
+hypervisor-zicclsm_p_tests = $(addprefix hypervisor-zicclsm-p-, $(hypervisor-zicclsm_sc_tests))

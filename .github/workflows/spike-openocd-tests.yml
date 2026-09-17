@@ -9,7 +9,7 @@ env:
   RISCV_TESTS_REV: master
   OPENOCD_REPO: https://github.com/riscv/riscv-openocd.git
   OPENOCD_REV: riscv
-  TOOLCHAIN_URL: https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v12.2.0-1/xpack-riscv-none-elf-gcc-12.2.0-1-linux-x64.tar.gz
+  TOOLCHAIN_URL: https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v15.2.0-1/xpack-riscv-none-elf-gcc-15.2.0-1-linux-x64.tar.gz
 
 on:
   # Run on merges to master to populate the cache with entities that are

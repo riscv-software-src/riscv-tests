@@ -75,6 +75,7 @@ hstatus_init:
 
   j fail # Should not reach here
 
+.align 2
 check_fault:
   la t0, trap_vector
   csrw mtvec, t0
