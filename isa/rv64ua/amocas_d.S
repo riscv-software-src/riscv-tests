@@ -36,7 +36,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE(5, a5, 0xffffffff80000000, ld a5, 0(a3))
 
   # Try a CAS mismatch
-  TEST_CASE(6, a4, 0xfffffffffffff800, \
+  TEST_CASE(6, a4, 0xffffffff80000000, \
     li a1, 0xfffffffffffff800; \
     li a4, 0xfffffffff8000001; \
     amocas.d a4, a1, 0(a3); \

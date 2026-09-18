@@ -46,7 +46,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE(9, a5, 0xfffffffffffff800, lw a5, 4(a0))
 
   # Try a CAS pair mismatch
-  TEST_CASE(10, a2, 0xffffffff80000001, \
+  TEST_CASE(10, a2, 0xffffffff80000002, \
     addi a4, a4, 1; \
     amocas.d a2, a4, 0(a0); \
   )
@@ -56,7 +56,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE(13, a5, 0xfffffffffffff800, lw a5, 4(a0))
 
   # Try again. Now CAS overwrites with zeros
-  TEST_CASE(14, a4, 0x80000000, \
+  TEST_CASE(14, a2, 0x80000000, \
     li x1, 0x1; \
     li a2, 0x80000000; \
     li a3, 0x70000000; \
