@@ -23,7 +23,7 @@ RVTEST_CODE_BEGIN
 
   TEST_CASE(3, a5, 0xfffffffffffff800, lw a5, 0(a3))
 
-  TEST_CASE(4, a4, 0, \
+  TEST_CASE(4, a4, 0x0000000000000000, \
     li a1, 0xffffffffffffffff; \
     sw x0, 0(a3); \
     amomaxu.w	a4, a1, 0(a3); \
@@ -34,7 +34,7 @@ RVTEST_CODE_BEGIN
   # The following two cases check that the upper 32 bits are ignored on rv64
   # implementations. Only enable them for rv64.
   #if __riscv_xlen == 64
-  TEST_CASE(6, a4, 1, \
+  TEST_CASE(6, a4, 0x0000000000000001, \
     li a0, 0x0000000000000001; \
     li a1, 0x8000000000000000; \
     la a3, amo_operand; \
@@ -42,7 +42,7 @@ RVTEST_CODE_BEGIN
     amomaxu.w	a4, a1, 0(a3); \
   )
 
-  TEST_CASE(7, a5, 1, lw a5, 0(a3))
+  TEST_CASE(7, a5, 0x0000000000000001, lw a5, 0(a3))
   #endif
 
   TEST_PASSFAIL
