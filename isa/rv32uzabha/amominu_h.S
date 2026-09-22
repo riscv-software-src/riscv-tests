@@ -4,4 +4,4 @@
 #undef RVTEST_RV64U
 #define RVTEST_RV64U RVTEST_RV32U
 
-#include "../rv64ua/amoand_h.S"
+#include "../rv64uzabha/amominu_h.S"

@@ -4,4 +4,4 @@
 #undef RVTEST_RV64U
 #define RVTEST_RV64U RVTEST_RV32U
 
-#include "../rv64ua/amoswap_b.S"
+#include "../rv64uzabha/amomin_b.S"
