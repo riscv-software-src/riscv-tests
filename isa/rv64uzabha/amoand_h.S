@@ -1,35 +1,37 @@
 # See LICENSE for license details.
 
 #*****************************************************************************
-# amoand_d.S
+# amoand_h.S
 #-----------------------------------------------------------------------------
 #
-# Test amoand.d instruction.
+# Test amoand.h instruction.
 #
 
 #include "riscv_test.h"
 #include "test_macros.h"
 
+.option arch, +zabha
+
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
 
-  TEST_CASE(2, a4, 0xffffffff80000000, \
-    li a0, 0xffffffff80000000; \
+  TEST_CASE(2, a4, 0xffffffffffff8000, \
+    li a0, 0xffffffffffff8000; \
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
-    sd a0, 0(a3); \
-    amoand.d	a4, a1, 0(a3); \
+    sh a0, 0(a3); \
+    amoand.h	a4, a1, 0(a3); \
   )
 
-  TEST_CASE(3, a5, 0xffffffff80000000, ld a5, 0(a3))
+  TEST_CASE(3, a5, 0xffffffffffff8000, lh a5, 0(a3))
 
-  # Try again clearing all bits except one
-  TEST_CASE(4, a4, 0xffffffff80000000, \
-    li  a1, 0x0000000080000000; \
-    amoand.d a4, a1, 0(a3); \
+  # try again after a cache miss
+  TEST_CASE(4, a4, 0xffffffffffff8000, \
+    li  a1, 0x0000000000008000; \
+    amoand.h a4, a1, 0(a3); \
   )
 
-  TEST_CASE(5, a5, 0x0000000080000000, ld a5, 0(a3))
+  TEST_CASE(5, a5, 0xffffffffffff8000, lh a5, 0(a3))
 
   TEST_PASSFAIL
 

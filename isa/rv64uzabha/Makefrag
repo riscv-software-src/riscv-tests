@@ -1,0 +1,10 @@
+#=======================================================================
+# Makefrag for rv64uzabha tests
+#-----------------------------------------------------------------------
+
+rv64uzabha_sc_tests = \
+	amoadd_h amoand_h amomax_h amomaxu_h amomin_h amominu_h amoor_h amoxor_h amoswap_h \
+	amoadd_b amoand_b amomax_b amomaxu_b amomin_b amominu_b amoor_b amoxor_b amoswap_b 
+
+rv64uzabha_p_tests = $(addprefix rv64uzabha-p-, $(rv64uzabha_sc_tests))
+rv64uzabha_v_tests = $(addprefix rv64uzabha-v-, $(rv64uzabha_sc_tests))
