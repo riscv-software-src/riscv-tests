@@ -2,7 +2,9 @@
 # Makefrag for rv32uzalasr tests
 #-----------------------------------------------------------------------
 
-rv32uzalasr_sc_tests = lb_aq lh_aq lw_aq lb_aqrl lh_aqrl lw_aqrl
+rv32uzalasr_sc_tests = \
+    lb_aqrl lh_aqrl lw_aqrl \
+    sb_aqrl sh_aqrl sw_aqrl
 
 rv32uzalasr_p_tests = $(addprefix rv32uzalasr-p-, $(rv32uzalasr_sc_tests))
 rv32uzalasr_v_tests = $(addprefix rv32uzalasr-v-, $(rv32uzalasr_sc_tests))

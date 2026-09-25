@@ -4,7 +4,7 @@
 # lh_aqrl.S
 #-----------------------------------------------------------------------------
 #
-# Test lh.aqrl instruction.
+# Test lh.aq and lh.aqrl instructions.
 #
 
 #include "riscv_test.h"
@@ -19,52 +19,56 @@ RVTEST_CODE_BEGIN
   # Basic tests
   #-------------------------------------------------------------
 
-  TEST_LD_OP( 2, lh.aqrl, 0x00000000000000ff, 0, tdat );
-  TEST_LD_OP( 3, lh.aqrl, 0xffffffffffffff00, 0, tdat2 );
+  TEST_LD_OP( 2, lh.aq,   0x00000000000000ff, 0, tdat );
+  TEST_LD_OP( 3, lh.aq,   0xffffffffffffff00, 0, tdat2 );
+
   TEST_LD_OP( 4, lh.aqrl, 0x0000000000000ff0, 0, tdat3 );
   TEST_LD_OP( 5, lh.aqrl, 0xfffffffffffff00f, 0, tdat4 );
-
-  # Test with a negative base
-
-  TEST_CASE( 6, x5, 0x00000000000000ff, \
-    la  x1, tdat; \
-    addi x1, x1, -32; \
-    addi x1, x1, 32; \
-    lh.aqrl x5, (x1); \
-  )
-
-  # Test with unaligned base
-
-  TEST_CASE( 7, x5, 0xffffffffffffff00, \
-    la  x1, tdat; \
-    addi x1, x1, -5; \
-    addi x1, x1, 7; \
-    lh.aqrl x5, (x1); \
-  )
 
   #-------------------------------------------------------------
   # Bypassing tests
   #-------------------------------------------------------------
 
-  TEST_LD_DEST_BYPASS( 8, 0, lh.aqrl, 0x0000000000000ff0, 0, tdat3 );
-  TEST_LD_DEST_BYPASS( 9, 1, lh.aqrl, 0xfffffffffffff00f, 0, tdat4 );
-  TEST_LD_DEST_BYPASS( 10, 2, lh.aqrl, 0xffffffffffffff00, 0, tdat2 );
+  TEST_LD_DEST_BYPASS( 8, 0, lh.aq,   0x0000000000000ff0, 0, tdat3 );
+  TEST_LD_DEST_BYPASS( 9, 1, lh.aq,   0xfffffffffffff00f, 0, tdat4 );
+  TEST_LD_DEST_BYPASS( 10, 2, lh.aq, 0xffffffffffffff00, 0, tdat2 );
+ 
+  TEST_LD_SRC1_BYPASS( 11, 0, lh.aq,  0x0000000000000ff0, 0, tdat3 );
+  TEST_LD_SRC1_BYPASS( 12, 1, lh.aq,  0xfffffffffffff00f, 0, tdat4 );
+  TEST_LD_SRC1_BYPASS( 13, 2, lh.aq,  0xffffffffffffff00, 0, tdat2 );
 
-  TEST_LD_SRC1_BYPASS( 11, 0, lh.aqrl, 0x0000000000000ff0, 0, tdat3 );
-  TEST_LD_SRC1_BYPASS( 12, 1, lh.aqrl, 0xfffffffffffff00f, 0, tdat4 );
-  TEST_LD_SRC1_BYPASS( 13, 2, lh.aqrl, 0xffffffffffffff00, 0, tdat2 );
+  TEST_LD_DEST_BYPASS( 14, 0, lh.aqrl, 0x0000000000000ff0, 0, tdat3 );
+  TEST_LD_DEST_BYPASS( 15, 1, lh.aqrl, 0xfffffffffffff00f, 0, tdat4 );
+  TEST_LD_DEST_BYPASS( 16, 2, lh.aqrl, 0xffffffffffffff00, 0, tdat2 );
+ 
+  TEST_LD_SRC1_BYPASS( 17, 0, lh.aqrl,  0x0000000000000ff0, 0, tdat3 );
+  TEST_LD_SRC1_BYPASS( 18, 1, lh.aqrl,  0xfffffffffffff00f, 0, tdat4 );
+  TEST_LD_SRC1_BYPASS( 19, 2, lh.aqrl,  0xffffffffffffff00, 0, tdat2 );
 
   #-------------------------------------------------------------
   # Test write-after-write hazard
   #-------------------------------------------------------------
 
-  TEST_CASE( 14, x2, 2, \
+  TEST_CASE( 20, x2, 2, \
+    la  x5, tdat; \
+    lh.aq  x2, (x5); \
+    li  x2, 2; \
+  )
+
+  TEST_CASE( 21, x2, 2, \
+    la  x5, tdat; \
+    lh.aq  x2, (x5); \
+    nop; \
+    li  x2, 2; \
+  )
+
+  TEST_CASE( 22, x2, 2, \
     la  x5, tdat; \
     lh.aqrl  x2, (x5); \
     li  x2, 2; \
   )
 
-  TEST_CASE( 15, x2, 2, \
+  TEST_CASE( 23, x2, 2, \
     la  x5, tdat; \
     lh.aqrl  x2, (x5); \
     nop; \

@@ -2,7 +2,9 @@
 # Makefrag for rv64uzalasr tests
 #-----------------------------------------------------------------------
 
-rv64uzalasr_sc_tests = lb_aq lh_aq lw_aq ld_aq lb_aqrl lh_aqrl lw_aqrl ld_aqrl
+rv64uzalasr_sc_tests = \
+   lb_aqrl lh_aqrl lw_aqrl ld_aqrl \
+   sb_aqrl sh_aqrl sw_aqrl sd_aqrl
 
 rv64uzalasr_p_tests = $(addprefix rv64uzalasr-p-, $(rv64uzalasr_sc_tests))
 rv64uzalasr_v_tests = $(addprefix rv64uzalasr-v-, $(rv64uzalasr_sc_tests))
