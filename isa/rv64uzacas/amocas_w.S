@@ -1,10 +1,10 @@
 # See LICENSE for license details.
 
 #*****************************************************************************
-# amocas_d.S
+# amocas_w.S
 #-----------------------------------------------------------------------------
 #
-# Test amocas.d instruction.
+# Test amocas.w instruction.
 #
 
 #include "riscv_test.h"
@@ -19,30 +19,30 @@ RVTEST_CODE_BEGIN
     li a0, 0xffffffff80000000; \
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
-    sd a0, 0(a3); \
+    sw a0, 0(a3); \
     mv a4, a0; \
-    amocas.d	a4, a1, 0(a3); \
+    amocas.w.aqrl a4, a1, 0(a3); \
   )
 
-  TEST_CASE(3, a5, 0xfffffffffffff800, ld a5, 0(a3))
+  TEST_CASE(3, a5, 0xfffffffffffff800, lw a5, 0(a3))
 
-  # Try again. Restore the original value
+  # Try again. Restore the original value.
   TEST_CASE(4, a4, 0xfffffffffffff800, \
     li  a1, 0xffffffff80000000; \
     li  a4, 0xfffffffffffff800; \
-    amocas.d a4, a1, 0(a3); \
+    amocas.w a4, a1, 0(a3); \
   )
 
-  TEST_CASE(5, a5, 0xffffffff80000000, ld a5, 0(a3))
+  TEST_CASE(5, a5, 0xffffffff80000000, lw a5, 0(a3))
 
-  # Try a CAS mismatch
+  # try a CAS mismatch
   TEST_CASE(6, a4, 0xffffffff80000000, \
     li a1, 0xfffffffffffff800; \
     li a4, 0xfffffffff8000001; \
-    amocas.d a4, a1, 0(a3); \
+    amocas.w.aq a4, a1, 0(a3); \
   )
 
-  TEST_CASE(7, a5, 0xffffffff80000000, ld a5, 0(a3))
+  TEST_CASE(7, a5, 0xffffffff80000000, lw a5, 0(a3))
 
 
   TEST_PASSFAIL

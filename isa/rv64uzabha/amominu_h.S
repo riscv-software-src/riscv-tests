@@ -20,7 +20,7 @@ RVTEST_CODE_BEGIN
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
     sh a0, 0(a3); \
-    amominu.h	a4, a1, 0(a3); \
+    amominu.h.aqrl	a4, a1, 0(a3); \
   )
 
   TEST_CASE(3, a5, 0xffffffffffff8000, lh a5, 0(a3))
@@ -41,7 +41,7 @@ RVTEST_CODE_BEGIN
     li a1, 0x8000000000000000; \
     la a3, amo_operand; \
     sh a0, 0(a3); \
-    amominu.h	a4, a1, 0(a3); \
+    amominu.h.aq	a4, a1, 0(a3); \
   )
 
   TEST_CASE(7, a5, 0x0000000000000000, lh a5, 0(a3))

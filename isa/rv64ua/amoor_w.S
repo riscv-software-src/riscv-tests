@@ -18,7 +18,7 @@ RVTEST_CODE_BEGIN
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
     sw a0, 0(a3); \
-    amoor.w	a4, a1, 0(a3); \
+    amoor.w.aqrl	a4, a1, 0(a3); \
   )
 
   TEST_CASE(3, a5, 0xfffffffffffff800, lw a5, 0(a3))

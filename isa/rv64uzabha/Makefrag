@@ -2,6 +2,7 @@
 # Makefrag for rv64uzabha tests
 #-----------------------------------------------------------------------
 
+# AMO ordering: first .aqrl, second unordered, third .aq, fourth .rl (when present).
 rv64uzabha_sc_tests = \
 	amoadd_h amoand_h amomax_h amomaxu_h amomin_h amominu_h amoor_h amoxor_h amoswap_h \
 	amoadd_b amoand_b amomax_b amomaxu_b amomin_b amominu_b amoor_b amoxor_b amoswap_b 

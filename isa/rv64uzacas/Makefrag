@@ -1,0 +1,9 @@
+#=======================================================================
+# Makefrag for rv64uzacas tests
+#-----------------------------------------------------------------------
+
+# AMO ordering: first .aqrl, second unordered, third .aq, fourth .rl (when present).
+rv64uzacas_sc_tests = amocas_w amocas_d amocas_q
+
+rv64uzacas_p_tests = $(addprefix rv64uzacas-p-, $(rv64uzacas_sc_tests))
+rv64uzacas_v_tests = $(addprefix rv64uzacas-v-, $(rv64uzacas_sc_tests))

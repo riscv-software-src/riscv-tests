@@ -24,7 +24,7 @@ RVTEST_CODE_BEGIN
     sd a3, 8(a0); \
     addi a4, a2, 1; \
     addi a5, a3, 0; \
-    amocas.q	a2, a4, 0(a0); \
+    amocas.q.aqrl	a2, a4, 0(a0); \
   )
 
   # Check high part destination doble word
@@ -48,7 +48,7 @@ RVTEST_CODE_BEGIN
   # Try a CAS pair mismatch
   TEST_CASE(10, a2, 0xffffffff80000002, \
     addi a4, a4, 1; \
-    amocas.q a2, a4, 0(a0); \
+    amocas.q.aq a2, a4, 0(a0); \
   )
 
   TEST_CASE(11, a5, 0xfffffffffffff800, mv a5, a3)
@@ -62,7 +62,7 @@ RVTEST_CODE_BEGIN
     la a0, amo_operand; \
     sd a2, 0(a0); \
     sd a3, 8(a0); \
-    amocas.q a2, zero, 0(a0); \
+    amocas.q.rl a2, zero, 0(a0); \
   )
   TEST_CASE(15, a7, 0, ld a7, 0(a0))
   TEST_CASE(16, a7, 0, ld a7, 8(a0))

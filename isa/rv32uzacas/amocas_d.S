@@ -24,7 +24,7 @@ RVTEST_CODE_BEGIN
     sw a3, 4(a0); \
     addi a4, a2, 1; \
     addi a5, a3, 0; \
-    amocas.d a2, a4, 0(a0); \
+    amocas.d.aqrl a2, a4, 0(a0); \
   )
 
   # Check high part destination word
@@ -48,7 +48,7 @@ RVTEST_CODE_BEGIN
   # Try a CAS pair mismatch
   TEST_CASE(10, a2, 0xffffffff80000002, \
     addi a4, a4, 1; \
-    amocas.d a2, a4, 0(a0); \
+    amocas.d.aq a2, a4, 0(a0); \
   )
 
   TEST_CASE(11, a5, 0xfffffffffffff800, mv a5, a3)
@@ -63,7 +63,7 @@ RVTEST_CODE_BEGIN
     la a0, amo_operand; \
     sw a2, 0(a0); \
     sw a3, 4(a0); \
-    amocas.d a2, zero, 0(a0); \
+    amocas.d.rl a2, zero, 0(a0); \
   )
   TEST_CASE(15, a7, 0, lw a7, 0(a0))
   TEST_CASE(16, a7, 0, lw a7, 4(a0))

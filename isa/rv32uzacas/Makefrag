@@ -1,0 +1,8 @@
+#=======================================================================
+# Makefrag for rv32uzacas tests
+#-----------------------------------------------------------------------
+
+rv32uzacas_sc_tests = amocas_w amocas_d
+
+rv32uzacas_p_tests = $(addprefix rv32uzacas-p-, $(rv32uzacas_sc_tests))
+rv32uzacas_v_tests = $(addprefix rv32uzacas-v-, $(rv32uzacas_sc_tests))

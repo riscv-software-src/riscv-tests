@@ -2,6 +2,7 @@
 # Makefrag for rv64uzabha_zacas tests
 #-----------------------------------------------------------------------
 
+# AMO ordering: first .aqrl, second unordered, third .aq, fourth .rl (when present).
 rv64uzabha_zacas_sc_tests = amocas_h amocas_b
 
 rv64uzabha_zacas_p_tests = $(addprefix rv64uzabha_zacas-p-, $(rv64uzabha_zacas_sc_tests))

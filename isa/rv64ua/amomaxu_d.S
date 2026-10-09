@@ -18,7 +18,7 @@ RVTEST_CODE_BEGIN
     li a1, 0xfffffffffffff800; \
     la a3, amo_operand; \
     sd a0, 0(a3); \
-    amomaxu.d	a4, a1, 0(a3); \
+    amomaxu.d.aqrl	a4, a1, 0(a3); \
   )
 
   TEST_CASE(3, a5, 0xfffffffffffff800, ld a5, 0(a3))
