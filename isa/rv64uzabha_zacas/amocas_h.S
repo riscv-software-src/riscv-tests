@@ -21,7 +21,7 @@ RVTEST_CODE_BEGIN
     la a3, amo_operand; \
     sh a0, 0(a3); \
     mv a4, a0; \
-    amocas.h a4, a1, 0(a3); \
+    amocas.h.aqrl a4, a1, 0(a3); \
   )
 
   TEST_CASE(3, a5, 0xfffffffffffff800, lh a5, 0(a3))
@@ -39,7 +39,7 @@ RVTEST_CODE_BEGIN
   TEST_CASE(6, a4, 0xffffffffffff8000, \
     li a1, 0xfffffffffffff800; \
     li a4, 0xfffffffff8000001; \
-    amocas.h a4, a1, 0(a3); \
+    amocas.h.aq a4, a1, 0(a3); \
   )
 
   TEST_CASE(7, a5, 0xffffffffffff8000, lh a5, 0(a3))

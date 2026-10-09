@@ -21,7 +21,7 @@ RVTEST_CODE_BEGIN
     li a1, 0xffffffffffffff80; \
     la a3, amo_operand; \
     sh a0, 0(a3); \
-    amoadd.h	a4, a1, 0(a3); \
+    amoadd.h.aqrl	a4, a1, 0(a3); \
   )
 
   # Check the memory

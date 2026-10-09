@@ -20,7 +20,7 @@ RVTEST_CODE_BEGIN
     li a1, 0xfffffffffffffff8; \
     la a3, amo_operand; \
     sb a0, 0(a3); \
-    amoswap.b	a4, a1, 0(a3); \
+    amoswap.b.aqrl	a4, a1, 0(a3); \
   )
 
   TEST_CASE(3, a5, 0xfffffffffffffff8, lb a5, 0(a3))

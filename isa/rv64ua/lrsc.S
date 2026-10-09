@@ -16,7 +16,7 @@ RVTEST_CODE_BEGIN
 # get a unique core id
 la a0, coreid
 li a1, 1
-amoadd.w a2, a1, (a0)
+amoadd.w.aqrl a2, a1, (a0)
 
 # for now, only run this on core 0
 1:li a3, 1
