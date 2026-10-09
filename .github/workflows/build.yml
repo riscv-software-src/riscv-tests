@@ -1,0 +1,87 @@
+# Build Spike and run a couple of debug tests.
+
+name: Build ELF
+
+env:
+  RV32_TOOLCHAIN_URL: https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2025.01.20/riscv32-elf-ubuntu-24.04-gcc-nightly-2025.01.20-nightly.tar.xz
+  RV64_TOOLCHAIN_URL: https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2025.01.20/riscv64-elf-ubuntu-24.04-gcc-nightly-2025.01.20-nightly.tar.xz
+
+on:
+  # Run on merges to master to populate the cache with entities that are
+  # accessible by every pull request.
+  push:
+  workflow_dispatch:
+# There is some commented out code below that would be useful in adding this
+# workflow to other repos. Ideally we can come up with something that would
+# leave this file almost identical between repos, so they can all easily run
+# this test suite.
+
+jobs:
+  Build:
+    name: Build ELF on Ubuntu
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Get the toolchain from cache (if available)
+        id: cache-restore-toolchain
+        uses: actions/cache/restore@v4
+        with:
+          path: /opt/riscv
+          key: "toolchain-${{env.RV64_TOOLCHAIN_URL}}"
+      
+      - if: ${{ steps.cache-restore-toolchain.outputs.cache-hit != 'true' }}
+        name: Download RV32 Toolchain (if not cached)
+        run: |
+          mkdir -p /opt/riscv/rv32toolchain
+          wget --progress=dot:giga $RV32_TOOLCHAIN_URL -O /tmp/rv32toolchain.tar.gz
+
+      - if: ${{ steps.cache-restore-toolchain.outputs.cache-hit != 'true' }}
+        name: Download RV64 Toolchain (if not cached)
+        run: |
+          mkdir -p /opt/riscv/rv64toolchain
+          wget --progress=dot:giga $RV64_TOOLCHAIN_URL -O /tmp/rv64toolchain.tar.gz
+
+      - if: ${{ steps.cache-restore-toolchain.outputs.cache-hit != 'true' }}
+        name: Install Toolchain (if not cached)
+        run: |
+          tar xvf /tmp/rv32toolchain.tar.gz --strip-components=1 -C /opt/riscv/rv32toolchain
+          tar xvf /tmp/rv64toolchain.tar.gz --strip-components=1 -C /opt/riscv/rv64toolchain
+
+      - name: Save the toolchain to the cache (if necessary)
+        id: cache-save-toolchain
+        uses: actions/cache/save@v4
+        with:
+          path: /opt/riscv
+          key: "toolchain-${{env.RV64_TOOLCHAIN_URL}}"
+
+      - name: Build ELFs
+        run: |
+          export PATH=/opt/riscv/rv64toolchain/bin:/opt/riscv/rv32toolchain/bin:$PATH
+          mkdir results
+          autoupdate
+          autoconf
+          ./configure --prefix=$(pwd)/riscv-tests/results
+          make
+          make install
+
+      - name: Archive ISA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ISA-${{ github.sha }}
+          path: riscv-tests/results/share/riscv-tests/isa
+      
+      - name: Archive Benchmarks
+        # Proceed even if there was a failed test
+        if: ${{ success() || failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Benchmarks-${{ github.sha }}
+          path: riscv-tests/results/share/riscv-tests/benchmarks
