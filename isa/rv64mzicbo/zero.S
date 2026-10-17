@@ -32,6 +32,10 @@ RVTEST_DATA_BEGIN
 
   TEST_DATA
 
-tdat:  .dword 0xdeadbeefdeadbeef
+  .balign 64
+tdat:
+  .rept 8
+  .dword 0xdeadbeefdeadbeef
+  .endr
 
 RVTEST_DATA_END
