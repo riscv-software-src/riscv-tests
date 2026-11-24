@@ -123,7 +123,7 @@ test_ ## testnum: \
 
 #define TEST_R_OP( testnum, inst, result, val1 ) \
     TEST_CASE( testnum, x14, result, \
-      li  x1, val1; \
+      li  x1, MASK_XLEN(val1); \
       inst x14, x1; \
     )
 
@@ -149,14 +149,14 @@ test_ ## testnum: \
 
 #define TEST_R_SRC1_EQ_DEST( testnum, inst, result, val1 ) \
     TEST_CASE( testnum, x1, result, \
-      li  x1, val1; \
+      li  x1, MASK_XLEN(val1); \
       inst x1, x1; \
     )
 
 #define TEST_R_DEST_BYPASS( testnum, nop_cycles, inst, result, val1 ) \
     TEST_CASE( testnum, x6, result, \
       li  x4, 0; \
-1:    li  x1, val1; \
+1:    li  x1, MASK_XLEN(val1); \
       inst x14, x1; \
       TEST_INSERT_NOPS_ ## nop_cycles \
       addi  x6, x14, 0; \
