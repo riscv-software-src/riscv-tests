@@ -39,6 +39,12 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP3_D(12, fnmsub.d, 1,               -1234, -1.0,    -1235.1,        1.1 );
   TEST_FP_OP3_D(13, fnmsub.d, 0,                 8.0,  2.0,       -5.0,       -2.0 );
 
+  # Under RNE, (1 + 2^-52) * (1 - 2^-52) - 1 is exactly -2^-104.
+  TEST_FP_OP3_D(14,  fmadd.d, 0, 0d:b970000000000000, 0d:3ff0000000000001, 0d:3feffffffffffffe, -1.0 );
+  TEST_FP_OP3_D(15, fnmadd.d, 0, 0d:3970000000000000, 0d:3ff0000000000001, 0d:3feffffffffffffe, -1.0 );
+  TEST_FP_OP3_D(16,  fmsub.d, 0, 0d:b970000000000000, 0d:3ff0000000000001, 0d:3feffffffffffffe,  1.0 );
+  TEST_FP_OP3_D(17, fnmsub.d, 0, 0d:3970000000000000, 0d:3ff0000000000001, 0d:3feffffffffffffe,  1.0 );
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END

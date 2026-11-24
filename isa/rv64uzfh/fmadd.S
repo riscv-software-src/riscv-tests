@@ -33,6 +33,13 @@ RVTEST_CODE_BEGIN
   TEST_FP_OP3_H(12, fnmsub.h, 1,                 -11, -1.0,      -12.1,        1.1 );
   TEST_FP_OP3_H(13, fnmsub.h, 0,                 8.0,  2.0,       -5.0,       -2.0 );
 
+  # Under RNE, (1 + 2^-10) * (1 - 2^-10) - 1 is exactly -2^-20.
+  # This exact subnormal result must not raise UF or NX.
+  TEST_FP_OP3_H(14,  fmadd.h, 0, 0h:8010, 0h:3c01, 0h:3bfe, -1.0 );
+  TEST_FP_OP3_H(15, fnmadd.h, 0, 0h:0010, 0h:3c01, 0h:3bfe, -1.0 );
+  TEST_FP_OP3_H(16,  fmsub.h, 0, 0h:8010, 0h:3c01, 0h:3bfe,  1.0 );
+  TEST_FP_OP3_H(17, fnmsub.h, 0, 0h:0010, 0h:3c01, 0h:3bfe,  1.0 );
+
   TEST_PASSFAIL
 
 RVTEST_CODE_END
