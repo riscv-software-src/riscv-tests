@@ -99,7 +99,7 @@ RVTEST_CODE_BEGIN
 
 #ifndef _ENV_VIRTUAL_SINGLE_CORE_H
   .align 2
-  .global mtvec_handler
+  .weak mtvec_handler
 mtvec_handler:
   # only test 21 and 22 expected to cause an illegal-inst
   li t1, CAUSE_ILLEGAL_INSTRUCTION
