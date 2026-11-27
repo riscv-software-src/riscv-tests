@@ -152,7 +152,6 @@ napot_store:
   TEST_PASSFAIL
 
   .align 2
-  .global mtvec_handler
 mtvec_handler:
   # Skip if Svnapot is not implemented.
   csrr t5, mcause

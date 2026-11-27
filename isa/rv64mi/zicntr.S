@@ -37,7 +37,6 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
-  .global mtvec_handler
 mtvec_handler:
   j fail
 
