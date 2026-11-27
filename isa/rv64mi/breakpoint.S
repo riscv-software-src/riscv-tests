@@ -114,6 +114,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
+  .weak mtvec_handler
 mtvec_handler:
   # Only even-numbered tests should trap.
   andi t0, TESTNUM, 1

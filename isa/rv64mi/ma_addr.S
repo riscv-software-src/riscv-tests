@@ -95,6 +95,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 3
+  .weak mtvec_handler
 mtvec_handler:
   csrr t0, mcause
   beq t0, s1, 1f

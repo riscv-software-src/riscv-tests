@@ -78,6 +78,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
+  .weak mtvec_handler
 mtvec_handler:
   csrr t0, mcause
   add t0, t0, -CAUSE_STORE_PAGE_FAULT

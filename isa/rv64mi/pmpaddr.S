@@ -137,6 +137,7 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
+  .weak mtvec_handler
 mtvec_handler:
   # We aren't expecting any exceptions unless PMP is not supported
   # in which case this test is also not supported. There's no
